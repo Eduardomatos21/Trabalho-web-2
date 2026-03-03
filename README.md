@@ -44,16 +44,26 @@ To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use th
 ng test
 ```
 
-## Running end-to-end tests
+## VERSÕES UTILIZADAS
 
-For end-to-end (e2e) testing, run:
+Angular CLI       : 21.2.0
+Angular           : 21.2.0
+Node.js           : 22.17.0
+Package Manager   : npm 11.11.0
+Operating System  : win32 x64
 
-```bash
-ng e2e
-```
+┌───────────────────────────┬───────────────────┬───────────────────┐
+│ Package                   │ Installed Version │ Requested Version │
+├───────────────────────────┼───────────────────┼───────────────────┤
+│ @angular/build            │ 21.2.0            │ ^21.2.0           │
+│ @angular/cli              │ 21.2.0            │ ^21.2.0           │
+│ @angular/common           │ 21.2.0            │ ^21.2.0           │
+│ @angular/compiler         │ 21.2.0            │ ^21.2.0           │
+│ @angular/compiler-cli     │ 21.2.0            │ ^21.2.0           │
+│ @angular/core             │ 21.2.0            │ ^21.2.0           │
+│ @angular/forms            │ 21.2.0            │ ^21.2.0           │
+│ @angular/platform-browser │ 21.2.0            │ ^21.2.0           │
+│ @angular/router           │ 21.2.0            │ ^21.2.0           │
+│ typescript                │ 5.9.3             │ ~5.9.2            │      │
+└───────────────────────────┴───────────────────┴───────────────────┘
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
