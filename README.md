@@ -44,6 +44,25 @@ To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use th
 ng test
 ```
 
+## Configuração do Projeto
+
+1. Clone o repositório:
+   ```bash
+   git clone <URL_DO_REPOSITORIO>
+   ```
+
+2. Instale as dependências:
+   ```bash
+   npm install
+   ```
+
+3. Inicie o servidor de desenvolvimento:
+   ```bash
+   ng serve
+   ```
+
+4. Acesse o projeto no navegador em `http://localhost:4200`.
+
 ## VERSÕES UTILIZADAS
 
 Angular CLI       : 21.2.0
