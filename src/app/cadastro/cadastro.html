@@ -1,0 +1,160 @@
+﻿<div class="min-h-screen relative overflow-hidden">
+	<div class="relative max-w-6xl mx-auto px-4 py-8 md:py-12">
+		<div class="grid lg:grid-cols-12 gap-6 items-start">
+
+			<section class="lg:col-span-5">
+				<div class="bg-gradient-to-br from-teal-700 to-cyan-700 text-white rounded-3xl p-8 shadow-xl">
+
+					<h1 class="text-xl3 font-black leading-tight">Cadastro de Cliente</h1>
+					<p class="mt-3 text-cyan-100 text-sm leading-relaxed">
+						Informe seus dados para criar o acesso ao sistema de manutenção. A senha inicial
+						sera enviada para o e-mail informado.
+					</p>
+				</div>
+
+				<div class="mt-4 text-sm text-slate-600">
+					Já possui conta?
+					<a routerLink="/login" class="font-semibold text-teal-700 hover:text-teal-800 hover:underline">Fazer login</a>
+				</div>
+			</section>
+
+			<section class="lg:col-span-7">
+				<div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+
+					<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="p-6 md:p-8 space-y-7">
+						<div>
+							<h2 class="text-xl font-bold text-slate-900">Criar conta</h2>
+							<p class="text-sm text-slate-500 mt-1">Preencha todos os campos obrigatorios marcados com *.</p>
+						</div>
+
+						<div class="space-y-5">
+							<div class="flex items-center gap-3">
+								<span class="w-7 h-7 rounded-lg bg-teal-600 text-white text-xs font-bold flex items-center justify-center">1</span>
+								<h3 class="text-xs font-semibold uppercase tracking-widest text-slate-500">Dados pessoais</h3>
+								<div class="h-px flex-1 bg-slate-200"></div>
+							</div>
+
+							<div class="grid sm:grid-cols-2 gap-4">
+								<div class="sm:col-span-2">
+									<ui-form-field label="Nome completo" fieldId="nome" [required]="true" [error]="erro('nome')">
+										<input id="nome" formControlName="nome" type="text" autocomplete="name"
+											placeholder="Ex.: Joao da Silva" [class]="inputClass('nome')"/>
+									</ui-form-field>
+								</div>
+
+								<div>
+									<ui-form-field label="CPF" fieldId="cpf" [required]="true" [error]="erro('cpf')">
+										<input id="cpf" formControlName="cpf" type="text" maxlength="14" autocomplete="off"
+											placeholder="000.000.000-00" (input)="mask($event, 'cpf')" [class]="inputClass('cpf')"/>
+									</ui-form-field>
+								</div>
+
+								<div>
+									<ui-form-field label="Telefone" fieldId="telefone" [required]="true" [error]="erro('telefone')">
+										<input id="telefone" formControlName="telefone" type="text" maxlength="15" autocomplete="tel"
+											placeholder="(00) 00000-0000" (input)="mask($event, 'telefone')" [class]="inputClass('telefone')"/>
+									</ui-form-field>
+								</div>
+
+								<div class="sm:col-span-2">
+									<ui-form-field label="E-mail" fieldId="email" [required]="true" [error]="erro('email')">
+										<input id="email" formControlName="email" type="email" autocomplete="email"
+											placeholder="seu@email.com" [class]="inputClass('email')"/>
+									</ui-form-field>
+								</div>
+							</div>
+						</div>
+
+						<div class="space-y-5">
+							<div class="flex items-center gap-3">
+								<span class="w-7 h-7 rounded-lg bg-teal-600 text-white text-xs font-bold flex items-center justify-center">2</span>
+								<h3 class="text-xs font-semibold uppercase tracking-widest text-slate-500">Endereço</h3>
+								<div class="h-px flex-1 bg-slate-200"></div>
+							</div>
+
+							<div class="grid sm:grid-cols-6 gap-4">
+								<div class="sm:col-span-2">
+									<ui-form-field label="CEP" fieldId="cep" [required]="true" [error]="cepErro ? 'CEP nao encontrado.' : erro('cep')">
+										<div class="relative">
+											<input id="cep" formControlName="cep" type="text" maxlength="9" autocomplete="postal-code"
+												placeholder="00000-000" (input)="mask($event, 'cep')" (blur)="buscarCep()"
+												[class]="inputClass('cep') + (cepErro ? ' border-red-400 bg-red-50' : '') + ' pr-10'"/>
+											@if (cepLoading) {
+												<svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-teal-600 animate-spin" fill="none" viewBox="0 0 24 24">
+													<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+													<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+												</svg>
+											}
+										</div>
+									</ui-form-field>
+								</div>
+
+								<div class="sm:col-span-4">
+									<ui-form-field label="Logradouro" fieldId="logradouro" [required]="true" [error]="erro('logradouro')">
+										<input id="logradouro" formControlName="logradouro" type="text" autocomplete="street-address"
+											placeholder="Rua, Avenida..." [class]="inputClass('logradouro')"/>
+									</ui-form-field>
+								</div>
+
+								<div class="sm:col-span-2">
+									<ui-form-field label="Número" fieldId="numero" [required]="true" [error]="erro('numero')">
+										<input id="numero" formControlName="numero" type="text" placeholder="123" [class]="inputClass('numero')"/>
+									</ui-form-field>
+								</div>
+
+								<div class="sm:col-span-2">
+									<ui-form-field label="Complemento" fieldId="complemento" hint="Opcional">
+										<input id="complemento" formControlName="complemento" type="text" placeholder="Apto, bloco..." [class]="inputClass('complemento')"/>
+									</ui-form-field>
+								</div>
+
+								<div class="sm:col-span-2">
+									<ui-form-field label="Bairro" fieldId="bairro" [required]="true" [error]="erro('bairro')">
+										<input id="bairro" formControlName="bairro" type="text" placeholder="Nome do bairro" [class]="inputClass('bairro')"/>
+									</ui-form-field>
+								</div>
+
+								<div class="sm:col-span-4">
+									<ui-form-field label="Cidade" fieldId="cidade" [required]="true" [error]="erro('cidade')">
+										<input id="cidade" formControlName="cidade" type="text" autocomplete="address-level2" placeholder="Cidade" [class]="inputClass('cidade')"/>
+									</ui-form-field>
+								</div>
+
+								<div class="sm:col-span-2">
+									<ui-form-field label="UF" fieldId="estado" [required]="true" [error]="erro('estado')">
+										<input id="estado" formControlName="estado" type="text" maxlength="2" autocomplete="address-level1"
+											placeholder="SP" [class]="inputClass('estado') + ' uppercase'"/>
+									</ui-form-field>
+								</div>
+							</div>
+						</div>
+
+						<div class="pt-2 border-t border-slate-100 flex justify-end">
+							<ui-button type="submit" variant="primary" size="lg" [loading]="loading">
+								Finalizar cadastro
+							</ui-button>
+						</div>
+					</form>
+				</div>
+			</section>
+		</div>
+	</div>
+</div>
+
+<ui-modal [isOpen]="sucesso" [closeOnBackdrop]="false" (closed)="sucesso = false" title="Cadastro concluido">
+	<div class="text-center py-2">
+		<div class="w-16 h-16 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4">
+			<svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+			</svg>
+		</div>
+		<p class="text-sm text-slate-600 leading-relaxed">
+			Cliente cadastrado com sucesso. Uma senha de 4 digitos foi enviada para o e-mail informado.
+		</p>
+	</div>
+
+	<div modal-footer class="flex justify-center gap-2">
+		<ui-button variant="secondary" (clicked)="sucesso = false">Fechar</ui-button>
+		<ui-button variant="primary" (clicked)="irParaLogin()">Ir para login</ui-button>
+	</div>
+</ui-modal>
