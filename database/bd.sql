@@ -1,5 +1,5 @@
-create database web1;
-use web1;
+create database web10;
+use web10;
 
 CREATE TABLE Endereco (
 	id_endereco int PRIMARY KEY auto_increment,
