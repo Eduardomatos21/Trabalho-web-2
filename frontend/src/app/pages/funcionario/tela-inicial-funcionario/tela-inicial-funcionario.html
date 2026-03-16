@@ -1,1 +1,153 @@
-<p>tela-inicial-funcionario works!</p>
+<div class="min-h-screen bg-slate-50 flex">
+
+  <!-- MENU LATERAL -->
+  <aside class="w-64 bg-gradient-to-b from-teal-700 to-cyan-700 text-white flex flex-col">
+
+    <div class="p-6 border-b border-teal-600">
+      <h1 class="text-2xl font-black">Sistema</h1>
+      <p class="text-xs opacity-80">Painel do Funcionário</p>
+    </div>
+
+    <nav class="flex-1 p-4 space-y-2">
+
+      <a href="#" class="block px-4 py-3 rounded-xl hover:bg-white/10 transition">
+        Página Inicial
+      </a>
+
+      <a href="#" class="block px-4 py-3 rounded-xl hover:bg-white/10 transition">
+        Efetuar Orçamento
+      </a>
+
+      <a href="#" class="block px-4 py-3 rounded-xl hover:bg-white/10 transition">
+        Visualização de Solicitações
+      </a>
+
+      <a href="#" class="block px-4 py-3 rounded-xl hover:bg-white/10 transition">
+        Relatórios
+      </a>
+
+    </nav>
+
+    <div class="p-4 border-t border-teal-600 text-xs opacity-80">
+      Sistema de Manutenção
+    </div>
+
+        <!-- BOTÃO LOGOUT -->
+    <div class="p-4 border-t border-teal-600">
+
+      <button
+        (click)="logout()"
+        class="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-red-500 transition rounded-xl px-4 py-3 text-sm font-semibold">
+
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="w-5 h-5"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke="currentColor">
+
+          <path stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+
+        </svg>
+
+        Logout
+
+      </button>
+
+    </div>
+
+  </aside>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="flex-1 p-8">
+
+    <div class="max-w-6xl mx-auto">
+
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold text-slate-900">
+          Solicitações Abertas
+        </h2>
+
+        <p class="text-sm text-slate-500">
+          Solicitações que necessitam de atenção imediata.
+        </p>
+      </div>
+
+      <!-- CARD -->
+      <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+
+        <div class="p-6">
+
+          <div class="overflow-x-auto">
+
+            <table class="w-full text-sm">
+
+              <thead>
+                <tr class="border-b border-slate-200 text-left text-slate-500 uppercase text-xs tracking-wider">
+                  <th class="py-3">Data / Hora</th>
+                  <th class="py-3">Cliente</th>
+                  <th class="py-3">Produto</th>
+                </tr>
+              </thead>
+
+              <tbody class="divide-y divide-slate-100">
+
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 font-medium text-slate-700">
+                    16/03/2026 10:20
+                  </td>
+
+                  <td class="py-3 text-slate-700">
+                    João da Silva
+                  </td>
+
+                  <td class="py-3 text-slate-600">
+                    Notebook Dell Inspiron 15
+                  </td>
+                </tr>
+
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 font-medium text-slate-700">
+                    16/03/2026 11:05
+                  </td>
+
+                  <td class="py-3 text-slate-700">
+                    Maria Oliveira
+                  </td>
+
+                  <td class="py-3 text-slate-600">
+                    Monitor LG UltraWide 29
+                  </td>
+                </tr>
+
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 font-medium text-slate-700">
+                    16/03/2026 11:45
+                  </td>
+
+                  <td class="py-3 text-slate-700">
+                    Carlos Pereira
+                  </td>
+
+                  <td class="py-3 text-slate-600">
+                    Teclado Mecânico Gamer RGB
+                  </td>
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+</div>

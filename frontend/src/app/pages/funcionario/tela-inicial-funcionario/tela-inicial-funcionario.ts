@@ -1,11 +1,19 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-tela-inicial-funcionario',
   standalone: true,
-  imports: [RouterLink],
+  imports: [],
   templateUrl: './tela-inicial-funcionario.html',
   styleUrl: './tela-inicial-funcionario.css',
 })
-export class TelaInicialFuncionario {}
+export class TelaInicialFuncionario {
+constructor (private router: Router) {}
+
+  logout() {
+    localStorage.clear();
+    this.router.navigate(['/login']);
+  }
+
+}
