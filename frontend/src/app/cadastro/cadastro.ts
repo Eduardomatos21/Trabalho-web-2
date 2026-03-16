@@ -102,21 +102,21 @@ export class Cadastro {
     const e = ctrl.errors;
     const nomes: Record<string, string> = {
       nome: 'Nome', cpf: 'CPF', email: 'E-mail', telefone: 'Telefone',
-      cep: 'CEP', logradouro: 'Logradouro', numero: 'N\u00famero',
+      cep: 'CEP', logradouro: 'Logradouro', numero: 'Número',
       bairro: 'Bairro', cidade: 'Cidade', estado: 'Estado',
     };
-    if (e['required'])  return `${nomes[campo] ?? campo} \u00e9 obrigat\u00f3rio.`;
-    if (e['email'])     return 'E-mail inv\u00e1lido.';
-    if (e['minlength']) return `M\u00ednimo de ${e['minlength'].requiredLength} caracteres.`;
+    if (e['required'])  return `${nomes[campo] ?? campo} é obrigatório.`;
+    if (e['email'])     return 'E-mail inválido.';
+    if (e['minlength']) return `Mínimo de ${e['minlength'].requiredLength} caracteres.`;
     if (e['pattern']) {
       const msgs: Record<string, string> = {
-        cpf:      'CPF inv\u00e1lido (000.000.000-00).',
-        telefone: 'Telefone inv\u00e1lido.',
-        cep:      'CEP inv\u00e1lido (00000-000).',
+        cpf:      'CPF inválido (000.000.000-00).',
+        telefone: 'Telefone inválido.',
+        cep:      'CEP inválido (00000-000).',
       };
-      return msgs[campo] ?? 'Formato inv\u00e1lido.';
+      return msgs[campo] ?? 'Formato inválido.';
     }
-    return 'Campo inv\u00e1lido.';
+    return 'Campo inválido.';
   }
 
   inputClass(campo: string): string {
