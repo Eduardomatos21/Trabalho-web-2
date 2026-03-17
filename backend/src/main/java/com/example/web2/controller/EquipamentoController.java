@@ -11,24 +11,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.web2.entity.Solicitacao;
-import com.example.web2.repository.SolicitacaoRepository;
+import com.example.web2.entity.Equipamento;
+import com.example.web2.repository.EquipamentoRepository;
 
 @RestController
-@RequestMapping("/solicitacoes")
-public class SolicitacaoController {
+@RequestMapping("/equipamentos")
+public class EquipamentoController {
 
     @Autowired
-    private SolicitacaoRepository solicitacaoRepository;
+    private EquipamentoRepository equipamentoRepository;
 
     @GetMapping
-    public List<Solicitacao> listar() {
-        return solicitacaoRepository.findAll();
+    public List<Equipamento> listar() {
+        return equipamentoRepository.findAll();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Solicitacao adicionar(@RequestBody Solicitacao solicitacao) {
-        return solicitacaoRepository.save(solicitacao);
+    public Equipamento adicionar(@RequestBody Equipamento equipamento) {
+        return equipamentoRepository.save(equipamento);
     }
 }
