@@ -1,1 +1,135 @@
-<p>tela-inicial-cliente works!</p>
+<div class="min-h-screen bg-slate-50 flex">
+
+	<!-- MENU LATERAL -->
+	<aside class="hidden lg:flex w-72 bg-linear-to-b from-teal-700 to-cyan-700 text-white flex-col">
+		<!-- CABEÇALHO DO MENU -->
+		<div class="p-6 border-b border-teal-600/70">
+			<h1 class="text-2xl font-black">Sistema</h1>
+			<p class="text-xs text-cyan-100 mt-1">Painel do Cliente</p>
+		</div>
+
+		<!-- LINKS DE NAVEGAÇÃO -->
+		<nav class="flex-1 p-4 space-y-2 text-sm">
+			<a class="block px-4 py-3 rounded-xl bg-white/15 font-semibold">Página inicial</a>
+			<a class="block px-4 py-3 rounded-xl hover:bg-white/10 transition">Nova solicitação</a>
+			<a class="block px-4 py-3 rounded-xl hover:bg-white/10 transition">Minhas solicitações</a>
+			<a class="block px-4 py-3 rounded-xl hover:bg-white/10 transition">Meus dados</a>
+		</nav>
+
+		<!-- BOTÃO LOGOUT -->
+		<div class="p-4 border-t border-teal-600/70">
+			<button
+				type="button"
+				(click)="logout()"
+				class="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-red-500 transition rounded-xl px-4 py-3 text-sm font-semibold">
+				<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+						d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+				</svg>
+				Sair
+			</button>
+		</div>
+	</aside>
+
+	<!-- CONTEÚDO PRINCIPAL -->
+	<main class="flex-1 p-4 sm:p-6 lg:p-8">
+		<div class="max-w-6xl mx-auto space-y-6">
+
+			<!-- CARD DE BOAS-VINDAS E AÇÃO -->
+			<header class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8">
+				<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+					<!-- TEXTO DE APRESENTAÇÃO -->
+					<div>
+						<p class="text-xs uppercase tracking-widest text-teal-700 font-semibold">Área do cliente</p>
+						<h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Bem-vindo de volta</h2>
+						<p class="text-sm text-slate-500 mt-2">Acompanhe o status dos seus equipamentos e abra novas solicitações.</p>
+					</div>
+					<!-- AÇÃO PRINCIPAL -->
+					<!-- TODO: alterar routerLink para pagina/modal de criar solicitação -->
+					<a
+						routerLink=""
+						class="inline-flex items-center justify-center rounded-xl bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 text-sm font-semibold transition">
+						Nova solicitação
+					</a>
+				</div>
+			</header>
+
+			<!-- INDICADORES RÁPIDOS -->
+			<section class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+				@for (item of indicadores; track item.titulo) {
+					<!-- CARD INDICADOR -->
+					<article class="rounded-2xl border p-5" [class]="'rounded-2xl border p-5 ' + item.classe">
+						<p class="text-xs uppercase tracking-widest font-semibold opacity-90">{{ item.titulo }}</p>
+						<p class="text-3xl font-black mt-2">{{ item.valor }}</p>
+					</article>
+				}
+			</section>
+
+			<!-- TABELA DE SOLICITAÇÕES -->
+			<section class="bg-white rounded-3xl border border-slate-200 overflow-hidden">
+				<!-- CABEÇALHO DA TABELA -->
+				<div class="p-6 border-b border-slate-100 flex items-center justify-between">
+					<div>
+						<h3 class="text-lg font-bold text-slate-900">Solicitações do cliente</h3>
+					</div>
+				</div>
+
+				<!-- LISTAGEM -->
+				<div class="overflow-x-auto">
+					<table class="w-full min-w-190 text-sm">
+						<thead>
+							<tr class="border-b border-slate-200 text-left text-slate-500 uppercase text-xs tracking-wider">
+								<th class="py-3 px-6">
+									<button
+										type="button"
+										(click)="alternarOrdemDataHora()"
+										class="inline-flex items-center gap-2 hover:text-slate-700 transition">
+										<span>Data/Hora</span>
+										<span class="text-[10px]">{{ ordemDataHora === 'asc' ? '▲' : '▼' }}</span>
+									</button>
+								</th>
+								<th class="py-3 px-6">Equipamento</th>
+								<th class="py-3 px-6">Estado da solicitação</th>
+								<th class="py-3 px-6">Ações</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-slate-100">
+							@for (sol of solicitacoesOrdenadas; track sol.codigo) {
+								<!-- LINHA DA SOLICITAÇÃO -->
+								<tr class="hover:bg-slate-50 transition-colors">
+									<td class="py-3 px-6 text-slate-500 whitespace-nowrap">{{ sol.dataHora }}</td>
+									<td class="py-3 px-6 text-slate-700 font-medium">{{ descricaoLimitada(sol.descricaoEquipamento) }}</td>
+									<td class="py-3 px-6">
+										<span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold" [class]="estadoClasse(sol.estado)">
+											{{ sol.estado }}
+										</span>
+									</td>
+									<td class="py-3 px-6">
+										<div class="flex items-center gap-2 flex-wrap">
+											<button
+												type="button"
+												(click)="visualizarSolicitacao(sol.codigo)"
+												class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition">
+												Visualizar Solicitação
+											</button>
+
+											@if (labelAcao(sol.estado); as acaoEstado) {
+												<button
+													type="button"
+													(click)="executarAcao(sol.codigo, sol.estado)"
+													class="inline-flex items-center rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 transition">
+													{{ acaoEstado }}
+												</button>
+											}
+										</div>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+		</div>
+	</main>
+</div>
