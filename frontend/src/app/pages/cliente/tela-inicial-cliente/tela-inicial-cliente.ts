@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import type { SidebarItem } from '../../../shared';
+import { SidebarComponent } from '../../../shared';
 
 type EstadoSolicitacao = 'ORÇADA' | 'APROVADA' | 'REJEITADA' | 'ARRUMADA' | 'EM ANÁLISE' | 'ABERTA';
 
@@ -15,7 +17,7 @@ type OrdemDataHora = 'asc' | 'desc';
 @Component({
   selector: 'app-tela-inicial-cliente',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, SidebarComponent],
   templateUrl: './tela-inicial-cliente.html',
   styleUrl: './tela-inicial-cliente.css',
 })
@@ -28,6 +30,13 @@ export class TelaInicialCliente {
     { titulo: 'Solicitações abertas', valor: 2, classe: 'bg-amber-50 text-amber-700 border-amber-200' },
     { titulo: 'Em andamento', valor: 1, classe: 'bg-sky-50 text-sky-700 border-sky-200' },
     { titulo: 'Concluídas', valor: 6, classe: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  ];
+
+  readonly menuItemsCliente: SidebarItem[] = [
+    { label: 'Página inicial', route: '/cliente', active: true },
+    { label: 'Nova solicitação' },
+    { label: 'Minhas solicitações' },
+    { label: 'Meus dados' },
   ];
 
   readonly solicitacoes: SolicitacaoCliente[] = [
