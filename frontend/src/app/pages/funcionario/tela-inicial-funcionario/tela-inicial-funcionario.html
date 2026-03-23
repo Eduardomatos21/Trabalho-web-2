@@ -9,17 +9,19 @@
   <!-- CONTEÚDO PRINCIPAL -->
   <main class="flex-1 p-8">
 
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-6xl mx-auto space-y-6">
 
-      <div class="mb-6">
-        <h2 class="text-2xl font-bold text-slate-900">
-          Solicitações Abertas
-        </h2>
-
-        <p class="text-sm text-slate-500">
-          Solicitações que necessitam de atenção imediata.
-        </p>
-      </div>
+      <!-- CARD DE BOAS-VINDAS E AÇÃO -->
+			<header class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8">
+				<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+					<!-- TEXTO DE APRESENTAÇÃO -->
+					<div>
+						<p class="text-xs uppercase tracking-widest text-teal-700 font-semibold">Área do Funcionário</p>
+						<h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Bem-vindo de volta</h2>
+						<p class="text-sm text-slate-500 mt-2">Solicitações que necessitam de atenção imediata.</p>
+					</div>
+				</div>
+			</header>
 
       <!-- CARD -->
       <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
@@ -35,53 +37,35 @@
                   <th class="py-3">Data / Hora</th>
                   <th class="py-3">Cliente</th>
                   <th class="py-3">Produto</th>
+                  <th class="py-3">Ações</th>
                 </tr>
               </thead>
 
               <tbody class="divide-y divide-slate-100">
+                @for (sol of solicitacoes; track sol.codigo) {
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-3 font-medium text-slate-700">
+                      {{ sol.dataHora }}
+                    </td>
 
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 font-medium text-slate-700">
-                    16/03/2026 10:20
-                  </td>
+                    <td class="py-3 text-slate-700">
+                      {{ sol.cliente }}
+                    </td>
 
-                  <td class="py-3 text-slate-700">
-                    João da Silva
-                  </td>
+                    <td class="py-3 text-slate-600">
+                      {{ sol.produto }}
+                    </td>
 
-                  <td class="py-3 text-slate-600">
-                    Notebook Dell Inspiron 15
-                  </td>
-                </tr>
-
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 font-medium text-slate-700">
-                    16/03/2026 11:05
-                  </td>
-
-                  <td class="py-3 text-slate-700">
-                    Maria Oliveira
-                  </td>
-
-                  <td class="py-3 text-slate-600">
-                    Monitor LG UltraWide 29
-                  </td>
-                </tr>
-
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 font-medium text-slate-700">
-                    16/03/2026 11:45
-                  </td>
-
-                  <td class="py-3 text-slate-700">
-                    Carlos Pereira
-                  </td>
-
-                  <td class="py-3 text-slate-600">
-                    Teclado Mecânico Gamer RGB
-                  </td>
-                </tr>
-
+                    <td class="py-3">
+                      <button
+                        type="button"
+                        (click)="efetuarOrcamento(sol.codigo)"
+                        class="inline-flex items-center rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 transition">
+                        Efetuar Orçamento
+                      </button>
+                    </td>
+                  </tr>
+                }
               </tbody>
 
             </table>
