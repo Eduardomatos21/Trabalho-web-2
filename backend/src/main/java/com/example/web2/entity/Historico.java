@@ -1,3 +1,9 @@
+package com.example.web2.entity;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.*;
+
 @Entity
 @Table(name = "Historico")
 public class Historico {
@@ -21,6 +27,7 @@ public class Historico {
     @Enumerated(EnumType.STRING)
     private Estado estadoAtual;
 
+    @Column(name = "dataHora")
     private LocalDateTime dataHora;
 
     public Historico() {}

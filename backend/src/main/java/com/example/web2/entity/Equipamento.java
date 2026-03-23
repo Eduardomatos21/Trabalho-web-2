@@ -1,9 +1,14 @@
 package com.example.web2.entity;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import jakarta.persistence.*;
 import java.util.List;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "Equipamento")
@@ -86,4 +91,5 @@ public class Equipamento {
     
     public void setSolicitacoes (List<Solicitacao> solicitacoes) {
         this.solicitacoes = solicitacoes;
-    }}
+    }
+}

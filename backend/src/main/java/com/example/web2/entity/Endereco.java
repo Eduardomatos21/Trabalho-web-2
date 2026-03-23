@@ -1,9 +1,14 @@
 package com.example.web2.entity;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import jakarta.persistence.*;
 import java.util.List;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "Endereco")
@@ -83,8 +88,6 @@ public class Endereco {
     public void setPais (String pais) {
         this.pais = pais;
     }  
-
-
     public Endereco() {}
 
 }
