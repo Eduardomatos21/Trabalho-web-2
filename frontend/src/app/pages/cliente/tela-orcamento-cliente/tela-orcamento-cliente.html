@@ -1,1 +1,128 @@
-<p>tela-orcamento-cliente works!</p>
+<div class="min-h-screen bg-slate-50 flex">
+
+	<!-- MENU LATERAL -->
+	<ui-sidebar
+		panelLabel="Painel do Cliente"
+		[menuItems]="menuItemsCliente"
+		(logoutClicked)="logout()" />
+
+	<!-- CONTEÚDO PRINCIPAL -->
+	<main class="flex-1 p-4 sm:p-6 lg:p-8">
+		<div class="max-w-5xl mx-auto space-y-6">
+
+			<header class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8">
+				<h1 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Orçamento do pedido</h1>
+				<p class="text-sm text-slate-500 mt-2">Revise os dados da solicitação e decida se deseja aprovar ou rejeitar o serviço.</p>
+			</header>
+
+			<section class="grid lg:grid-cols-3 gap-4">
+				<article class="lg:col-span-2 bg-white rounded-3xl border border-slate-200 p-6 space-y-4">
+					<h2 class="text-lg font-bold text-slate-900">Dados da solicitação</h2>
+
+					<div class="grid sm:grid-cols-2 gap-4 text-sm">
+						<div>
+							<p class="text-slate-500">Código</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.codigo }}</p>
+						</div>
+						<div>
+							<p class="text-slate-500">Data/Hora</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.dataHora }}</p>
+						</div>
+						<div class="sm:col-span-2">
+							<p class="text-slate-500">Descrição do equipamento</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.descricaoEquipamento }}</p>
+						</div>
+						<div>
+							<p class="text-slate-500">Categoria</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.categoriaEquipamento || '-' }}</p>
+						</div>
+						<div>
+							<p class="text-slate-500">Estado atual</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.estado }}</p>
+						</div>
+						<div class="sm:col-span-2">
+							<p class="text-slate-500">Descrição do defeito</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.descricaoDefeito || '-' }}</p>
+						</div>
+					</div>
+				</article>
+
+				<article class="bg-emerald-50 rounded-3xl border border-emerald-200 p-6">
+					<p class="text-xs uppercase tracking-widest font-semibold text-emerald-700">Valor orçado</p>
+					<p class="text-4xl font-black text-emerald-800 mt-2">{{ valorOrcadoFormatado }}</p>
+				</article>
+			</section>
+
+			<section class="bg-white rounded-3xl border border-slate-200 p-6 flex flex-wrap items-center justify-end gap-2">
+
+				<ui-button variant="secondary" routerLink="/cliente">
+					Voltar
+				</ui-button>
+				
+				<ui-button variant="danger" (clicked)="rejeitarServico()">
+					Rejeitar o Serviço
+				</ui-button>
+
+				<ui-button variant="success" (clicked)="aprovarServico()">
+					Aprovar o Serviço
+				</ui-button>
+			</section>
+		</div>
+	</main>
+</div>
+
+<ui-modal [isOpen]="modalAprovacaoAberto" [closeOnBackdrop]="false" size="sm">
+	<div class="text-center py-1">
+		<div class="w-14 h-14 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4">
+			<svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+			</svg>
+		</div>
+		<p class="text-sm text-slate-700 font-medium">
+			Serviço Aprovado no Valor {{ valorOrcadoFormatado }}
+		</p>
+	</div>
+
+	<div modal-footer class="flex justify-center">
+		<ui-button variant="success" (clicked)="confirmarAprovacao()">OK</ui-button>
+	</div>
+</ui-modal>
+
+<ui-modal
+	[isOpen]="modalRejeicaoAberto"
+	[closeOnBackdrop]="false"
+	title="Rejeitar Serviço"
+	subtitle="Informe o motivo da rejeição (opcional)."
+	size="md"
+	(closed)="fecharModalRejeicao()">
+	<div class="space-y-2">
+		<label for="motivoRejeicao" class="block text-sm font-medium text-slate-700">Motivo da rejeição</label>
+		<textarea
+			id="motivoRejeicao"
+			rows="4"
+			placeholder="Ex.: O valor está acima do esperado."
+			[value]="motivoRejeicao"
+			(input)="motivoRejeicao = $any($event.target).value"
+			class="w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition bg-white border-gray-200 hover:border-gray-300"></textarea>
+	</div>
+
+	<div modal-footer class="flex justify-end gap-2">
+		<ui-button variant="secondary" (clicked)="fecharModalRejeicao()">Cancelar</ui-button>
+		<ui-button variant="danger" (clicked)="confirmarRejeicao()">Confirmar rejeição</ui-button>
+	</div>
+</ui-modal>
+
+<ui-modal [isOpen]="modalRejeicaoConfirmadaAberto" [closeOnBackdrop]="false" size="sm">
+	<div class="text-center py-1">
+		<div class="w-14 h-14 mx-auto rounded-full bg-rose-100 flex items-center justify-center mb-4">
+			<svg class="w-7 h-7 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+			</svg>
+		</div>
+		<p class="text-sm text-slate-700 font-medium">Serviço Rejeitado</p>
+	</div>
+
+	<div modal-footer class="flex justify-center">
+		<ui-button variant="danger" (clicked)="confirmarMensagemRejeicao()">OK</ui-button>
+	</div>
+</ui-modal>

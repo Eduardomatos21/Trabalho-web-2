@@ -48,30 +48,48 @@ export class TelaInicialCliente implements OnInit {
       codigo: 'SOL-1042',
       dataHora: '20/03/2026 14:30',
       descricaoEquipamento: 'Notebook Dell Inspiron 15 com bateria viciada e falha de boot',
+      categoriaEquipamento: 'NOTEBOOK',
+      descricaoDefeito: 'Não liga após atualização de BIOS; LEDs frontais piscam sem iniciar o sistema.',
+      estado: 'ORÇADA',
+    },
+    {
+      codigo: 'SOL-1044',
+      dataHora: '20/03/2026 14:30',
+      descricaoEquipamento: 'Monitor LG UltraWide 29',
+      categoriaEquipamento: 'MONITOR',
+      descricaoDefeito: 'Tela com cintilação intermitente e perda de sinal após alguns minutos de uso.',
       estado: 'ORÇADA',
     },
     {
       codigo: 'SOL-1034',
       dataHora: '17/03/2026 09:10',
       descricaoEquipamento: 'Monitor LG UltraWide 29',
+      categoriaEquipamento: 'MONITOR',
+      descricaoDefeito: 'Linhas horizontais finas na metade inferior da tela.',
       estado: 'APROVADA',
     },
     {
       codigo: 'SOL-1018',
       dataHora: '08/03/2026 11:42',
       descricaoEquipamento: 'Teclado Mecânico RGB',
+      categoriaEquipamento: 'TECLADO',
+      descricaoDefeito: 'Teclas da fileira superior não respondem e iluminação RGB não sincroniza.',
       estado: 'REJEITADA',
     },
     {
       codigo: 'SOL-1051',
       dataHora: '21/03/2026 16:05',
       descricaoEquipamento: 'Impressora HP LaserJet Pro MFP com atolamento recorrente',
+      categoriaEquipamento: 'IMPRESSORA',
+      descricaoDefeito: 'Atolamento de papel constante no segundo estágio do alimentador automático.',
       estado: 'ARRUMADA',
     },
     {
       codigo: 'SOL-0997',
       dataHora: '03/03/2026 08:25',
       descricaoEquipamento: 'Mouse sem fio Logitech MX Master',
+      categoriaEquipamento: 'MOUSE',
+      descricaoDefeito: 'Cursor falha e desconecta de forma aleatória mesmo com bateria carregada.',
       estado: 'ABERTA',
     },
   ];
@@ -79,7 +97,10 @@ export class TelaInicialCliente implements OnInit {
   solicitacoes: SolicitacaoCliente[] = [];
 
   ngOnInit(): void {
-    this.solicitacoes = [...this.solicitacoesBase, ...this.carregarSolicitacoesSalvas()];
+    this.solicitacoes = this.mesclarSolicitacoes(
+      this.solicitacoesBase,
+      this.carregarSolicitacoesSalvas(),
+    );
   }
 
   get solicitacoesOrdenadas(): SolicitacaoCliente[] {
@@ -124,7 +145,15 @@ export class TelaInicialCliente implements OnInit {
   }
 
   executarAcao(codigo: string, estado: EstadoSolicitacao): void {
-    // TODO: mapear para as telas RF005, RF009 e RF010.
+    if (estado === 'ORÇADA') {
+      const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
+      this.router.navigate(['/cliente/orcamento'], {
+        queryParams: { solicitacao: codigo },
+        state: { solicitacaoSelecionada: selecionada },
+      });
+      return;
+    }
+    // TODO: mapear para as telas RF009 e RF010.
     this.router.navigate(['/cliente'], { queryParams: { acao: estado, solicitacao: codigo } });
   }
 
@@ -156,5 +185,17 @@ export class TelaInicialCliente implements OnInit {
     } catch {
       return [];
     }
+  }
+
+  private mesclarSolicitacoes(
+    base: SolicitacaoCliente[],
+    salvas: SolicitacaoCliente[],
+  ): SolicitacaoCliente[] {
+    const map = new Map<string, SolicitacaoCliente>();
+
+    for (const item of base) map.set(item.codigo, item);
+    for (const item of salvas) map.set(item.codigo, item);
+
+    return [...map.values()];
   }
 }

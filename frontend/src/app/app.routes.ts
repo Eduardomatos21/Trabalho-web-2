@@ -12,7 +12,7 @@ export const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'cliente', component: TelaInicialCliente },
   { path: 'cliente/solicitacao', component: TelaSolicitacaoCliente },
-  { path: 'cliente/orçamento', component: TelaOrcamentoCliente },
+  { path: 'cliente/orcamento', component: TelaOrcamentoCliente },
   { path: 'funcionario', component: TelaInicialFuncionario },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 ];
