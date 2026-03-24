@@ -1,0 +1,85 @@
+<div class="min-h-screen bg-slate-50 flex">
+
+	<!-- MENU LATERAL -->
+	<ui-sidebar
+		panelLabel="Painel do Cliente"
+		[menuItems]="menuItemsCliente"
+		(logoutClicked)="logout()" />
+
+	<!-- CONTEÚDO PRINCIPAL -->
+	<main class="flex-1 p-4 sm:p-6 lg:p-8">
+		<div class="max-w-4xl mx-auto space-y-6">
+
+			<header class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8">
+				<h1 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Solicitação de manutenção</h1>
+				<p class="text-sm text-slate-500 mt-2">
+					Registre descrição do equipamento, categoria e defeito.
+				</p>
+			</header>
+
+			<section class="bg-white rounded-3xl border border-slate-200 overflow-hidden">
+				<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="p-6 md:p-8 space-y-5">
+
+					<ui-form-field
+						label="Descrição do equipamento"
+						fieldId="descricaoEquipamento"
+						[required]="true"
+						[error]="erro('descricaoEquipamento')">
+						<input
+							id="descricaoEquipamento"
+							formControlName="descricaoEquipamento"
+							type="text"
+							placeholder="Ex.: Notebook Dell Inspiron 15"
+							[class]="inputClass('descricaoEquipamento')"/>
+					</ui-form-field>
+
+					<ui-form-field
+						label="Categoria do equipamento"
+						fieldId="categoriaEquipamento"
+						[required]="true"
+						[error]="erro('categoriaEquipamento')">
+						<select
+							id="categoriaEquipamento"
+							formControlName="categoriaEquipamento"
+							[class]="inputClass('categoriaEquipamento')">
+							<option value="">Selecione</option>
+							<option value="NOTEBOOK">Notebook</option>
+							<option value="DESKTOP">Desktop</option>
+							<option value="IMPRESSORA">Impressora</option>
+							<option value="MOUSE">Mouse</option>
+                            <option value="TECLADO">Teclado</option>
+							<option value="OUTRO">Outro</option>
+						</select>
+					</ui-form-field>
+
+					<ui-form-field
+						label="Descrição do defeito"
+						fieldId="descricaoDefeito"
+						[required]="true"
+						[error]="erro('descricaoDefeito')"
+						hint="Descreva o problema com o máximo de detalhes.">
+						<input
+							id="descricaoDefeito"
+							formControlName="descricaoDefeito"
+                            type="text"
+							placeholder="Ex.: Não liga após queda de energia..."
+							[class]="inputClass('descricaoDefeito')"/>
+					</ui-form-field>
+
+					<div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+						<a
+							routerLink="/cliente"
+							class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">
+							Cancelar
+						</a>
+
+						<ui-button type="submit" variant="primary" [loading]="loading">
+							Registrar solicitação
+						</ui-button>
+					</div>
+				</form>
+			</section>
+
+		</div>
+	</main>
+</div>

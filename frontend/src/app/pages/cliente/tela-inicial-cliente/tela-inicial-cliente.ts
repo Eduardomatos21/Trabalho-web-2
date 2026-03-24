@@ -1,14 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import type { SidebarItem } from '../../../shared';
 import { SidebarComponent } from '../../../shared';
 
-type EstadoSolicitacao = 'ORÇADA' | 'APROVADA' | 'REJEITADA' | 'ARRUMADA' | 'EM ANÁLISE' | 'ABERTA';
+const SOLICITACOES_STORAGE_KEY = 'solicitacoesCliente';
+
+type EstadoSolicitacao = 'ORÇADA' | 'APROVADA' | 'REJEITADA' | 'ARRUMADA' | 'ABERTA';
 
 type SolicitacaoCliente = {
   codigo: string;
   dataHora: string;
   descricaoEquipamento: string;
+  categoriaEquipamento?: string;
+  descricaoDefeito?: string;
   estado: EstadoSolicitacao;
 };
 
@@ -21,7 +25,7 @@ type OrdemDataHora = 'asc' | 'desc';
   templateUrl: './tela-inicial-cliente.html',
   styleUrl: './tela-inicial-cliente.css',
 })
-export class TelaInicialCliente {
+export class TelaInicialCliente implements OnInit {
   constructor(private router: Router) {}
 
   ordemDataHora: OrdemDataHora = 'asc';
@@ -34,12 +38,12 @@ export class TelaInicialCliente {
 
   readonly menuItemsCliente: SidebarItem[] = [
     { label: 'Página inicial', route: '/cliente', active: true },
-    { label: 'Nova solicitação' },
+    { label: 'Nova solicitação', route: '/cliente/solicitacao' },
     { label: 'Minhas solicitações' },
     { label: 'Meus dados' },
   ];
 
-  readonly solicitacoes: SolicitacaoCliente[] = [
+  private readonly solicitacoesBase: SolicitacaoCliente[] = [
     {
       codigo: 'SOL-1042',
       dataHora: '20/03/2026 14:30',
@@ -68,9 +72,15 @@ export class TelaInicialCliente {
       codigo: 'SOL-0997',
       dataHora: '03/03/2026 08:25',
       descricaoEquipamento: 'Mouse sem fio Logitech MX Master',
-      estado: 'EM ANÁLISE',
+      estado: 'ABERTA',
     },
   ];
+
+  solicitacoes: SolicitacaoCliente[] = [];
+
+  ngOnInit(): void {
+    this.solicitacoes = [...this.solicitacoesBase, ...this.carregarSolicitacoesSalvas()];
+  }
 
   get solicitacoesOrdenadas(): SolicitacaoCliente[] {
     return [...this.solicitacoes].sort((a, b) => {
@@ -95,8 +105,7 @@ export class TelaInicialCliente {
       APROVADA: 'bg-sky-100 text-sky-800',
       REJEITADA: 'bg-rose-100 text-rose-800',
       ARRUMADA: 'bg-emerald-100 text-emerald-800',
-      'EM ANÁLISE': 'bg-indigo-100 text-indigo-800',
-      ABERTA: 'bg-slate-200 text-slate-800',
+      ABERTA: 'bg-slate-200 text-slate-800'
     };
     return classes[estado];
   }
@@ -106,7 +115,7 @@ export class TelaInicialCliente {
     if (estado === 'APROVADA') return null;
     if (estado === 'REJEITADA') return 'Resgatar Serviço';
     if (estado === 'ARRUMADA') return 'Pagar Serviço';
-    return 'Visualizar Serviço';
+    return null;
   }
 
   visualizarSolicitacao(codigo: string): void {
@@ -129,5 +138,23 @@ export class TelaInicialCliente {
     const [dia, mes, ano] = data.split('/').map(Number);
     const [h, m] = hora.split(':').map(Number);
     return new Date(ano, mes - 1, dia, h, m).getTime();
+  }
+
+  private carregarSolicitacoesSalvas(): SolicitacaoCliente[] {
+    const raw = localStorage.getItem(SOLICITACOES_STORAGE_KEY);
+    if (!raw) return [];
+    try {
+      const data = JSON.parse(raw);
+      if (!Array.isArray(data)) return [];
+      return data.filter((item): item is SolicitacaoCliente =>
+        item &&
+        typeof item.codigo === 'string' &&
+        typeof item.dataHora === 'string' &&
+        typeof item.descricaoEquipamento === 'string' &&
+        typeof item.estado === 'string',
+      );
+    } catch {
+      return [];
+    }
   }
 }
