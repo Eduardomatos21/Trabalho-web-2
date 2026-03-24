@@ -30,7 +30,7 @@ public class SolicitacaoController {
     
     @GetMapping("/solicitacao/{id}")
     public List<Historico> buscarPorSolicitacao(@PathVariable Integer id) {
-        return historicoRepository.findBySolicitacaoId(id);
+        return solicitacaoRepository.findBySolicitacaoId(id);
 }
 
     @PostMapping

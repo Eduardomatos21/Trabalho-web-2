@@ -11,24 +11,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.web2.entity.Cliente;
-import com.example.web2.repository.ClienteRepository;
+import com.example.web2.entity.Categoria;
+import com.example.web2.repository.CategoriaRepository;
 
 @RestController
-@RequestMapping("/clientes")
-public class ClienteController {
+@RequestMapping("/categoria")
+public class CategoriaController {
 
     @Autowired
-    private ClienteRepository clienteRepository;
+    private CategoriaRepository categoriaRepository;
 
     @GetMapping
-    public List<Cliente> listar() {
-        return clienteRepository.findAll();
+    public List<Categoria> listar() {
+        return categoriaRepository.findAll();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Cliente adicionar(@RequestBody Cliente cliente) {
-        return clienteRepository.save(cliente);
+    public Categoria adicionar(@RequestBody Categoria categoria) {
+        return categoriaRepository.save(categoria);
     }
 }
