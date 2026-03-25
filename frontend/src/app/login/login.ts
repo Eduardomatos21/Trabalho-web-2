@@ -3,6 +3,7 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonComponent, FormFieldComponent } from '../shared';
+import { FormValidationHelper } from '../shared/utils';
 
 @Component({
   selector: 'app-login',
@@ -35,19 +36,16 @@ export class Login {
   }
 
   erro(campo: string): string {
-    if (!this.enviado) return '';
-    const ctrl = this.form.get(campo);
-    if (!ctrl?.errors) return '';
-    const e = ctrl.errors;
-    if (e['required'])  return campo === 'email' ? 'E-mail é obrigatório.' : 'Senha é obrigatória.';
-    if (e['email'])     return 'E-mail inválido.';
-    if (e['minlength']) return `Mínimo de ${e['minlength'].requiredLength} caracteres.`;
-    return 'Campo inválido.';
+    return FormValidationHelper.getErrorMessage(campo, this.form.get(campo), this.enviado, {
+      requiredMessages: {
+        email: 'E-mail é obrigatório.',
+        senha: 'Senha é obrigatória.',
+      },
+    });
   }
 
   inputClass(campo: string): string {
-    const base = 'w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition bg-white';
     const hasError = this.enviado && !!this.form.get(campo)?.invalid;
-    return `${base} ${hasError ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`;
+    return FormValidationHelper.getInputClass(hasError);
   }
 }

@@ -1,8 +1,6 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
-import type { SidebarItem } from '../../../shared';
-import { SidebarComponent } from '../../../shared';
-import { TelaInicialCliente } from '../../cliente/tela-inicial-cliente';
+import { AuthService } from '../../../services';
+import { SidebarComponent, type SidebarItem } from '../../../shared';
 
 type SolicitacaoFuncionario = {
   dataHora: string;
@@ -14,12 +12,12 @@ type SolicitacaoFuncionario = {
 @Component({
   selector: 'app-tela-inicial-funcionario',
   standalone: true,
-  imports: [SidebarComponent, TelaInicialCliente],
+  imports: [SidebarComponent],
   templateUrl: './tela-inicial-funcionario.html',
   styleUrl: './tela-inicial-funcionario.css',
 })
 export class TelaInicialFuncionario {
-  constructor(private router: Router) {}
+  constructor(private authService: AuthService) {}
 
   readonly menuItemsFuncionario: SidebarItem[] = [
     { label: 'Página inicial', route: '/funcionario', active: true },
@@ -49,8 +47,7 @@ export class TelaInicialFuncionario {
   ];
 
   logout() {
-    localStorage.clear();
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 
   efetuarOrcamento(codigo: string): void {

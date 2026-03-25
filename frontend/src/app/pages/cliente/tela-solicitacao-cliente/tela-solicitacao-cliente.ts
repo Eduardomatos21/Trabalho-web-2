@@ -2,21 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { ButtonComponent, FormFieldComponent, SidebarComponent } from '../../../shared';
-import type { SidebarItem } from '../../../shared';
-
-const SOLICITACOES_STORAGE_KEY = 'solicitacoesCliente';
-
-type EstadoSolicitacao = 'ABERTA';
-
-type SolicitacaoCliente = {
-  codigo: string;
-  dataHora: string;
-  descricaoEquipamento: string;
-  categoriaEquipamento: string;
-  descricaoDefeito: string;
-  estado: EstadoSolicitacao;
-};
+import { AuthService, ClienteStorageService } from '../../../services';
+import { ButtonComponent, FormFieldComponent, SidebarComponent, type SidebarItem } from '../../../shared';
+import { SolicitacaoCliente } from '../../../shared/models';
+import { DateFormatUtil, FormValidationHelper } from '../../../shared/utils';
 
 @Component({
   selector: 'app-tela-solicitacao-cliente',
@@ -28,6 +17,8 @@ type SolicitacaoCliente = {
 export class TelaSolicitacaoCliente {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private authService = inject(AuthService);
+  private clienteStorageService = inject(ClienteStorageService);
 
   enviado = false;
   loading = false;
@@ -53,62 +44,30 @@ export class TelaSolicitacaoCliente {
 
     const novaSolicitacao: SolicitacaoCliente = {
       codigo: this.gerarCodigo(),
-      dataHora: this.formatarDataHora(new Date()),
+      dataHora: DateFormatUtil.formatarDataHora(new Date()),
       descricaoEquipamento: this.form.value.descricaoEquipamento,
       categoriaEquipamento: this.form.value.categoriaEquipamento,
       descricaoDefeito: this.form.value.descricaoDefeito,
       estado: 'ABERTA',
     };
 
-    const atuais = this.carregarSolicitacoes();
-    atuais.push(novaSolicitacao);
-    localStorage.setItem(SOLICITACOES_STORAGE_KEY, JSON.stringify(atuais));
+    this.clienteStorageService.salvarSolicitacao(novaSolicitacao);
 
     this.loading = false;
     this.router.navigate(['/cliente']);
   }
 
   erro(campo: string): string {
-    if (!this.enviado) return '';
-    const ctrl = this.form.get(campo);
-    if (!ctrl?.errors) return '';
-
-    const e = ctrl.errors;
-    if (e['required']) return 'Campo obrigatório.';
-    if (e['maxlength']) return `Máximo de ${e['maxlength'].requiredLength} caracteres.`;
-    if (e['minlength']) return `Mínimo de ${e['minlength'].requiredLength} caracteres.`;
-    return 'Campo inválido.';
+    return FormValidationHelper.getErrorMessage(campo, this.form.get(campo), this.enviado);
   }
 
   inputClass(campo: string): string {
-    const base = 'w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition bg-white';
     const hasError = this.enviado && !!this.form.get(campo)?.invalid;
-    return `${base} ${hasError ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`;
+    return FormValidationHelper.getInputClass(hasError);
   }
 
   logout(): void {
-    localStorage.clear();
-    this.router.navigate(['/login']);
-  }
-
-  private carregarSolicitacoes(): SolicitacaoCliente[] {
-    const raw = localStorage.getItem(SOLICITACOES_STORAGE_KEY);
-    if (!raw) return [];
-    try {
-      const data = JSON.parse(raw);
-      return Array.isArray(data) ? data : [];
-    } catch {
-      return [];
-    }
-  }
-
-  private formatarDataHora(date: Date): string {
-    const dia = String(date.getDate()).padStart(2, '0');
-    const mes = String(date.getMonth() + 1).padStart(2, '0');
-    const ano = date.getFullYear();
-    const hora = String(date.getHours()).padStart(2, '0');
-    const minuto = String(date.getMinutes()).padStart(2, '0');
-    return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+    this.authService.logout();
   }
 
   private gerarCodigo(): string {

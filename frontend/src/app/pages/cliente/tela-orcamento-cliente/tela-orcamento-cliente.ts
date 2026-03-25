@@ -1,20 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import type { SidebarItem } from '../../../shared';
-import { ButtonComponent, ModalComponent, SidebarComponent } from '../../../shared';
-
-const SOLICITACOES_STORAGE_KEY = 'solicitacoesCliente';
-
-type SolicitacaoCliente = {
-  codigo: string;
-  dataHora: string;
-  descricaoEquipamento: string;
-  categoriaEquipamento?: string;
-  descricaoDefeito?: string;
-  motivoRejeicao?: string;
-  estado: 'ORÇADA' | 'APROVADA' | 'REJEITADA' | 'ARRUMADA' | 'ABERTA';
-};
+import { AuthService, ClienteStorageService } from '../../../services';
+import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
+import { SolicitacaoCliente } from '../../../shared/models';
 
 @Component({
   selector: 'app-tela-orcamento-cliente',
@@ -27,6 +16,8 @@ export class TelaOrcamentoCliente implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private authService: AuthService,
+    private clienteStorageService: ClienteStorageService,
   ) {}
 
   readonly menuItemsCliente: SidebarItem[] = [
@@ -104,16 +95,14 @@ export class TelaOrcamentoCliente implements OnInit {
   }
 
   logout(): void {
-    localStorage.clear();
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 
   private buscarSolicitacao(codigo: string | null): SolicitacaoCliente {
     const navState = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
     if (navState && navState.codigo === codigo) return navState;
 
-    const salvas = this.carregarSolicitacoesSalvas();
-    const encontrada = salvas.find((s) => s.codigo === codigo);
+    const encontrada = this.clienteStorageService.buscarPorCodigo(codigo);
     if (encontrada) return encontrada;
 
     return {
@@ -126,35 +115,8 @@ export class TelaOrcamentoCliente implements OnInit {
     };
   }
 
-  private carregarSolicitacoesSalvas(): SolicitacaoCliente[] {
-    const raw = localStorage.getItem(SOLICITACOES_STORAGE_KEY);
-    if (!raw) return [];
-    try {
-      const data = JSON.parse(raw);
-      if (!Array.isArray(data)) return [];
-      return data.filter((item): item is SolicitacaoCliente =>
-        item &&
-        typeof item.codigo === 'string' &&
-        typeof item.dataHora === 'string' &&
-        typeof item.descricaoEquipamento === 'string' &&
-        typeof item.estado === 'string',
-      );
-    } catch {
-      return [];
-    }
-  }
-
   private salvarSolicitacao(solicitacao: SolicitacaoCliente): void {
-    const atuais = this.carregarSolicitacoesSalvas();
-    const index = atuais.findIndex((item) => item.codigo === solicitacao.codigo);
-
-    if (index >= 0) {
-      atuais[index] = solicitacao;
-    } else {
-      atuais.push(solicitacao);
-    }
-
-    localStorage.setItem(SOLICITACOES_STORAGE_KEY, JSON.stringify(atuais));
+    this.clienteStorageService.salvarSolicitacao(solicitacao);
   }
 
 }

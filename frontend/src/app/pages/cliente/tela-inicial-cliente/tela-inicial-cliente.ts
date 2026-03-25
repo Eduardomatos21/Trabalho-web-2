@@ -1,20 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import type { SidebarItem } from '../../../shared';
-import { SidebarComponent } from '../../../shared';
-
-const SOLICITACOES_STORAGE_KEY = 'solicitacoesCliente';
-
-type EstadoSolicitacao = 'ORÇADA' | 'APROVADA' | 'REJEITADA' | 'ARRUMADA' | 'ABERTA';
-
-type SolicitacaoCliente = {
-  codigo: string;
-  dataHora: string;
-  descricaoEquipamento: string;
-  categoriaEquipamento?: string;
-  descricaoDefeito?: string;
-  estado: EstadoSolicitacao;
-};
+import { AuthService, ClienteStorageService } from '../../../services';
+import { SidebarComponent, type SidebarItem } from '../../../shared';
+import { EstadoSolicitacao, SolicitacaoCliente } from '../../../shared/models';
+import { DateFormatUtil } from '../../../shared/utils';
 
 type OrdemDataHora = 'asc' | 'desc';
 
@@ -26,7 +15,11 @@ type OrdemDataHora = 'asc' | 'desc';
   styleUrl: './tela-inicial-cliente.css',
 })
 export class TelaInicialCliente implements OnInit {
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private clienteStorageService: ClienteStorageService,
+  ) {}
 
   ordemDataHora: OrdemDataHora = 'asc';
 
@@ -97,15 +90,15 @@ export class TelaInicialCliente implements OnInit {
   solicitacoes: SolicitacaoCliente[] = [];
 
   ngOnInit(): void {
-    this.solicitacoes = this.mesclarSolicitacoes(
+    this.solicitacoes = this.clienteStorageService.mesclarSolicitacoes(
       this.solicitacoesBase,
-      this.carregarSolicitacoesSalvas(),
+      this.clienteStorageService.carregarSolicitacoes(),
     );
   }
 
   get solicitacoesOrdenadas(): SolicitacaoCliente[] {
     return [...this.solicitacoes].sort((a, b) => {
-      const diff = this.parseDataHora(a.dataHora) - this.parseDataHora(b.dataHora);
+      const diff = DateFormatUtil.parseDataHora(a.dataHora) - DateFormatUtil.parseDataHora(b.dataHora);
       return this.ordemDataHora === 'asc' ? diff : -diff;
     });
   }
@@ -158,44 +151,6 @@ export class TelaInicialCliente implements OnInit {
   }
 
   logout(): void {
-    localStorage.clear();
-    this.router.navigate(['/login']);
-  }
-
-  private parseDataHora(dataHora: string): number {
-    const [data, hora] = dataHora.split(' ');
-    const [dia, mes, ano] = data.split('/').map(Number);
-    const [h, m] = hora.split(':').map(Number);
-    return new Date(ano, mes - 1, dia, h, m).getTime();
-  }
-
-  private carregarSolicitacoesSalvas(): SolicitacaoCliente[] {
-    const raw = localStorage.getItem(SOLICITACOES_STORAGE_KEY);
-    if (!raw) return [];
-    try {
-      const data = JSON.parse(raw);
-      if (!Array.isArray(data)) return [];
-      return data.filter((item): item is SolicitacaoCliente =>
-        item &&
-        typeof item.codigo === 'string' &&
-        typeof item.dataHora === 'string' &&
-        typeof item.descricaoEquipamento === 'string' &&
-        typeof item.estado === 'string',
-      );
-    } catch {
-      return [];
-    }
-  }
-
-  private mesclarSolicitacoes(
-    base: SolicitacaoCliente[],
-    salvas: SolicitacaoCliente[],
-  ): SolicitacaoCliente[] {
-    const map = new Map<string, SolicitacaoCliente>();
-
-    for (const item of base) map.set(item.codigo, item);
-    for (const item of salvas) map.set(item.codigo, item);
-
-    return [...map.values()];
+    this.authService.logout();
   }
 }

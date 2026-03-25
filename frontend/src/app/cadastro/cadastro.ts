@@ -4,6 +4,7 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonComponent, FormFieldComponent, ModalComponent } from '../shared';
+import { FormValidationHelper } from '../shared/utils';
 
 @Component({
   selector: 'app-cadastro',
@@ -96,33 +97,24 @@ export class Cadastro {
   }
 
   erro(campo: string): string {
-    if (!this.enviado) return '';
-    const ctrl = this.form.get(campo);
-    if (!ctrl?.errors) return '';
-    const e = ctrl.errors;
     const nomes: Record<string, string> = {
       nome: 'Nome', cpf: 'CPF', email: 'E-mail', telefone: 'Telefone',
       cep: 'CEP', logradouro: 'Logradouro', numero: 'Número',
       bairro: 'Bairro', cidade: 'Cidade', estado: 'Estado',
     };
-    if (e['required'])  return `${nomes[campo] ?? campo} é obrigatório.`;
-    if (e['email'])     return 'E-mail inválido.';
-    if (e['minlength']) return `Mínimo de ${e['minlength'].requiredLength} caracteres.`;
-    if (e['pattern']) {
-      const msgs: Record<string, string> = {
-        cpf:      'CPF inválido (000.000.000-00).',
+    return FormValidationHelper.getErrorMessage(campo, this.form.get(campo), this.enviado, {
+      fieldNames: nomes,
+      patternMessages: {
+        cpf: 'CPF inválido (000.000.000-00).',
         telefone: 'Telefone inválido.',
-        cep:      'CEP inválido (00000-000).',
-      };
-      return msgs[campo] ?? 'Formato inválido.';
-    }
-    return 'Campo inválido.';
+        cep: 'CEP inválido (00000-000).',
+      },
+    });
   }
 
   inputClass(campo: string): string {
-    const base = 'w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition bg-white';
     const hasError = this.enviado && !!this.form.get(campo)?.invalid;
-    return `${base} ${hasError ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`;
+    return FormValidationHelper.getInputClass(hasError);
   }
 
   get f() { return this.form.controls; }
