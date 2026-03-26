@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../services';
 import { ButtonComponent, FormFieldComponent } from '../shared';
 import { FormValidationHelper } from '../shared/utils';
 
@@ -14,7 +15,9 @@ import { FormValidationHelper } from '../shared/utils';
 })
 export class Login {
   private fb     = inject(FormBuilder);
-  private router = inject(Router);
+  private authService = inject(AuthService);
+
+  readonly usuariosDemo = this.authService.getUsuariosDemo();
 
   form: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -30,8 +33,20 @@ export class Login {
     this.enviado   = true;
     this.erroLogin = '';
     if (this.form.invalid) return;
+
     this.loading = true;
-    // TODO: chamar AuthService.login(this.form.value)
+
+    const email = this.form.value.email as string;
+    const senha = this.form.value.senha as string;
+    const resultado = this.authService.login(email, senha);
+
+    if (!resultado.ok) {
+      this.erroLogin = resultado.message;
+      this.loading = false;
+      return;
+    }
+
+    this.authService.navegarPosLogin(resultado.usuario.perfil);
     this.loading = false;
   }
 
