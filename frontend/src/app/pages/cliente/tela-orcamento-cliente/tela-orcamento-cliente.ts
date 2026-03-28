@@ -3,7 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService, ClienteStorageService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
-import { SolicitacaoCliente } from '../../../shared/models';
+import { HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
+import { DateFormatUtil, SolicitacaoHistoricoUtil } from '../../../shared/utils';
 
 @Component({
   selector: 'app-tela-orcamento-cliente',
@@ -23,8 +24,7 @@ export class TelaOrcamentoCliente implements OnInit {
   readonly menuItemsCliente: SidebarItem[] = [
     { label: 'Página inicial', route: '/cliente' },
     { label: 'Nova solicitação', route: '/cliente/solicitacao' },
-    { label: 'Minhas solicitações', active: true },
-    { label: 'Meus dados' },
+    { label: 'Minhas solicitações', route: '/cliente' }
   ];
 
   solicitacao?: SolicitacaoCliente;
@@ -47,9 +47,16 @@ export class TelaOrcamentoCliente implements OnInit {
   aprovarServico(): void {
     if (!this.solicitacao) return;
 
+    const eventoAprovacao = this.criarEventoHistorico('Orçamento aprovado pelo cliente');
+    const historicoAtual =
+      this.solicitacao.historico && this.solicitacao.historico.length > 0
+        ? this.solicitacao.historico
+        : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacao.codigo, this.solicitacao.dataHora);
+
     const atualizada: SolicitacaoCliente = {
       ...this.solicitacao,
       estado: 'APROVADA',
+      historico: [...historicoAtual, eventoAprovacao],
     };
 
     this.salvarSolicitacao(atualizada);
@@ -70,10 +77,21 @@ export class TelaOrcamentoCliente implements OnInit {
   confirmarRejeicao(): void {
     if (!this.solicitacao) return;
 
+    const motivo = this.motivoRejeicao.trim();
+    const descricaoEvento = motivo
+      ? `Orçamento rejeitado pelo cliente. Motivo: ${motivo}`
+      : 'Orçamento rejeitado pelo cliente';
+    const eventoRejeicao = this.criarEventoHistorico(descricaoEvento);
+    const historicoAtual =
+      this.solicitacao.historico && this.solicitacao.historico.length > 0
+        ? this.solicitacao.historico
+        : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacao.codigo, this.solicitacao.dataHora);
+
     const atualizada: SolicitacaoCliente = {
       ...this.solicitacao,
       estado: 'REJEITADA',
-      motivoRejeicao: this.motivoRejeicao.trim() || undefined,
+      motivoRejeicao: motivo || undefined,
+      historico: [...historicoAtual, eventoRejeicao],
     };
 
     this.salvarSolicitacao(atualizada);
@@ -117,6 +135,16 @@ export class TelaOrcamentoCliente implements OnInit {
 
   private salvarSolicitacao(solicitacao: SolicitacaoCliente): void {
     this.clienteStorageService.salvarSolicitacao(solicitacao);
+  }
+
+  private criarEventoHistorico(descricao: string): HistoricoAtualizacao {
+    const usuario = this.authService.getUsuarioLogado();
+
+    return {
+      dataHora: DateFormatUtil.formatarDataHora(new Date()),
+      funcionario: usuario?.perfil === 'funcionario' ? usuario.nome : '',
+      descricao,
+    };
   }
 
 }

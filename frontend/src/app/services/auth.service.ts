@@ -53,6 +53,26 @@ export class AuthService {
     return this.usuariosMock;
   }
 
+  getUsuarioLogado(): UsuarioMock | undefined {
+    const raw = localStorage.getItem(this.usuarioStorageKey);
+    if (!raw) return undefined;
+
+    try {
+      const usuario = JSON.parse(raw) as Partial<UsuarioMock>;
+      if (
+        typeof usuario.nome === 'string' &&
+        typeof usuario.email === 'string' &&
+        typeof usuario.perfil === 'string'
+      ) {
+        return usuario as UsuarioMock;
+      }
+    } catch {
+      return undefined;
+    }
+
+    return undefined;
+  }
+
   logout(): void {
     localStorage.clear();
     this.router.navigate(['/login']);

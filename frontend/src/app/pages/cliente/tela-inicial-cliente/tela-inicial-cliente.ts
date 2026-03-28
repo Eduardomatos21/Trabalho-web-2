@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService, ClienteStorageService } from '../../../services';
 import { SidebarComponent, type SidebarItem } from '../../../shared';
 import { EstadoSolicitacao, SolicitacaoCliente } from '../../../shared/models';
-import { DateFormatUtil } from '../../../shared/utils';
+import { DateFormatUtil, SolicitacaoUiUtil } from '../../../shared/utils';
 
 type OrdemDataHora = 'asc' | 'desc';
 
@@ -32,8 +32,7 @@ export class TelaInicialCliente implements OnInit {
   readonly menuItemsCliente: SidebarItem[] = [
     { label: 'Página inicial', route: '/cliente', active: true },
     { label: 'Nova solicitação', route: '/cliente/solicitacao' },
-    { label: 'Minhas solicitações' },
-    { label: 'Meus dados' },
+    { label: 'Minhas solicitações', route: '/cliente' }
   ];
 
   private readonly solicitacoesBase: SolicitacaoCliente[] = [
@@ -114,27 +113,19 @@ export class TelaInicialCliente implements OnInit {
   }
 
   estadoClasse(estado: EstadoSolicitacao): string {
-    const classes: Record<EstadoSolicitacao, string> = {
-      ORÇADA: 'bg-amber-100 text-amber-800',
-      APROVADA: 'bg-sky-100 text-sky-800',
-      REJEITADA: 'bg-rose-100 text-rose-800',
-      ARRUMADA: 'bg-emerald-100 text-emerald-800',
-      ABERTA: 'bg-slate-200 text-slate-800'
-    };
-    return classes[estado];
+    return SolicitacaoUiUtil.estadoClasse(estado);
   }
 
   labelAcao(estado: EstadoSolicitacao): string | null {
-    if (estado === 'ORÇADA') return 'Aprovar/Rejeitar Serviço';
-    if (estado === 'APROVADA') return null;
-    if (estado === 'REJEITADA') return 'Resgatar Serviço';
-    if (estado === 'ARRUMADA') return 'Pagar Serviço';
-    return null;
+    return SolicitacaoUiUtil.labelAcao(estado);
   }
 
   visualizarSolicitacao(codigo: string): void {
-    // TODO: navegar para RF008 com id/código da solicitação.
-    this.router.navigate(['/cliente'], { queryParams: { solicitacao: codigo } });
+    const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
+    this.router.navigate(['/cliente/visualizar'], {
+      queryParams: { solicitacao: codigo },
+      state: { solicitacaoSelecionada: selecionada },
+    });
   }
 
   executarAcao(codigo: string, estado: EstadoSolicitacao): void {
@@ -146,8 +137,13 @@ export class TelaInicialCliente implements OnInit {
       });
       return;
     }
-    // TODO: mapear para as telas RF009 e RF010.
-    this.router.navigate(['/cliente'], { queryParams: { acao: estado, solicitacao: codigo } });
+
+    if (estado === 'REJEITADA' || estado === 'ARRUMADA') {
+      this.router.navigate(['/cliente'], { queryParams: { acao: estado, solicitacao: codigo } });
+      return;
+    }
+
+    this.visualizarSolicitacao(codigo);
   }
 
   logout(): void {

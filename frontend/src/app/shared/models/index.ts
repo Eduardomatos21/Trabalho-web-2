@@ -1,1 +1,1 @@
-export type { EstadoSolicitacao, SolicitacaoCliente } from './solicitacao.model';
+export type { EstadoSolicitacao, HistoricoAtualizacao, SolicitacaoCliente } from './solicitacao.model';

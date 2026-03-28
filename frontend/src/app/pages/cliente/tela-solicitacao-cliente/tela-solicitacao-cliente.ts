@@ -26,8 +26,7 @@ export class TelaSolicitacaoCliente {
   readonly menuItemsCliente: SidebarItem[] = [
     { label: 'Página inicial', route: '/cliente' },
     { label: 'Nova solicitação', route: '/cliente/solicitacao', active: true },
-    { label: 'Minhas solicitações' },
-    { label: 'Meus dados' },
+    { label: 'Minhas solicitações', route: '/cliente' }
   ];
 
   form: FormGroup = this.fb.group({
@@ -71,7 +70,7 @@ export class TelaSolicitacaoCliente {
   }
 
   private gerarCodigo(): string {
-    const sufixo = String(Date.now()).slice(-5);
+    const sufixo = String(Date.now()).slice(-4);
     return `SOL-${sufixo}`;
   }
 }
