@@ -57,7 +57,15 @@ export class TelaVisualizarCliente implements OnInit {
       return;
     }
 
-    if (this.solicitacao.estado === 'REJEITADA' || this.solicitacao.estado === 'ARRUMADA') {
+    if (this.solicitacao.estado === 'ARRUMADA') {
+      this.router.navigate(['/cliente/pagamento'], {
+        queryParams: { solicitacao: this.solicitacao.codigo },
+        state: { solicitacaoSelecionada: this.solicitacao },
+      });
+      return;
+    }
+
+    if (this.solicitacao.estado === 'REJEITADA') {
       this.router.navigate(['/cliente'], {
         queryParams: { acao: this.solicitacao.estado, solicitacao: this.solicitacao.codigo },
       });

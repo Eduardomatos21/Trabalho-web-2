@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.web2.entity.Historico;
 import com.example.web2.entity.Solicitacao;
+import com.example.web2.repository.HistoricoRepository;
 import com.example.web2.repository.SolicitacaoRepository;
 
 @RestController
@@ -23,15 +24,18 @@ public class SolicitacaoController {
     @Autowired
     private SolicitacaoRepository solicitacaoRepository;
 
+    @Autowired
+    private HistoricoRepository historicoRepository;
+
     @GetMapping
     public List<Solicitacao> listar() {
         return solicitacaoRepository.findAll();
     }
-    
-    @GetMapping("/solicitacao/{id}")
-    public List<Historico> buscarPorSolicitacao(@PathVariable Integer id) {
-        return solicitacaoRepository.findBySolicitacaoId(id);
-}
+
+    @GetMapping("/{id}/historicos")
+    public List<Historico> buscarHistorico(@PathVariable Integer id) {
+        return historicoRepository.findBySolicitacaoId(id);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

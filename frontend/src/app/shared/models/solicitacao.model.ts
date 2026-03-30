@@ -1,4 +1,4 @@
-export type EstadoSolicitacao = 'ORÇADA' | 'APROVADA' | 'REJEITADA' | 'ARRUMADA' | 'ABERTA';
+export type EstadoSolicitacao = 'ORÇADA' | 'APROVADA' | 'REJEITADA' | 'ARRUMADA' | 'FINALIZADO' | 'ABERTA';
 
 export interface HistoricoAtualizacao {
   dataHora: string;
@@ -9,6 +9,7 @@ export interface HistoricoAtualizacao {
 export interface SolicitacaoCliente {
   codigo: string;
   dataHora: string;
+  dataHoraPagamento?: string;
   descricaoEquipamento: string;
   categoriaEquipamento?: string;
   descricaoDefeito?: string;
