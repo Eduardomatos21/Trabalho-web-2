@@ -88,6 +88,7 @@ public class Endereco {
     public void setPais (String pais) {
         this.pais = pais;
     }  
+    
     public Endereco() {}
 
 }
