@@ -23,10 +23,10 @@ export class TelaInicialCliente implements OnInit {
 
   ordemDataHora: OrdemDataHora = 'asc';
 
-  readonly indicadores = [
-    { titulo: 'Solicitações abertas', valor: 2, classe: 'bg-amber-50 text-amber-700 border-amber-200' },
-    { titulo: 'Em andamento', valor: 1, classe: 'bg-sky-50 text-sky-700 border-sky-200' },
-    { titulo: 'Concluídas', valor: 6, classe: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  readonly indicadoresConfig = [
+    { titulo: 'Solicitações abertas', classe: 'bg-amber-50 text-amber-700 border-amber-200' },
+    { titulo: 'Em andamento', classe: 'bg-sky-50 text-sky-700 border-sky-200' },
+    { titulo: 'Concluídas', classe: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
   ];
 
   readonly menuItemsCliente: SidebarItem[] = [
@@ -102,6 +102,18 @@ export class TelaInicialCliente implements OnInit {
     });
   }
 
+  get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
+    const abertas = this.countByStates(['ABERTA']);
+    const emAndamento = this.countByStates(['APROVADA', 'ARRUMADA', 'ORÇADA']);
+    const concluidas = this.countByStates(['FINALIZADO']);
+
+    return [
+      { ...this.indicadoresConfig[0], valor: abertas },
+      { ...this.indicadoresConfig[1], valor: emAndamento },
+      { ...this.indicadoresConfig[2], valor: concluidas },
+    ];
+  }
+
   alternarOrdemDataHora(): void {
     this.ordemDataHora = this.ordemDataHora === 'asc' ? 'desc' : 'asc';
   }
@@ -157,5 +169,9 @@ export class TelaInicialCliente implements OnInit {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  private countByStates(states: EstadoSolicitacao[]): number {
+    return this.solicitacoes.filter((s) => states.includes(s.estado)).length;
   }
 }
