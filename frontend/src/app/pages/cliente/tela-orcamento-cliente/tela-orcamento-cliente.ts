@@ -32,7 +32,6 @@ export class TelaOrcamentoCliente implements OnInit {
   modalRejeicaoAberto = false;
   modalRejeicaoConfirmadaAberto = false;
   motivoRejeicao = '';
-  modalResgatarAberto = false;
   valorOrcadoMock = 249.9;
 
   ngOnInit(): void {
@@ -113,26 +112,7 @@ export class TelaOrcamentoCliente implements OnInit {
     this.router.navigate(['/cliente']);
   }
 
-  resgatarServico(): void {
-    if (!this.solicitacao) return;
-
-    const eventoResgatar = this.criarEventoHistorico('Orçamento aprovado pelo cliente');
-    const historicoAtual =
-      this.solicitacao.historico && this.solicitacao.historico.length > 0
-        ? this.solicitacao.historico
-        : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacao.codigo, this.solicitacao.dataHora);
-
-    const atualizada: SolicitacaoCliente = {
-      ...this.solicitacao,
-      estado: 'APROVADA',
-      historico: [...historicoAtual, eventoResgatar],
-    };
-
-    this.salvarSolicitacao(atualizada);
-    this.solicitacao = atualizada;
-
-    this.modalResgatarAberto = true;
-  }
+  
 
   logout(): void {
     this.authService.logout();
