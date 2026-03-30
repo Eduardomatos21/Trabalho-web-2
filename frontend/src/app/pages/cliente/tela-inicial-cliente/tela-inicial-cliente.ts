@@ -138,7 +138,16 @@ export class TelaInicialCliente implements OnInit {
       return;
     }
 
-    if (estado === 'REJEITADA' || estado === 'ARRUMADA') {
+    if (estado === 'ARRUMADA') {
+      const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
+      this.router.navigate(['/cliente/pagamento'], {
+        queryParams: { solicitacao: codigo },
+        state: { solicitacaoSelecionada: selecionada },
+      });
+      return;
+    }
+
+    if (estado === 'REJEITADA') {
       this.router.navigate(['/cliente'], { queryParams: { acao: estado, solicitacao: codigo } });
       return;
     }
