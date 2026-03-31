@@ -95,3 +95,36 @@
 		</div>
 	</main>
 </div>
+
+<ui-modal [isOpen]="modalResgatarAberto" [closeOnBackdrop]="false" size="sm" (closed)="closeModal()">
+	<div class="text-center py-1">
+		<div class="w-14 h-14 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4">
+			<svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+			</svg>
+		</div>
+		<p class="text-sm text-slate-700 font-medium">Deseja resgatar este serviço?</p>
+	</div>
+
+	<div modal-footer class="flex justify-center gap-2">
+		<ui-button variant="secondary" (clicked)="closeModal()">Cancelar</ui-button>
+		<ui-button variant="success" (clicked)="resgatarServico()">Confirmar</ui-button>
+	</div>
+</ui-modal>
+
+<ui-modal [isOpen]="modalResgateSucessoAberto" [closeOnBackdrop]="false" size="sm" (closed)="closeModalSucesso()">
+	<div class="text-center py-1">
+		<div class="w-14 h-14 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4">
+			<svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+			</svg>
+		</div>
+		<p class="text-sm text-slate-700 font-medium">
+			Serviço Aprovado no Valor {{ valorOrcadoFormatado }}
+		</p>
+	</div>
+
+	<div modal-footer class="flex justify-center">
+		<ui-button variant="success" (clicked)="closeModalSucesso()">OK</ui-button>
+	</div>
+</ui-modal>
