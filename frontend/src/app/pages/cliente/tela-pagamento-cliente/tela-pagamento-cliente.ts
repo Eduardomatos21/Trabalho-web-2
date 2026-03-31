@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService, ClienteStorageService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
@@ -9,7 +9,7 @@ import { DateFormatUtil, SolicitacaoHistoricoUtil } from '../../../shared/utils'
 @Component({
   selector: 'app-tela-pagamento-cliente',
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent, ButtonComponent, ModalComponent],
+  imports: [CommonModule, SidebarComponent, ButtonComponent, ModalComponent],
   templateUrl: './tela-pagamento-cliente.html',
   styleUrl: './tela-pagamento-cliente.css',
 })

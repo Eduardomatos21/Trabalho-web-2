@@ -3,8 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService, ClienteStorageService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
-import { EstadoSolicitacao, SolicitacaoCliente, HistoricoAtualizacao } from '../../../shared/models';
-import { DateFormatUtil, SolicitacaoUiUtil, SolicitacaoHistoricoUtil } from '../../../shared/utils';
+import { EstadoSolicitacao, HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
+import { DateFormatUtil, SolicitacaoHistoricoUtil, SolicitacaoUiUtil } from '../../../shared/utils';
 
 
 
@@ -30,11 +30,11 @@ export class TelaInicialCliente implements OnInit {
  ordemDataHora: OrdemDataHora = 'asc';
 
 
- readonly indicadores = [
-   { titulo: 'Solicitações abertas', valor: 2, classe: 'bg-amber-50 text-amber-700 border-amber-200' },
-   { titulo: 'Em andamento', valor: 1, classe: 'bg-sky-50 text-sky-700 border-sky-200' },
-   { titulo: 'Concluídas', valor: 6, classe: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
- ];
+  readonly indicadoresConfig = [
+    { titulo: 'Solicitações abertas', classe: 'bg-amber-50 text-amber-700 border-amber-200' },
+    { titulo: 'Em andamento', classe: 'bg-sky-50 text-sky-700 border-sky-200' },
+    { titulo: 'Concluídas', classe: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  ];
 
 
  readonly menuItemsCliente: SidebarItem[] = [
@@ -121,6 +121,18 @@ export class TelaInicialCliente implements OnInit {
    this.ordemDataHora = this.ordemDataHora === 'asc' ? 'desc' : 'asc';
  }
 
+get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
+    const abertas = this.countByStates(['ABERTA']);
+    const emAndamento = this.countByStates(['APROVADA', 'ARRUMADA', 'ORÇADA']);
+    const concluidas = this.countByStates(['FINALIZADO']);
+
+    return [
+      { ...this.indicadoresConfig[0], valor: abertas },
+      { ...this.indicadoresConfig[1], valor: emAndamento },
+      { ...this.indicadoresConfig[2], valor: concluidas },
+    ];
+  }
+
 
  descricaoLimitada(descricaoEquipamento: string): string {
    return descricaoEquipamento.length <= 30
@@ -168,9 +180,13 @@ export class TelaInicialCliente implements OnInit {
 
 
    if (estado === 'ARRUMADA') {
-     this.router.navigate(['/cliente'], { queryParams: { acao: estado, solicitacao: codigo } });
-     return;
-   }
+      const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
+      this.router.navigate(['/cliente/pagamento'], {
+        queryParams: { solicitacao: codigo },
+        state: { solicitacaoSelecionada: selecionada },
+      });
+      return;
+    }
 
 
 
@@ -232,10 +248,6 @@ export class TelaInicialCliente implements OnInit {
 }
 
 
- logout(): void {
-   this.authService.logout();
- }
-
 
  private salvarSolicitacao(solicitacao: SolicitacaoCliente): void {
    this.clienteStorageService.salvarSolicitacao(solicitacao);
@@ -251,10 +263,12 @@ export class TelaInicialCliente implements OnInit {
      };
  }
 
+  private countByStates(states: EstadoSolicitacao[]): number {
+    return this.solicitacoes.filter((s) => states.includes(s.estado)).length;
+  }
+
+ logout(): void {
+   this.authService.logout();
+ }
 
 }
-
-
-
-
-
