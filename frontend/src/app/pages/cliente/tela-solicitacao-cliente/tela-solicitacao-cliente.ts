@@ -40,9 +40,12 @@ export class TelaSolicitacaoCliente {
     if (this.form.invalid) return;
 
     this.loading = true;
+    const usuarioLogado = this.authService.getUsuarioLogado();
 
     const novaSolicitacao: SolicitacaoCliente = {
       codigo: this.gerarCodigo(),
+      nomeCliente: usuarioLogado?.nome || 'Cliente',
+      emailCliente: usuarioLogado?.email || undefined,
       dataHora: DateFormatUtil.formatarDataHora(new Date()),
       descricaoEquipamento: this.form.value.descricaoEquipamento,
       categoriaEquipamento: this.form.value.categoriaEquipamento,

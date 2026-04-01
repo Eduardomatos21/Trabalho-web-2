@@ -1,0 +1,105 @@
+<div class="min-h-screen bg-slate-50 flex">
+	<ui-sidebar
+		panelLabel="Painel do Funcionário"
+		[menuItems]="menuItemsFuncionario"
+		(logoutClicked)="logout()" />
+
+	<main class="flex-1 p-4 sm:p-6 lg:p-8">
+		<div class="max-w-6xl mx-auto space-y-6">
+			<header class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8">
+				<h1 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Registrar orçamento da solicitação</h1>
+				<p class="text-sm text-slate-500 mt-2">Preencha o valor e confirme para registrar orçamento.</p>
+			</header>
+
+			<section class="grid lg:grid-cols-2 gap-4">
+				<article class="bg-white rounded-3xl border border-slate-200 p-6 space-y-4">
+					<h2 class="text-lg font-bold text-slate-900">Dados completos da solicitação</h2>
+
+					<div class="grid sm:grid-cols-2 gap-4 text-sm">
+						<div>
+							<p class="text-slate-500">Código</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.codigo }}</p>
+						</div>
+						<div>
+							<p class="text-slate-500">Data/Hora da abertura</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.dataHora }}</p>
+						</div>
+						<div class="sm:col-span-2">
+							<p class="text-slate-500">Equipamento</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.descricaoEquipamento }}</p>
+						</div>
+						<div>
+							<p class="text-slate-500">Categoria</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.categoriaEquipamento || '-' }}</p>
+						</div>
+						<div>
+							<p class="text-slate-500">Estado atual</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.estado }}</p>
+						</div>
+						<div class="sm:col-span-2">
+							<p class="text-slate-500">Descrição do defeito</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.descricaoDefeito || '-' }}</p>
+						</div>
+					</div>
+				</article>
+
+				<article class="bg-white rounded-3xl border border-slate-200 p-6 space-y-4">
+					<h2 class="text-lg font-bold text-slate-900">Dados do cliente</h2>
+
+					<div class="grid gap-4 text-sm">
+						<div>
+							<p class="text-slate-500">Nome</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.nomeCliente || 'Cliente' }}</p>
+						</div>
+						<div>
+							<p class="text-slate-500">E-mail</p>
+							<p class="font-semibold text-slate-800">{{ solicitacao?.emailCliente || '-' }}</p>
+						</div>
+					</div>
+				</article>
+			</section>
+
+			<section class="bg-white rounded-3xl border border-slate-200 p-6 space-y-5">
+				<h2 class="text-lg font-bold text-slate-900">Definição do orçamento</h2>
+
+				<form class="grid sm:grid-cols-2 gap-4 items-end" [formGroup]="form" (ngSubmit)="registrarOrcamento()">
+					<ui-form-field label="Valor do orçamento (R$)" fieldId="valorOrcamento" [required]="true" [error]="erroValor()">
+						<input
+							id="valorOrcamento"
+							type="number"
+							step="0.01"
+							min="0.01"
+							formControlName="valorOrcamento"
+							[class]="inputClass('valorOrcamento')"
+							placeholder="Ex.: 249.90" />
+					</ui-form-field>
+
+					<div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">
+						<p class="text-xs uppercase tracking-wider font-semibold">Valor informado</p>
+						<p class="text-2xl font-black mt-1">{{ valorDigitadoFormatado }}</p>
+					</div>
+
+					<div class="sm:col-span-2 flex flex-wrap justify-end gap-2 pt-2">
+						<ui-button variant="secondary" routerLink="/funcionario">Cancelar</ui-button>
+						<ui-button type="submit" variant="primary" [loading]="loading">Registrar orçamento</ui-button>
+					</div>
+				</form>
+			</section>
+		</div>
+	</main>
+</div>
+
+<ui-modal [isOpen]="modalSucessoAberto" [closeOnBackdrop]="false" size="sm">
+	<div class="text-center py-1">
+		<div class="w-14 h-14 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4">
+			<svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+			</svg>
+		</div>
+		<p class="text-sm text-slate-700 font-medium">Orçamento registrado com sucesso.</p>
+	</div>
+
+	<div modal-footer class="flex justify-center">
+		<ui-button variant="success" (clicked)="confirmarSucesso()">OK</ui-button>
+	</div>
+</ui-modal>

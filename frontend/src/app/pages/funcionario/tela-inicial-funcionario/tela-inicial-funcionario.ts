@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService, ClienteStorageService } from '../../../services';
 import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { EstadoSolicitacao, SolicitacaoCliente } from '../../../shared/models';
@@ -15,6 +16,7 @@ type OrdemDataHora = 'asc' | 'desc';
 })
 export class TelaInicialFuncionario implements OnInit {
   constructor(
+    private router: Router,
     private authService: AuthService,
     private clienteStorageService: ClienteStorageService,
   ) {}
@@ -31,6 +33,7 @@ export class TelaInicialFuncionario implements OnInit {
     {
       codigo: 'SOL-1042',
       nomeCliente: 'João da Silva',
+      emailCliente: 'joao.silva@email.com',
       dataHora: '20/03/2026 14:30',
       descricaoEquipamento: 'Notebook Dell Inspiron 15 com bateria viciada e falha de boot',
       estado: 'ORÇADA',
@@ -38,6 +41,7 @@ export class TelaInicialFuncionario implements OnInit {
     {
       codigo: 'SOL-1044',
       nomeCliente: 'Maria Oliveira',
+      emailCliente: 'maria.oliveira@email.com',
       dataHora: '20/03/2026 14:30',
       descricaoEquipamento: 'Monitor LG UltraWide 29',
       estado: 'ORÇADA',
@@ -45,6 +49,7 @@ export class TelaInicialFuncionario implements OnInit {
     {
       codigo: 'SOL-1034',
       nomeCliente: 'Carlos Pereira',
+      emailCliente: 'carlos.pereira@email.com',
       dataHora: '17/03/2026 09:10',
       descricaoEquipamento: 'Monitor LG UltraWide 29',
       estado: 'APROVADA',
@@ -52,6 +57,7 @@ export class TelaInicialFuncionario implements OnInit {
     {
       codigo: 'SOL-1018',
       nomeCliente: 'Fernanda Rocha',
+      emailCliente: 'fernanda.rocha@email.com',
       dataHora: '08/03/2026 11:42',
       descricaoEquipamento: 'Teclado Mecânico RGB',
       estado: 'REJEITADA',
@@ -59,6 +65,7 @@ export class TelaInicialFuncionario implements OnInit {
     {
       codigo: 'SOL-1051',
       nomeCliente: 'Ricardo Mendes',
+      emailCliente: 'ricardo.mendes@email.com',
       dataHora: '21/03/2026 16:05',
       descricaoEquipamento: 'Impressora HP LaserJet Pro MFP com atolamento recorrente',
       estado: 'ARRUMADA',
@@ -66,6 +73,7 @@ export class TelaInicialFuncionario implements OnInit {
     {
       codigo: 'SOL-0997',
       nomeCliente: 'Patricia Lima',
+      emailCliente: 'patricia.lima@email.com',
       dataHora: '03/03/2026 08:25',
       descricaoEquipamento: 'Mouse sem fio Logitech MX Master',
       estado: 'ABERTA',
@@ -108,8 +116,11 @@ export class TelaInicialFuncionario implements OnInit {
   }
 
   efetuarOrcamento(codigo: string): void {
-    // TODO: implementar navegação ou ação para efetuar orçamento
-    console.log('Efetuar orçamento para:', codigo);
+    const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
+    this.router.navigate(['/funcionario/orcamento'], {
+      queryParams: { solicitacao: codigo },
+      state: { solicitacaoSelecionada: selecionada },
+    });
   }
 
   private carregarSolicitacoesFuncionario(): SolicitacaoCliente[] {

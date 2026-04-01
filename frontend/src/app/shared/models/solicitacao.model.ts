@@ -9,8 +9,10 @@ export interface HistoricoAtualizacao {
 export interface SolicitacaoCliente {
   codigo: string;
   nomeCliente?: string;
+  emailCliente?: string;
   dataHora: string;
   dataHoraPagamento?: string;
+  valorOrcamento?: number;
   descricaoEquipamento: string;
   categoriaEquipamento?: string;
   descricaoDefeito?: string;
