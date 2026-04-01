@@ -32,7 +32,11 @@ export class TelaOrcamentoCliente implements OnInit {
   modalRejeicaoAberto = false;
   modalRejeicaoConfirmadaAberto = false;
   motivoRejeicao = '';
-  valorOrcadoMock = 249.9;
+
+  private readonly valoresMockSolicitacoesIniciais: Record<string, number> = {
+    'SOL-1042': 249.9,
+    'SOL-1044': 249.9,
+  };
 
   ngOnInit(): void {
     const codigo = this.route.snapshot.queryParamMap.get('solicitacao');
@@ -40,7 +44,7 @@ export class TelaOrcamentoCliente implements OnInit {
   }
 
   get valorOrcadoFormatado(): string {
-    const valor = this.valorOrcadoMock;
+    const valor = this.valorOrcado;
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
   }
 
@@ -55,6 +59,7 @@ export class TelaOrcamentoCliente implements OnInit {
 
     const atualizada: SolicitacaoCliente = {
       ...this.solicitacao,
+      valorOrcamento: this.valorOrcado,
       estado: 'APROVADA',
       historico: [...historicoAtual, eventoAprovacao],
     };
@@ -89,6 +94,7 @@ export class TelaOrcamentoCliente implements OnInit {
 
     const atualizada: SolicitacaoCliente = {
       ...this.solicitacao,
+      valorOrcamento: this.valorOrcado,
       estado: 'REJEITADA',
       motivoRejeicao: motivo || undefined,
       historico: [...historicoAtual, eventoRejeicao],
@@ -112,18 +118,22 @@ export class TelaOrcamentoCliente implements OnInit {
     this.router.navigate(['/cliente']);
   }
 
-  
-
   logout(): void {
     this.authService.logout();
   }
 
   private buscarSolicitacao(codigo: string | null): SolicitacaoCliente {
     const navState = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
-    if (navState && navState.codigo === codigo) return navState;
-
     const encontrada = this.clienteStorageService.buscarPorCodigo(codigo);
-    if (encontrada) return encontrada;
+    if (encontrada) {
+      if (navState && navState.codigo === codigo) {
+        return { ...navState, ...encontrada };
+      }
+
+      return encontrada;
+    }
+
+    if (navState && navState.codigo === codigo) return navState;
 
     return {
       codigo: codigo ?? 'N/A',
@@ -133,6 +143,19 @@ export class TelaOrcamentoCliente implements OnInit {
       descricaoDefeito: '-',
       estado: 'ORÇADA',
     };
+  }
+
+  private get valorOrcado(): number {
+    if (typeof this.solicitacao?.valorOrcamento === 'number' && this.solicitacao.valorOrcamento > 0) {
+      return this.solicitacao.valorOrcamento;
+    }
+
+    const codigo = this.solicitacao?.codigo;
+    if (codigo && this.valoresMockSolicitacoesIniciais[codigo]) {
+      return this.valoresMockSolicitacoesIniciais[codigo];
+    }
+
+    return 0;
   }
 
   private salvarSolicitacao(solicitacao: SolicitacaoCliente): void {

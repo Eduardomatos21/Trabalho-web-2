@@ -29,7 +29,12 @@ export class TelaPagamentoCliente implements OnInit {
 
   solicitacao?: SolicitacaoCliente;
   modalPagamentoAberto = false;
-  valorServicoMock = 249.9;
+
+  private readonly valoresMockSolicitacoesIniciais: Record<string, number> = {
+    'SOL-1042': 249.9,
+    'SOL-1044': 249.9,
+    'SOL-1051': 249.9,
+  };
 
   ngOnInit(): void {
     const codigo = this.route.snapshot.queryParamMap.get('solicitacao');
@@ -37,7 +42,7 @@ export class TelaPagamentoCliente implements OnInit {
   }
 
   get valorServicoFormatado(): string {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(this.valorServicoMock);
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(this.valorServico);
   }
 
   confirmarPagamento(): void {
@@ -57,6 +62,7 @@ export class TelaPagamentoCliente implements OnInit {
 
     const atualizada: SolicitacaoCliente = {
       ...this.solicitacao,
+      valorOrcamento: this.valorServico,
       estado: 'PAGA',
       dataHoraPagamento: dataPagamento,
       historico: [...historicoAtual, eventoPagamento],
@@ -90,10 +96,16 @@ export class TelaPagamentoCliente implements OnInit {
 
   private buscarSolicitacao(codigo: string | null): SolicitacaoCliente {
     const navState = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
-    if (navState && navState.codigo === codigo) return navState;
-
     const encontrada = this.clienteStorageService.buscarPorCodigo(codigo);
-    if (encontrada) return encontrada;
+    if (encontrada) {
+      if (navState && navState.codigo === codigo) {
+        return { ...navState, ...encontrada };
+      }
+
+      return encontrada;
+    }
+
+    if (navState && navState.codigo === codigo) return navState;
 
     return {
       codigo: codigo ?? 'N/A',
@@ -103,5 +115,18 @@ export class TelaPagamentoCliente implements OnInit {
       descricaoDefeito: '-',
       estado: 'ARRUMADA',
     };
+  }
+
+  private get valorServico(): number {
+    if (typeof this.solicitacao?.valorOrcamento === 'number' && this.solicitacao.valorOrcamento > 0) {
+      return this.solicitacao.valorOrcamento;
+    }
+
+    const codigo = this.solicitacao?.codigo;
+    if (codigo && this.valoresMockSolicitacoesIniciais[codigo]) {
+      return this.valoresMockSolicitacoesIniciais[codigo];
+    }
+
+    return 0;
   }
 }
