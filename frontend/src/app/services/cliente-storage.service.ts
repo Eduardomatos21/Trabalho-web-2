@@ -68,7 +68,9 @@ export class ClienteStorageService {
       estado === 'ORÇADA' ||
       estado === 'APROVADA' ||
       estado === 'REJEITADA' ||
+      estado === 'REDIRECIONADA' ||
       estado === 'ARRUMADA' ||
+      estado === 'PAGA' ||
       estado === 'FINALIZADO' ||
       estado === 'ABERTA'
     );

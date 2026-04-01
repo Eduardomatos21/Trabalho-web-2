@@ -57,7 +57,7 @@ export class TelaPagamentoCliente implements OnInit {
 
     const atualizada: SolicitacaoCliente = {
       ...this.solicitacao,
-      estado: 'FINALIZADO',
+      estado: 'PAGA',
       dataHoraPagamento: dataPagamento,
       historico: [...historicoAtual, eventoPagamento],
     };

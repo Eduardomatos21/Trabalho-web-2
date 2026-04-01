@@ -8,6 +8,7 @@ import { TelaSolicitacaoCliente } from './pages/cliente/tela-solicitacao-cliente
 import { TelaVisualizarCliente } from './pages/cliente/tela-visualizar-cliente/tela-visualizar-cliente';
 import { TelaInicialFuncionario } from './pages/funcionario/tela-inicial-funcionario';
 import { TelaOrcamentoFuncionario } from './pages/funcionario/tela-orcamento-funcionario';
+import { TelaSolicitacaoFuncionario } from './pages/funcionario/tela-solicitacao-funcionario/tela-solicitacao-funcionario';
 
 
 export const routes: Routes = [
@@ -20,5 +21,6 @@ export const routes: Routes = [
   { path: 'cliente/pagamento', component: TelaPagamentoCliente },
   { path: 'funcionario', component: TelaInicialFuncionario },
   { path: 'funcionario/orcamento', component: TelaOrcamentoFuncionario },
+  { path: 'funcionario/solicitacoes', component: TelaSolicitacaoFuncionario },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 ];

@@ -1,0 +1,128 @@
+<div class="min-h-screen bg-slate-50 flex">
+	<ui-sidebar
+		panelLabel="Painel do Funcionário"
+		[menuItems]="menuItemsFuncionario"
+		(logoutClicked)="logout()" />
+
+	<main class="flex-1 p-4 sm:p-6 lg:p-8">
+		<div class="max-w-7xl mx-auto space-y-6">
+			<header class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8">
+				<h1 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Solicitações do funcionário</h1>
+				<p class="text-sm text-slate-500 mt-2">Listagem de solicitações realizadas pelos clientes.</p>
+			</header>
+
+			<section class="bg-white rounded-3xl border border-slate-200 p-5 space-y-4">
+				<div class="flex flex-wrap gap-2">
+					<ui-button
+						size="sm"
+						[variant]="tipoFiltro === 'HOJE' ? 'primary' : 'secondary'"
+						(clicked)="setFiltro('HOJE')">
+						HOJE
+					</ui-button>
+
+					<ui-button
+						size="sm"
+						[variant]="tipoFiltro === 'PERIODO' ? 'primary' : 'secondary'"
+						(clicked)="setFiltro('PERIODO')">
+						PERÍODO
+					</ui-button>
+
+					<ui-button
+						size="sm"
+						[variant]="tipoFiltro === 'TODAS' ? 'primary' : 'secondary'"
+						(clicked)="setFiltro('TODAS')">
+						TODAS
+					</ui-button>
+				</div>
+
+				@if (tipoFiltro === 'PERIODO') {
+					<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+						<div>
+							<label for="inicio" class="block text-xs uppercase tracking-wider text-slate-500 mb-1">Data início</label>
+							<input
+								id="inicio"
+								type="date"
+								[value]="periodoInicio"
+								(input)="periodoInicio = $any($event.target).value"
+								class="w-full border rounded-lg px-3 py-2 text-sm bg-white border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+						</div>
+
+						<div>
+							<label for="fim" class="block text-xs uppercase tracking-wider text-slate-500 mb-1">Data fim</label>
+							<input
+								id="fim"
+								type="date"
+								[value]="periodoFim"
+								(input)="periodoFim = $any($event.target).value"
+								class="w-full border rounded-lg px-3 py-2 text-sm bg-white border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+						</div>
+					</div>
+				}
+			</section>
+
+			<section class="bg-white rounded-3xl border border-slate-200 overflow-hidden">
+				<div class="overflow-x-auto">
+					<table class="w-full min-w-230 text-sm">
+						<thead>
+							<tr class="border-b border-slate-200 text-left text-slate-500 uppercase text-xs tracking-wider">
+								<th class="py-3 px-5">
+									<button
+										type="button"
+										(click)="alternarOrdemDataHora()"
+										class="inline-flex items-center gap-2 hover:text-slate-700 transition">
+										<span>Data/Hora</span>
+										<span class="text-[10px]">{{ ordemDataHora === 'asc' ? '▲' : '▼' }}</span>
+									</button>
+								</th>
+								<th class="py-3 px-5">Código</th>
+								<th class="py-3 px-5">Cliente</th>
+								<th class="py-3 px-5">Equipamento</th>
+								<th class="py-3 px-5">Estado</th>
+								<th class="py-3 px-5">Ações</th>
+							</tr>
+						</thead>
+
+						<tbody class="divide-y divide-slate-100">
+							@for (sol of solicitacoesFiltradasOrdenadas; track sol.codigo) {
+								<tr class="hover:bg-slate-50 transition-colors">
+									<td class="py-3 px-5 whitespace-nowrap text-slate-600">{{ sol.dataHora }}</td>
+									<td class="py-3 px-5 font-semibold text-slate-700">{{ sol.codigo }}</td>
+									<td class="py-3 px-5 text-slate-700">
+										<p class="font-medium">{{ sol.nomeCliente || 'Cliente' }}</p>
+										<p class="text-xs text-slate-500">{{ sol.emailCliente || '-' }}</p>
+									</td>
+									<td class="py-3 px-5 text-slate-700">
+										<p class="font-medium">{{ sol.descricaoEquipamento }}</p>
+										<p class="text-xs text-slate-500">{{ sol.categoriaEquipamento || '-' }}</p>
+									</td>
+									<td class="py-3 px-5">
+										<span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold" [class]="estadoClasse(sol.estado)">
+											{{ nomeEstadoExibicao(sol.estado) }}
+										</span>
+									</td>
+									<td class="py-3 px-5">
+										@if (acaoLabel(sol.estado); as acao) {
+											<ui-button size="sm" (clicked)="executarAcao(sol)">
+												{{ acao }}
+											</ui-button>
+										} @else {
+											<span class="text-xs text-slate-400">Sem ação</span>
+										}
+									</td>
+								</tr>
+							}
+
+							@if (solicitacoesFiltradasOrdenadas.length === 0) {
+								<tr>
+									<td colspan="6" class="py-7 px-5 text-center text-slate-500">
+										Nenhuma solicitação encontrada para os filtros selecionados.
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			</section>
+		</div>
+	</main>
+</div>
