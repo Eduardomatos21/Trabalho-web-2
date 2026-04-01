@@ -34,41 +34,53 @@
 
               <thead>
                 <tr class="border-b border-slate-200 text-left text-slate-500 uppercase text-xs tracking-wider">
-                  <th class="py-3">Data / Hora</th>
+                  <th class="py-3">
+                    <button
+                      type="button"
+                      (click)="alternarOrdemDataHora()"
+                      class="inline-flex items-center gap-2 hover:text-slate-700 transition">
+                      <span>Data/Hora</span>
+                      <span class="text-[10px]">{{ ordemDataHora === 'asc' ? '▲' : '▼' }}</span>
+                    </button>
+                  </th>
                   <th class="py-3">Cliente</th>
                   <th class="py-3">Produto</th>
+                  <th class="py-3">Estado</th>
                   <th class="py-3">Ações</th>
                 </tr>
               </thead>
 
               <tbody class="divide-y divide-slate-100">
-                @for (sol of solicitacoesAbertas; track sol.codigo) {
+                @for (sol of solicitacoesAbertasOrdenadas; track sol.codigo) {
                   <tr class="hover:bg-slate-50">
                     <td class="py-3 font-medium text-slate-700">
                       {{ sol.dataHora }}
                     </td>
 
                     <td class="py-3 text-slate-700">
-                      {{ sol.cliente }}
+                      {{ nomeCliente(sol) }}
                     </td>
 
                     <td class="py-3 text-slate-600">
-                      {{ descricaoLimitada(sol.produto) }}
+                      {{ descricaoLimitada(sol.descricaoEquipamento) }}
                     </td>
 
                     <td class="py-3">
-                      <button
-                        type="button"
-                        (click)="efetuarOrcamento(sol.codigo)"
-                        class="inline-flex items-center rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 transition">
+                      <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold" [class]="estadoClasse(sol.estado)">
+                        {{ sol.estado }}
+                      </span>
+                    </td>
+
+                    <td class="py-3">
+                      <ui-button size="sm" (clicked)="efetuarOrcamento(sol.codigo)">
                         Efetuar Orçamento
-                      </button>
+                      </ui-button>
                     </td>
                   </tr>
                 }
-                @if (solicitacoesAbertas.length === 0) {
+                @if (solicitacoesAbertasOrdenadas.length === 0) {
                   <tr>
-                    <td colspan="4" class="py-6 text-center text-slate-500">
+                    <td colspan="5" class="py-6 text-center text-slate-500">
                       Não há solicitações abertas no momento.
                     </td>
                   </tr>
