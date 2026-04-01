@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { AuthService } from '../../../services';
+import { EstadoSolicitacao } from '../../../shared/models';
 import { SidebarComponent, type SidebarItem } from '../../../shared';
 
 type SolicitacaoFuncionario = {
@@ -7,6 +8,7 @@ type SolicitacaoFuncionario = {
   cliente: string;
   produto: string;
   codigo: string;
+  estado: EstadoSolicitacao;
 };
 
 @Component({
@@ -27,24 +29,56 @@ export class TelaInicialFuncionario {
 
   readonly solicitacoes: SolicitacaoFuncionario[] = [
     {
-      dataHora: '16/03/2026 10:20',
+      dataHora: '20/03/2026 14:30',
       cliente: 'João da Silva',
-      produto: 'Notebook Dell Inspiron 15',
+      produto: 'Notebook Dell Inspiron 15 com bateria viciada e falha de boot',
       codigo: 'SOL-1042',
+      estado: 'ORÇADA',
     },
     {
-      dataHora: '16/03/2026 11:05',
+      dataHora: '20/03/2026 14:30',
       cliente: 'Maria Oliveira',
       produto: 'Monitor LG UltraWide 29',
-      codigo: 'SOL-1034',
+      codigo: 'SOL-1044',
+      estado: 'ORÇADA',
     },
     {
-      dataHora: '16/03/2026 11:45',
+      dataHora: '17/03/2026 09:10',
       cliente: 'Carlos Pereira',
-      produto: 'Teclado Mecânico Gamer RGB',
+      produto: 'Monitor LG UltraWide 29',
+      codigo: 'SOL-1034',
+      estado: 'APROVADA',
+    },
+    {
+      dataHora: '08/03/2026 11:42',
+      cliente: 'Fernanda Rocha',
+      produto: 'Teclado Mecânico RGB',
       codigo: 'SOL-1018',
+      estado: 'REJEITADA',
+    },
+    {
+      dataHora: '21/03/2026 16:05',
+      cliente: 'Ricardo Mendes',
+      produto: 'Impressora HP LaserJet Pro MFP com atolamento recorrente',
+      codigo: 'SOL-1051',
+      estado: 'ARRUMADA',
+    },
+    {
+      dataHora: '03/03/2026 08:25',
+      cliente: 'Patricia Lima',
+      produto: 'Mouse sem fio Logitech MX Master',
+      codigo: 'SOL-0997',
+      estado: 'ABERTA',
     },
   ];
+
+  get solicitacoesAbertas(): SolicitacaoFuncionario[] {
+    return this.solicitacoes.filter((sol) => sol.estado === 'ABERTA');
+  }
+
+  descricaoLimitada(produto: string): string {
+    return produto.length <= 30 ? produto : `${produto.slice(0, 30)}...`;
+  }
 
   logout() {
     this.authService.logout();
