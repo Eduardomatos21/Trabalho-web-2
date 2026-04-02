@@ -34,6 +34,7 @@ export class TelaPagamentoCliente implements OnInit {
     'SOL-1042': 249.9,
     'SOL-1044': 249.9,
     'SOL-1051': 249.9,
+    'SOL-1034': 235.9,
   };
 
   ngOnInit(): void {

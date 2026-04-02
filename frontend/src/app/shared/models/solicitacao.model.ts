@@ -20,11 +20,15 @@ export interface SolicitacaoCliente {
   emailCliente?: string;
   funcionarioDestinoRedirecionamento?: string;
   dataHora: string;
+  dataHoraManutencao?: string;
   dataHoraPagamento?: string;
+  funcionarioManutencao?: string;
   valorOrcamento?: number;
   descricaoEquipamento: string;
   categoriaEquipamento?: string;
   descricaoDefeito?: string;
+  descricaoManutencao?: string;
+  orientacoesCliente?: string;
   motivoRejeicao?: string;
   historico?: HistoricoAtualizacao[];
   estado: EstadoSolicitacao;

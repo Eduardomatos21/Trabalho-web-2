@@ -8,13 +8,21 @@ import { HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models
 import { DateFormatUtil, FormValidationHelper, SolicitacaoHistoricoUtil } from '../../../shared/utils';
 
 @Component({
-  selector: 'app-tela-orcamento-funcionario',
+  selector: 'app-tela-manutencao-funcionario',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, FormFieldComponent, ButtonComponent, ModalComponent],
-  templateUrl: './tela-orcamento-funcionario.html',
-  styleUrl: './tela-orcamento-funcionario.css',
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    SidebarComponent,
+    FormFieldComponent,
+    ButtonComponent,
+    ModalComponent,
+  ],
+  templateUrl: './tela-manutencao-funcionario.html',
+  styleUrl: './tela-manutencao-funcionario.css',
 })
-export class TelaOrcamentoFuncionario implements OnInit {
+export class TelaManutencaoFuncionario implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
@@ -27,13 +35,15 @@ export class TelaOrcamentoFuncionario implements OnInit {
     { label: 'Relatórios' },
   ];
 
+  solicitacao?: SolicitacaoCliente;
+  mostrandoCamposManutencao = false;
   enviado = false;
   loading = false;
   modalSucessoAberto = false;
-  solicitacao?: SolicitacaoCliente;
 
   form: FormGroup = this.fb.group({
-    valorOrcamento: [null, [Validators.required, Validators.min(0.01)]],
+    descricaoManutencao: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(400)]],
+    orientacoesCliente: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(400)]],
   });
 
   ngOnInit(): void {
@@ -47,19 +57,25 @@ export class TelaOrcamentoFuncionario implements OnInit {
     return 'Funcionário';
   }
 
-  get valorDigitadoFormatado(): string {
-    const valor = Number(this.form.value.valorOrcamento);
-    if (!Number.isFinite(valor) || valor <= 0) return 'R$ 0,00';
-    return this.formatarMoeda(valor);
+  mostrarFormularioManutencao(): void {
+    this.mostrandoCamposManutencao = true;
   }
 
-  registrarOrcamento(): void {
+  confirmarManutencao(): void {
     this.enviado = true;
-    if (this.form.invalid || !this.solicitacao) return;
+    if (!this.solicitacao || this.form.invalid) return;
 
     this.loading = true;
-    const valor = Number(this.form.value.valorOrcamento);
-    const eventoOrcamento = this.criarEventoHistorico(`Orçamento registrado no valor de ${this.formatarMoeda(valor)}`);
+
+    const dataHoraManutencao = DateFormatUtil.formatarDataHora(new Date());
+    const descricaoManutencao = String(this.form.value.descricaoManutencao).trim();
+    const orientacoesCliente = String(this.form.value.orientacoesCliente).trim();
+
+    const eventoManutencao: HistoricoAtualizacao = {
+      dataHora: dataHoraManutencao,
+      funcionario: this.funcionarioLogadoNome,
+      descricao: 'Manutenção efetuada.',
+    };
 
     const historicoAtual =
       this.solicitacao.historico && this.solicitacao.historico.length > 0
@@ -68,9 +84,12 @@ export class TelaOrcamentoFuncionario implements OnInit {
 
     const atualizada: SolicitacaoCliente = {
       ...this.solicitacao,
-      valorOrcamento: valor,
-      estado: 'ORÇADA',
-      historico: [...historicoAtual, eventoOrcamento],
+      descricaoManutencao,
+      orientacoesCliente,
+      funcionarioManutencao: this.funcionarioLogadoNome,
+      dataHoraManutencao,
+      estado: 'ARRUMADA',
+      historico: [...historicoAtual, eventoManutencao],
     };
 
     this.clienteStorageService.salvarSolicitacao(atualizada);
@@ -79,25 +98,32 @@ export class TelaOrcamentoFuncionario implements OnInit {
     this.modalSucessoAberto = true;
   }
 
-  erroValor(): string {
-    const control = this.form.get('valorOrcamento');
-    const erroBase = FormValidationHelper.getErrorMessage('valorOrcamento', control, this.enviado, {
-      requiredMessages: { valorOrcamento: 'Informe o valor do orçamento.' },
-    });
+  redirecionarManutencao(): void {
+    if (!this.solicitacao) return;
 
-    if (erroBase && erroBase !== 'Campo inválido.') return erroBase;
-    if (this.enviado && control?.errors?.['min']) return 'Informe um valor maior que zero.';
-    return '';
+    // RF015 será implementado em tela/fluxo específico de redirecionamento.
+    this.router.navigate(['/funcionario/solicitacoes'], {
+      queryParams: { solicitacao: this.solicitacao.codigo, acao: 'redirecionar' },
+    });
+  }
+
+  concluirSucesso(): void {
+    this.modalSucessoAberto = false;
+    this.router.navigate(['/funcionario/solicitacoes']);
+  }
+
+  erro(campo: 'descricaoManutencao' | 'orientacoesCliente'): string {
+    return FormValidationHelper.getErrorMessage(campo, this.form.get(campo), this.enviado, {
+      fieldNames: {
+        descricaoManutencao: 'Descrição da manutenção',
+        orientacoesCliente: 'Orientações para o cliente',
+      },
+    });
   }
 
   inputClass(campo: string): string {
     const hasError = this.enviado && !!this.form.get(campo)?.invalid;
     return FormValidationHelper.getInputClass(hasError);
-  }
-
-  confirmarSucesso(): void {
-    this.modalSucessoAberto = false;
-    this.router.navigate(['/funcionario']);
   }
 
   logout(): void {
@@ -106,10 +132,17 @@ export class TelaOrcamentoFuncionario implements OnInit {
 
   private buscarSolicitacao(codigo: string | null): SolicitacaoCliente {
     const navState = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
-    if (navState && navState.codigo === codigo) return navState;
-
     const encontrada = this.clienteStorageService.buscarPorCodigo(codigo);
-    if (encontrada) return encontrada;
+
+    if (encontrada) {
+      if (navState && navState.codigo === codigo) {
+        return { ...navState, ...encontrada };
+      }
+
+      return encontrada;
+    }
+
+    if (navState && navState.codigo === codigo) return navState;
 
     return {
       codigo: codigo ?? 'N/A',
@@ -119,19 +152,7 @@ export class TelaOrcamentoFuncionario implements OnInit {
       descricaoEquipamento: '-',
       categoriaEquipamento: '-',
       descricaoDefeito: '-',
-      estado: 'ABERTA',
+      estado: 'APROVADA',
     };
-  }
-
-  private criarEventoHistorico(descricao: string): HistoricoAtualizacao {
-    return {
-      dataHora: DateFormatUtil.formatarDataHora(new Date()),
-      funcionario: this.funcionarioLogadoNome,
-      descricao,
-    };
-  }
-
-  private formatarMoeda(valor: number): string {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
   }
 }

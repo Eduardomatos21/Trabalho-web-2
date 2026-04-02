@@ -36,6 +36,7 @@ export class TelaOrcamentoCliente implements OnInit {
   private readonly valoresMockSolicitacoesIniciais: Record<string, number> = {
     'SOL-1042': 249.9,
     'SOL-1044': 249.9,
+    'SOL-1034': 249.9,
   };
 
   ngOnInit(): void {

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService, ClienteStorageService } from '../../../services';
 import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { EstadoSolicitacao, SolicitacaoCliente } from '../../../shared/models';
@@ -12,7 +12,7 @@ type OrdemDataHora = 'asc' | 'desc';
 @Component({
   selector: 'app-tela-solicitacao-funcionario',
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent, ButtonComponent],
+  imports: [CommonModule, SidebarComponent, ButtonComponent],
   templateUrl: './tela-solicitacao-funcionario.html',
   styleUrl: './tela-solicitacao-funcionario.css',
 })
@@ -140,7 +140,10 @@ export class TelaSolicitacaoFuncionario implements OnInit {
     }
 
     if (solicitacao.estado === 'APROVADA' || solicitacao.estado === 'REDIRECIONADA') {
-      console.log('RF014 pendente para solicitação:', solicitacao.codigo);
+      this.router.navigate(['/funcionario/manutencao'], {
+        queryParams: { solicitacao: solicitacao.codigo },
+        state: { solicitacaoSelecionada: solicitacao },
+      });
       return;
     }
 
