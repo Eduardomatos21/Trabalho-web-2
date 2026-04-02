@@ -34,7 +34,13 @@ export class TelaVisualizarCliente implements OnInit {
   solicitacao?: SolicitacaoComHistorico;
   modalResgatarAberto = false;
   modalResgateSucessoAberto = false;
-  valorOrcadoMock = 249.9;
+
+  private readonly valoresMockSolicitacoesIniciais: Record<string, number> = {
+    'SOL-1042': 249.9,
+    'SOL-1044': 249.9,
+    'SOL-1051': 249.9,
+    'SOL-1034': 235.9,
+  };
 
   ngOnInit(): void {
     const codigo = this.route.snapshot.queryParamMap.get('solicitacao');
@@ -89,7 +95,8 @@ export class TelaVisualizarCliente implements OnInit {
   }
 
   get valorOrcadoFormatado(): string {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(this.valorOrcadoMock);
+    const valor = this.valorOrcadoParaSolicitacao(this.solicitacao);
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
   }
 
   resgatarServico(): void {
@@ -151,5 +158,17 @@ export class TelaVisualizarCliente implements OnInit {
       funcionario: usuario?.perfil === 'funcionario' ? usuario.nome : '',
       descricao,
     };
+  }
+
+
+    private valorOrcadoParaSolicitacao(solicitacao?: SolicitacaoCliente | null): number {
+    if (!solicitacao) return 0;
+
+    if (typeof solicitacao.valorOrcamento === 'number' && solicitacao.valorOrcamento > 0) {
+      return solicitacao.valorOrcamento;
+    }
+
+    const valorMock = this.valoresMockSolicitacoesIniciais[solicitacao.codigo];
+    return typeof valorMock === 'number' ? valorMock : 0;
   }
 }

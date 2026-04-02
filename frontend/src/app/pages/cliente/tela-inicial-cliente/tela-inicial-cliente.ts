@@ -100,7 +100,13 @@ export class TelaInicialCliente implements OnInit {
  solicitacao?: SolicitacaoCliente;
  modalResgatarAberto = false;
  solicitacaoSelecionada: SolicitacaoCliente | null = null;
- valorOrcadoMock = 249.9;
+
+ private readonly valoresMockSolicitacoesIniciais: Record<string, number> = {
+  'SOL-1042': 249.9,
+  'SOL-1044': 249.9,
+  'SOL-1051': 249.9,
+  'SOL-1034': 235.9,
+ };
   ngOnInit(): void {
    this.solicitacoes = this.clienteStorageService.mesclarSolicitacoes(
      this.solicitacoesBase,
@@ -132,6 +138,11 @@ get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
       { ...this.indicadoresConfig[2], valor: concluidas },
     ];
   }
+
+ get valorResgateFormatado(): string {
+   const valor = this.valorOrcadoParaSolicitacao(this.solicitacaoSelecionada);
+   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+ }
 
 
  descricaoLimitada(descricaoEquipamento: string): string {
@@ -262,6 +273,17 @@ get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
        descricao,
      };
  }
+
+  private valorOrcadoParaSolicitacao(solicitacao?: SolicitacaoCliente | null): number {
+    if (!solicitacao) return 0;
+
+    if (typeof solicitacao.valorOrcamento === 'number' && solicitacao.valorOrcamento > 0) {
+      return solicitacao.valorOrcamento;
+    }
+
+    const valorMock = this.valoresMockSolicitacoesIniciais[solicitacao.codigo];
+    return typeof valorMock === 'number' ? valorMock : 0;
+  }
 
   private countByStates(states: EstadoSolicitacao[]): number {
     return this.solicitacoes.filter((s) => states.includes(s.estado)).length;
