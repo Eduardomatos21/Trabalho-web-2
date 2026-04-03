@@ -9,6 +9,14 @@ import java.util.List;
 @Repository
 public interface SolicitacaoRepository extends JpaRepository<Solicitacao, Integer>{
     @Query("""
+    SELECT DATE(s.dataHora), SUM(s.valorOrcamento)
+    FROM Solicitacao s
+    GROUP BY DATE(s.dataHora)
+    ORDER BY DATE(s.dataHora)
+    """)
+    List<Object[]> somarReceitaPorDia();
+
+    @Query("""
     SELECT s.equipamento.categoria, SUM(s.valorOrcamento)
     FROM Solicitacao s
     GROUP BY s.equipamento.categoria
