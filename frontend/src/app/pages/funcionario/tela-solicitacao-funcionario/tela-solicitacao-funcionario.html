@@ -126,3 +126,26 @@
 		</div>
 	</main>
 </div>
+
+<ui-modal
+	[isOpen]="modalFinalizacaoAberto"
+	[closeOnBackdrop]="false"
+	size="sm"
+	(closed)="fecharModalFinalizacao()">
+	<div class="text-center py-1">
+		<div class="w-14 h-14 mx-auto rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+			<svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+			</svg>
+		</div>
+		<p class="text-sm text-slate-700 font-medium">Deseja finalizar esta solicitação?</p>
+		@if (solicitacaoParaFinalizar) {
+			<p class="text-xs text-slate-500 mt-1">Código: {{ solicitacaoParaFinalizar.codigo }}</p>
+		}
+	</div>
+
+	<div modal-footer class="flex justify-center gap-2">
+		<ui-button variant="secondary" (clicked)="fecharModalFinalizacao()">Cancelar</ui-button>
+		<ui-button variant="success" (clicked)="confirmarFinalizacao()">Finalizar</ui-button>
+	</div>
+</ui-modal>

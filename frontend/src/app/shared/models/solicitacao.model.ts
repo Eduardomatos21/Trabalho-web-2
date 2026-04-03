@@ -22,7 +22,9 @@ export interface SolicitacaoCliente {
   dataHora: string;
   dataHoraManutencao?: string;
   dataHoraPagamento?: string;
+  dataHoraFinalizacao?: string;
   funcionarioManutencao?: string;
+  funcionarioFinalizacao?: string;
   valorOrcamento?: number;
   descricaoEquipamento: string;
   categoriaEquipamento?: string;

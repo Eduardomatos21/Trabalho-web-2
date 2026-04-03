@@ -2,9 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService, ClienteStorageService } from '../../../services';
-import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../shared';
-import { EstadoSolicitacao, SolicitacaoCliente } from '../../../shared/models';
-import { DateFormatUtil, SolicitacaoUiUtil } from '../../../shared/utils';
+import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
+import { EstadoSolicitacao, HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
+import { DateFormatUtil, SolicitacaoHistoricoUtil, SolicitacaoUiUtil } from '../../../shared/utils';
 
 type TipoFiltro = 'HOJE' | 'PERIODO' | 'TODAS';
 type OrdemDataHora = 'asc' | 'desc';
@@ -12,7 +12,7 @@ type OrdemDataHora = 'asc' | 'desc';
 @Component({
   selector: 'app-tela-solicitacao-funcionario',
   standalone: true,
-  imports: [CommonModule, SidebarComponent, ButtonComponent],
+  imports: [CommonModule, SidebarComponent, ButtonComponent, ModalComponent],
   templateUrl: './tela-solicitacao-funcionario.html',
   styleUrl: './tela-solicitacao-funcionario.css',
 })
@@ -34,6 +34,8 @@ export class TelaSolicitacaoFuncionario implements OnInit {
   periodoInicio = '';
   periodoFim = '';
   solicitacoes: SolicitacaoCliente[] = [];
+  modalFinalizacaoAberto = false;
+  solicitacaoParaFinalizar: SolicitacaoCliente | null = null;
 
   private readonly solicitacoesBase: SolicitacaoCliente[] = [
     {
@@ -148,8 +150,52 @@ export class TelaSolicitacaoFuncionario implements OnInit {
     }
 
     if (solicitacao.estado === 'PAGA') {
-      console.log('RF016 pendente para solicitação:', solicitacao.codigo);
+      this.solicitacaoParaFinalizar = solicitacao;
+      this.modalFinalizacaoAberto = true;
     }
+  }
+
+  fecharModalFinalizacao(): void {
+    this.modalFinalizacaoAberto = false;
+    this.solicitacaoParaFinalizar = null;
+  }
+
+  confirmarFinalizacao(): void {
+    if (!this.solicitacaoParaFinalizar) return;
+
+    const dataHoraFinalizacao = DateFormatUtil.formatarDataHora(new Date());
+    const funcionario = this.funcionarioLogadoNome || 'Funcionário';
+
+    const eventoFinalizacao: HistoricoAtualizacao = {
+      dataHora: dataHoraFinalizacao,
+      funcionario,
+      descricao: 'Solicitação finalizada',
+    };
+
+    const historicoAtual =
+      this.solicitacaoParaFinalizar.historico && this.solicitacaoParaFinalizar.historico.length > 0
+        ? this.solicitacaoParaFinalizar.historico
+        : SolicitacaoHistoricoUtil.getHistoricoBase(
+            this.solicitacaoParaFinalizar.codigo,
+            this.solicitacaoParaFinalizar.dataHora,
+          );
+
+    const atualizada: SolicitacaoCliente = {
+      ...this.solicitacaoParaFinalizar,
+      estado: 'FINALIZADO',
+      dataHoraFinalizacao,
+      funcionarioFinalizacao: funcionario,
+      historico: [...historicoAtual, eventoFinalizacao],
+    };
+
+    this.clienteStorageService.salvarSolicitacao(atualizada);
+
+    const index = this.solicitacoes.findIndex((item) => item.codigo === atualizada.codigo);
+    if (index !== -1) {
+      this.solicitacoes[index] = atualizada;
+    }
+
+    this.fecharModalFinalizacao();
   }
 
   logout(): void {
