@@ -11,7 +11,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
+import com.example.web2.service.RelatorioReceitaCategoriaService;
 import com.example.web2.entity.Historico;
 import com.example.web2.entity.Solicitacao;
 import com.example.web2.repository.HistoricoRepository;
@@ -20,6 +24,24 @@ import com.example.web2.repository.SolicitacaoRepository;
 @RestController
 @RequestMapping("/solicitacoes")
 public class SolicitacaoController {
+
+    @Autowired
+    private RelatorioReceitaCategoriaService relatorioService;
+
+        @GetMapping("/relatorio/receita-categoria")
+    public ResponseEntity<byte[]> relatorioReceitaCategoria(){
+
+        byte[] pdf = relatorioService.gerarPdf();
+
+        return ResponseEntity.ok()
+                .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=receita_categoria.pdf"
+                )
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+
+    }
 
     @Autowired
     private SolicitacaoRepository solicitacaoRepository;
