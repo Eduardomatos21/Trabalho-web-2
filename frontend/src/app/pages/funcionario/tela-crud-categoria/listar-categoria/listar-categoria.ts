@@ -3,17 +3,20 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService, CategoriaService } from '../../../../services';
 import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../../shared';
+import { ModalComponent } from '../../../../shared/components/modal/modal';
 import { Categoria } from '../../../../shared/models/categoria.model';
 
 @Component({
   selector: 'app-listar-categoria',
   standalone: true,
-  imports: [CommonModule, ButtonComponent, SidebarComponent],
+  imports: [CommonModule, ButtonComponent, SidebarComponent, ModalComponent],
   templateUrl: './listar-categoria.html',
   styleUrl: './listar-categoria.css',
 })
 export class ListarCategoria implements OnInit {
   categorias: Categoria[] = [];
+  modalAberto = false;
+  categoriaParaExcluir: number | null = null;
 
   readonly menuItemsFuncionario: SidebarItem[] = [
     { label: 'Página inicial', route: '/funcionario' },
@@ -45,13 +48,21 @@ export class ListarCategoria implements OnInit {
   }
 
   removerCategoria(id: number): void {
-    const confirmado = confirm('Deseja realmente excluir esta categoria?');
-    if (!confirmado) {
-      return;
-    }
+    this.categoriaParaExcluir = id;
+    this.modalAberto = true;
+  }
 
-    this.categoriaService.remover(id);
-    this.carregarCategorias();
+  confirmarExclusao(): void {
+    if (this.categoriaParaExcluir !== null) {
+      this.categoriaService.remover(this.categoriaParaExcluir);
+      this.carregarCategorias();
+      this.fecharModal();
+    }
+  }
+
+  fecharModal(): void {
+    this.modalAberto = false;
+    this.categoriaParaExcluir = null;
   }
 
   logout(): void {

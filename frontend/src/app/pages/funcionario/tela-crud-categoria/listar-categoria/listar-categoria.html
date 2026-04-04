@@ -50,6 +50,20 @@
           </table>
         </div>
       </section>
+
+      <ui-modal
+        [isOpen]="modalAberto"
+        title="Confirmar exclusão"
+        subtitle="Esta ação não pode ser desfeita"
+        size="sm"
+        (closed)="fecharModal()">
+        <p class="text-slate-600 mb-6">Tem certeza que deseja excluir esta categoria?</p>
+        
+        <div modal-footer class="flex gap-3 justify-end">
+          <ui-button variant="secondary" size="sm" (clicked)="fecharModal()">Cancelar</ui-button>
+          <ui-button variant="danger" size="sm" (clicked)="confirmarExclusao()">Excluir</ui-button>
+        </div>
+      </ui-modal>
     </div>
   </main>
 </div>
