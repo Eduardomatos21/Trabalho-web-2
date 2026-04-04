@@ -1,0 +1,112 @@
+<div class="min-h-screen bg-slate-50 flex">
+	<ui-sidebar
+		panelLabel="Painel do Funcionário"
+		[menuItems]="menuItemsFuncionario"
+		(logoutClicked)="logout()" />
+
+	<main class="flex-1 p-4 sm:p-6 lg:p-8">
+		<div class="max-w-7xl mx-auto space-y-6">
+			<header class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8">
+				<p class="text-xs uppercase tracking-widest text-teal-700 font-semibold">Relatórios em PDF</p>
+				<h1 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Receitas da empresa</h1>
+			</header>
+
+			<section class="bg-white rounded-3xl border border-slate-200 p-6 space-y-4">
+				<div class="flex items-center justify-between gap-2 flex-wrap">
+					<h2 class="text-lg font-bold text-slate-900">Receita por dia</h2>
+					<ui-button size="sm" (clicked)="exportarPdfPorDia()">Exportar PDF</ui-button>
+				</div>
+
+				<form [formGroup]="filtroPeriodoForm" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+					<div>
+						<label for="dataInicial" class="block text-xs uppercase tracking-wider text-slate-500 mb-1">Data inicial</label>
+						<input
+							id="dataInicial"
+							type="date"
+							formControlName="dataInicial"
+							class="w-full border rounded-lg px-3 py-2 text-sm bg-white border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+					</div>
+
+					<div>
+						<label for="dataFinal" class="block text-xs uppercase tracking-wider text-slate-500 mb-1">Data final</label>
+						<input
+							id="dataFinal"
+							type="date"
+							formControlName="dataFinal"
+							class="w-full border rounded-lg px-3 py-2 text-sm bg-white border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+					</div>
+
+					<div class="flex gap-2 sm:col-span-2">
+						<ui-button size="sm" (clicked)="aplicarFiltroPeriodo()">Aplicar filtro</ui-button>
+						<ui-button size="sm" variant="secondary" (clicked)="limparFiltroPeriodo()">Limpar</ui-button>
+					</div>
+				</form>
+
+				<div class="overflow-x-auto rounded-2xl border border-slate-200">
+					<table class="w-full min-w-120 text-sm">
+						<thead>
+							<tr class="border-b border-slate-200 text-left text-slate-500 uppercase text-xs tracking-wider">
+								<th class="py-3 px-4">Dia</th>
+								<th class="py-3 px-4">Receita</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-slate-100">
+							@for (item of receitasPorDia; track item.dia) {
+								<tr>
+									<td class="py-3 px-4 font-medium text-slate-700">{{ item.dia }}</td>
+									<td class="py-3 px-4 text-slate-700">{{ formatarMoeda(item.total) }}</td>
+								</tr>
+							}
+							@if (receitasPorDia.length === 0) {
+								<tr>
+									<td colspan="2" class="py-5 px-4 text-center text-slate-500">Nenhuma receita encontrada no período.</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+
+				<div class="text-right">
+					<p class="text-sm text-slate-500">Total do período</p>
+					<p class="text-xl font-black text-slate-900">{{ formatarMoeda(totalReceitaPeriodo) }}</p>
+				</div>
+			</section>
+
+			<section class="bg-white rounded-3xl border border-slate-200 p-6 space-y-4">
+				<div class="flex items-center justify-between gap-2 flex-wrap">
+					<h2 class="text-lg font-bold text-slate-900">Receita por categoria (desde sempre)</h2>
+					<ui-button size="sm" (clicked)="exportarPdfPorCategoria()">Exportar PDF</ui-button>
+				</div>
+
+				<div class="overflow-x-auto rounded-2xl border border-slate-200">
+					<table class="w-full min-w-120 text-sm">
+						<thead>
+							<tr class="border-b border-slate-200 text-left text-slate-500 uppercase text-xs tracking-wider">
+								<th class="py-3 px-4">Categoria</th>
+								<th class="py-3 px-4">Receita</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-slate-100">
+							@for (item of receitasPorCategoria; track item.categoria) {
+								<tr>
+									<td class="py-3 px-4 font-medium text-slate-700">{{ item.categoria }}</td>
+									<td class="py-3 px-4 text-slate-700">{{ formatarMoeda(item.total) }}</td>
+								</tr>
+							}
+							@if (receitasPorCategoria.length === 0) {
+								<tr>
+									<td colspan="2" class="py-5 px-4 text-center text-slate-500">Nenhuma receita disponível.</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+
+				<div class="text-right">
+					<p class="text-sm text-slate-500">Total geral</p>
+					<p class="text-xl font-black text-slate-900">{{ formatarMoeda(totalReceitaCategoria) }}</p>
+				</div>
+			</section>
+		</div>
+	</main>
+</div>

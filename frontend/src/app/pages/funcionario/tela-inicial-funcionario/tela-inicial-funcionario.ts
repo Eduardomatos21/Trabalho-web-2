@@ -24,7 +24,7 @@ export class TelaInicialFuncionario implements OnInit {
   readonly menuItemsFuncionario: SidebarItem[] = [
     { label: 'Página inicial', route: '/funcionario', active: true },
     { label: 'Visualização de solicitações', route: '/funcionario/solicitacoes' },
-    { label: 'Relatórios' },
+    { label: 'Relatórios', route: '/funcionario/relatorios' },
   ];
 
   ordemDataHora: OrdemDataHora = 'asc';

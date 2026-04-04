@@ -6,12 +6,13 @@ import { TelaOrcamentoCliente } from './pages/cliente/tela-orcamento-cliente';
 import { TelaPagamentoCliente } from './pages/cliente/tela-pagamento-cliente';
 import { TelaSolicitacaoCliente } from './pages/cliente/tela-solicitacao-cliente';
 import { TelaVisualizarCliente } from './pages/cliente/tela-visualizar-cliente/tela-visualizar-cliente';
+import { EditarCategoria } from './pages/funcionario/tela-crud-categoria/editar-categoria/editar-categoria';
+import { ListarCategoria } from './pages/funcionario/tela-crud-categoria/listar-categoria/listar-categoria';
 import { TelaInicialFuncionario } from './pages/funcionario/tela-inicial-funcionario';
 import { TelaManutencaoFuncionario } from './pages/funcionario/tela-manutencao-funcionario/tela-manutencao-funcionario';
 import { TelaOrcamentoFuncionario } from './pages/funcionario/tela-orcamento-funcionario';
+import { TelaRelatoriosFuncionario } from './pages/funcionario/tela-relatorios-funcionario';
 import { TelaSolicitacaoFuncionario } from './pages/funcionario/tela-solicitacao-funcionario/tela-solicitacao-funcionario';
-import { ListarCategoria } from './pages/funcionario/tela-crud-categoria/listar-categoria/listar-categoria';
-import { EditarCategoria } from './pages/funcionario/tela-crud-categoria/editar-categoria/editar-categoria';
 
 export const routes: Routes = [
   { path: 'cadastro', component: Cadastro },
@@ -25,6 +26,7 @@ export const routes: Routes = [
   { path: 'funcionario/orcamento', component: TelaOrcamentoFuncionario },
   { path: 'funcionario/manutencao', component: TelaManutencaoFuncionario },
   { path: 'funcionario/solicitacoes', component: TelaSolicitacaoFuncionario },
+  { path: 'funcionario/relatorios', component: TelaRelatoriosFuncionario },
   { path: 'funcionario/categorias', component: ListarCategoria },
   { path: 'funcionario/categorias/nova', component: EditarCategoria },
   { path: '', redirectTo: 'login', pathMatch: 'full' },

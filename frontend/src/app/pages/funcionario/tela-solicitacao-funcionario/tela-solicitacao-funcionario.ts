@@ -26,7 +26,7 @@ export class TelaSolicitacaoFuncionario implements OnInit {
   readonly menuItemsFuncionario: SidebarItem[] = [
     { label: 'Página inicial', route: '/funcionario' },
     { label: 'Visualização de solicitações', route: '/funcionario/solicitacoes', active: true },
-    { label: 'Relatórios' },
+    { label: 'Relatórios', route: '/funcionario/relatorios' },
   ];
 
   tipoFiltro: TipoFiltro = 'TODAS';
