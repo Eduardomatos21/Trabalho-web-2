@@ -29,5 +29,6 @@ export const routes: Routes = [
   { path: 'funcionario/relatorios', component: TelaRelatoriosFuncionario },
   { path: 'funcionario/categorias', component: ListarCategoria },
   { path: 'funcionario/categorias/nova', component: EditarCategoria },
+  { path: 'funcionario/categorias/:id', component: EditarCategoria },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 ];

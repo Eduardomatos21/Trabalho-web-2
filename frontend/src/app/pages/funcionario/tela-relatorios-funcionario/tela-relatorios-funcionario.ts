@@ -27,6 +27,7 @@ export class TelaRelatoriosFuncionario implements OnInit {
     { label: 'Página inicial', route: '/funcionario' },
     { label: 'Visualização de solicitações', route: '/funcionario/solicitacoes' },
     { label: 'Relatórios', route: '/funcionario/relatorios', active: true },
+    { label: 'Categorias', route: '/funcionario/categorias' },
   ];
 
   readonly filtroPeriodoForm: FormGroup;

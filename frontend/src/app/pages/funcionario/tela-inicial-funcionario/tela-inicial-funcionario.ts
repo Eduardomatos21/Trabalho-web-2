@@ -25,6 +25,7 @@ export class TelaInicialFuncionario implements OnInit {
     { label: 'Página inicial', route: '/funcionario', active: true },
     { label: 'Visualização de solicitações', route: '/funcionario/solicitacoes' },
     { label: 'Relatórios', route: '/funcionario/relatorios' },
+    { label: 'Categorias', route: '/funcionario/categorias' },
   ];
 
   ordemDataHora: OrdemDataHora = 'asc';
@@ -121,6 +122,10 @@ export class TelaInicialFuncionario implements OnInit {
       queryParams: { solicitacao: codigo },
       state: { solicitacaoSelecionada: selecionada },
     });
+  }
+
+  navegarParaCategorias(): void {
+    this.router.navigate(['/funcionario/categorias']);
   }
 
   private carregarSolicitacoesFuncionario(): SolicitacaoCliente[] {

@@ -25,6 +25,7 @@ export class TelaOrcamentoFuncionario implements OnInit {
     { label: 'Página inicial', route: '/funcionario' },
     { label: 'Visualização de solicitações', route: '/funcionario/solicitacoes', active: true },
     { label: 'Relatórios', route: '/funcionario/relatorios' },
+    { label: 'Categorias', route: '/funcionario/categorias' },
   ];
 
   enviado = false;

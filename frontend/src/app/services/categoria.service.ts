@@ -13,13 +13,19 @@ export class CategoriaService {
   }
   inserir(categoria: Categoria): void {
     const categorias = this.listarTodos();
-    categoria.id = new Date().getTime();
+    categoria.id = this.gerarNovoId(categorias);
     categorias.push(categoria);
     localStorage[LS_CHAVE] = JSON.stringify(categorias);
   }
+
   buscarPorId(id: number): Categoria | undefined {
     const categorias = this.listarTodos();
     return categorias.find((categoria) => categoria.id === id);
+  }
+
+  private gerarNovoId(categorias: Categoria[]): number {
+    const maiorId = categorias.reduce((max, categoria) => Math.max(max, categoria.id ?? 0), 0);
+    return maiorId + 1;
   }
   atualizar(categoria: Categoria): void {
   const categorias = this.listarTodos();
