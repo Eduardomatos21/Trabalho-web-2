@@ -65,10 +65,36 @@
 
 					<div class="flex flex-wrap gap-2">
 						<ui-button variant="secondary" routerLink="/funcionario/solicitacoes">Voltar</ui-button>
-						<ui-button variant="warning" (clicked)="redirecionarManutencao()">Redirecionar Manutenção</ui-button>
+						<ui-button variant="warning" (clicked)="mostrarCamposRedirecionamento()">Redirecionar Manutenção</ui-button>
 						<ui-button variant="primary" (clicked)="mostrarFormularioManutencao()">Efetuar Manutenção</ui-button>
 					</div>
 				</div>
+
+				@if (mostrandoCamposRedirecionamento) {
+					<form [formGroup]="form" (ngSubmit)="confirmarRedirecionamento()" class="space-y-4 pt-2">
+						<ui-form-field label="Selecione o funcionário para redirecionar"
+							fieldId="funcionarioRedirecionamento" 
+							[required]="true" 
+							[error]="erro('funcionarioRedirecionamento')">
+							<select
+								id="funcionarioRedirecionamento"
+								formControlName="funcionarioRedirecionamento"
+								[class]="inputClass('funcionarioRedirecionamento')">
+								<option value="" hidden>Selecione</option>
+								@for (funcionario of funcionariosDisponiveisFiltrados; track funcionario) {
+									<option [value]="funcionario">{{ funcionario }}</option>
+									} @empty {
+									<option disabled>Nenhum funcionário encontrado</option>
+								}
+							</select>
+						</ui-form-field>
+
+						<div class="flex justify-end">
+							<ui-button variant="success" (clicked)="confirmarRedirecionamento()" [loading]="loading">Confirmar Redirecionamento</ui-button>
+						</div>
+					</form>
+				}
+
 
 				@if (mostrandoCamposManutencao) {
 					<form [formGroup]="form" (ngSubmit)="confirmarManutencao()" class="space-y-4 pt-2">

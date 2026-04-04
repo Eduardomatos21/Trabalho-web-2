@@ -37,14 +37,20 @@ export class TelaManutencaoFuncionario implements OnInit {
   ];
 
   solicitacao?: SolicitacaoCliente;
+  mostrandoCamposRedirecionamento = false;
   mostrandoCamposManutencao = false;
   enviado = false;
   loading = false;
   modalSucessoAberto = false;
+  redirecionado = false;
+
+  // Lista de funcionários disponíveis (simulada; depois deve buscar do backend)
+  funcionariosDisponiveis = ['Maria', 'Mario'];
 
   form: FormGroup = this.fb.group({
     descricaoManutencao: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(400)]],
     orientacoesCliente: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(400)]],
+    funcionarioRedirecionamento: ['', Validators.required],
   });
 
   ngOnInit(): void {
@@ -58,7 +64,13 @@ export class TelaManutencaoFuncionario implements OnInit {
     return 'Funcionário';
   }
 
+  get funcionariosDisponiveisFiltrados(): string[] {
+    return this.funcionariosDisponiveis.filter(f => f !== this.funcionarioLogadoNome);
+  }
+
+  // MANUTENÇÃO - RF014
   mostrarFormularioManutencao(): void {
+    this.mostrandoCamposRedirecionamento = false;
     this.mostrandoCamposManutencao = true;
   }
 
@@ -99,13 +111,49 @@ export class TelaManutencaoFuncionario implements OnInit {
     this.modalSucessoAberto = true;
   }
 
-  redirecionarManutencao(): void {
-    if (!this.solicitacao) return;
+   //REDIRECIONAMENTO DE MANUTENÇÃO - RF015
+  mostrarCamposRedirecionamento(): void {
+    this.mostrandoCamposRedirecionamento = true;
+    this.mostrandoCamposManutencao = false;
+  }
 
-    // RF015 será implementado em tela/fluxo específico de redirecionamento.
-    this.router.navigate(['/funcionario/solicitacoes'], {
-      queryParams: { solicitacao: this.solicitacao.codigo, acao: 'redirecionar' },
-    });
+  confirmarRedirecionamento(): void {
+    this.enviado = true;
+    if (!this.solicitacao || this.form.get('funcionarioRedirecionamento')?.invalid) return;
+
+    const funcionarioDestino = this.form.value.funcionarioRedirecionamento;
+    if (funcionarioDestino === this.funcionarioLogadoNome) {
+      // Não permitir redirecionar para si mesmo (embora já filtrado, por segurança)
+      return;
+    }
+
+    this.loading = true;
+
+    const dataHoraRedirecionamento = DateFormatUtil.formatarDataHora(new Date());
+    const eventoRedirecionamento: HistoricoAtualizacao = {
+      dataHora: dataHoraRedirecionamento,
+      funcionario: this.funcionarioLogadoNome,
+      descricao: `Redirecionado de ${this.funcionarioLogadoNome} para ${funcionarioDestino}.`,
+    };
+
+    const historicoAtual =
+      this.solicitacao.historico && this.solicitacao.historico.length > 0
+        ? this.solicitacao.historico
+        : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacao.codigo, this.solicitacao.dataHora);
+
+    const atualizada: SolicitacaoCliente = {
+      ...this.solicitacao,
+      estado: 'REDIRECIONADA',
+      historico: [...historicoAtual, eventoRedirecionamento],
+    };
+
+    this.clienteStorageService.salvarSolicitacao(atualizada);
+    this.solicitacao = atualizada;
+    this.loading = false;
+    this.redirecionado = true;
+    //navegar ou mostrar modal de sucesso?
+    this.router.navigate(['/funcionario/solicitacoes']);
+    console.log(`Solicitação ${this.solicitacao.codigo} redirecionada para ${funcionarioDestino}.`) ;
   }
 
   concluirSucesso(): void {
@@ -113,11 +161,12 @@ export class TelaManutencaoFuncionario implements OnInit {
     this.router.navigate(['/funcionario/solicitacoes']);
   }
 
-  erro(campo: 'descricaoManutencao' | 'orientacoesCliente'): string {
+  erro(campo: 'descricaoManutencao' | 'orientacoesCliente' | 'funcionarioRedirecionamento'): string {
     return FormValidationHelper.getErrorMessage(campo, this.form.get(campo), this.enviado, {
       fieldNames: {
         descricaoManutencao: 'Descrição da manutenção',
         orientacoesCliente: 'Orientações para o cliente',
+        funcionarioRedirecionamento: 'Funcionário para redirecionamento',
       },
     });
   }
