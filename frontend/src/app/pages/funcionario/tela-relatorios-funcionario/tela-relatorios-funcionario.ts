@@ -24,10 +24,11 @@ export class TelaRelatoriosFuncionario implements OnInit {
   }
 
   readonly menuItemsFuncionario: SidebarItem[] = [
-    { label: 'Página inicial', route: '/funcionario' },
+    { label: 'Página inicial', route: '/funcionario', active: true },
     { label: 'Visualização de solicitações', route: '/funcionario/solicitacoes' },
-    { label: 'Relatórios', route: '/funcionario/relatorios', active: true },
+    { label: 'Relatórios', route: '/funcionario/relatorios' },
     { label: 'Categorias', route: '/funcionario/categorias' },
+    { label: 'Funcionários', route: '/funcionario/listar' },
   ];
 
   readonly filtroPeriodoForm: FormGroup;

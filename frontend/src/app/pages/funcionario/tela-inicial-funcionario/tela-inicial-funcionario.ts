@@ -26,6 +26,7 @@ export class TelaInicialFuncionario implements OnInit {
     { label: 'Visualização de solicitações', route: '/funcionario/solicitacoes' },
     { label: 'Relatórios', route: '/funcionario/relatorios' },
     { label: 'Categorias', route: '/funcionario/categorias' },
+    { label: 'Funcionários', route: '/funcionario/listar' },
   ];
 
   ordemDataHora: OrdemDataHora = 'asc';

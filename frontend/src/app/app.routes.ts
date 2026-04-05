@@ -13,6 +13,9 @@ import { TelaManutencaoFuncionario } from './pages/funcionario/tela-manutencao-f
 import { TelaOrcamentoFuncionario } from './pages/funcionario/tela-orcamento-funcionario';
 import { TelaRelatoriosFuncionario } from './pages/funcionario/tela-relatorios-funcionario';
 import { TelaSolicitacaoFuncionario } from './pages/funcionario/tela-solicitacao-funcionario/tela-solicitacao-funcionario';
+import { ListarFuncionario } from './pages/funcionario/tela-crud-funcionario/listar-funcionario/listar-funcionario';
+import { EditarFuncionario } from './pages/funcionario/tela-crud-funcionario/editar-funcionario/editar-funcionario';
+
 
 export const routes: Routes = [
   { path: 'cadastro', component: Cadastro },
@@ -30,5 +33,8 @@ export const routes: Routes = [
   { path: 'funcionario/categorias', component: ListarCategoria },
   { path: 'funcionario/categorias/nova', component: EditarCategoria },
   { path: 'funcionario/categorias/:id', component: EditarCategoria },
+  { path: 'funcionario/listar', component: ListarFuncionario},
+  { path: 'funcionario/novo', component: EditarFuncionario},
+  { path: 'funcionario/editar/:id', component: EditarFuncionario},    
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 ];
