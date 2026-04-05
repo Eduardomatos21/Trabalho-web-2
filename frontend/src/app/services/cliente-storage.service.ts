@@ -41,6 +41,30 @@ export class ClienteStorageService {
     return this.carregarSolicitacoes().find((s) => s.codigo === codigo);
   }
 
+  carregarSolicitacoesPorCliente(emailCliente: string | undefined): SolicitacaoCliente[] {
+    const emailNormalizado = this.normalizarEmail(emailCliente);
+
+    return this.carregarSolicitacoes().filter((solicitacao) => {
+      const emailSolicitacao = this.normalizarEmail(solicitacao.emailCliente);
+
+      // Solicitações sem email são tratadas como dados globais/mock do protótipo.
+      if (!emailSolicitacao) {
+        return true;
+      }
+
+      if (!emailNormalizado) {
+        return true;
+      }
+
+      return emailSolicitacao === emailNormalizado;
+    });
+  }
+
+  buscarPorCodigoDoCliente(codigo: string | null, emailCliente: string | undefined): SolicitacaoCliente | undefined {
+    if (!codigo) return undefined;
+    return this.carregarSolicitacoesPorCliente(emailCliente).find((s) => s.codigo === codigo);
+  }
+
   mesclarSolicitacoes(base: SolicitacaoCliente[], salvas: SolicitacaoCliente[]): SolicitacaoCliente[] {
     const map = new Map<string, SolicitacaoCliente>();
 
@@ -74,5 +98,9 @@ export class ClienteStorageService {
       estado === 'FINALIZADO' ||
       estado === 'ABERTA'
     );
+  }
+
+  private normalizarEmail(email: string | undefined): string {
+    return (email ?? '').trim().toLowerCase();
   }
 }

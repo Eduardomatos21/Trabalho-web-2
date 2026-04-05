@@ -17,6 +17,30 @@ export class AuthService {
   // Usuários fixos para demonstração do protótipo sem backend.
   private readonly usuariosMock: UsuarioMock[] = [
     {
+      nome: 'José',
+      email: 'jose@demo.com',
+      senha: '1234',
+      perfil: 'cliente',
+    },
+    {
+      nome: 'João',
+      email: 'joao@demo.com',
+      senha: '1234',
+      perfil: 'cliente',
+    },
+    {
+      nome: 'Joana',
+      email: 'joana@demo.com',
+      senha: '1234',
+      perfil: 'cliente',
+    },
+    {
+      nome: 'Joaquina',
+      email: 'joaquina@demo.com',
+      senha: '1234',
+      perfil: 'cliente',
+    },
+    {
       nome: 'Cliente Demo',
       email: 'cliente@demo.com',
       senha: '1234',

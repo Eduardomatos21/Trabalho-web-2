@@ -108,9 +108,10 @@ export class TelaInicialCliente implements OnInit {
   'SOL-1034': 235.9,
  };
   ngOnInit(): void {
+   const usuarioLogado = this.authService.getUsuarioLogado();
    this.solicitacoes = this.clienteStorageService.mesclarSolicitacoes(
      this.solicitacoesBase,
-     this.clienteStorageService.carregarSolicitacoes(),
+     this.clienteStorageService.carregarSolicitacoesPorCliente(usuarioLogado?.email),
    );
  }
 

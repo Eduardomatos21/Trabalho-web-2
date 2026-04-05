@@ -96,8 +96,9 @@ export class TelaPagamentoCliente implements OnInit {
   }
 
   private buscarSolicitacao(codigo: string | null): SolicitacaoCliente {
+    const usuarioLogado = this.authService.getUsuarioLogado();
     const navState = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
-    const encontrada = this.clienteStorageService.buscarPorCodigo(codigo);
+    const encontrada = this.clienteStorageService.buscarPorCodigoDoCliente(codigo, usuarioLogado?.email);
     if (encontrada) {
       if (navState && navState.codigo === codigo) {
         return { ...navState, ...encontrada };

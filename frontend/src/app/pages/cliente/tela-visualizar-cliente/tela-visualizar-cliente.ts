@@ -125,8 +125,9 @@ export class TelaVisualizarCliente implements OnInit {
   }
 
   private carregarSolicitacao(codigo: string | null): SolicitacaoComHistorico {
+    const usuarioLogado = this.authService.getUsuarioLogado();
     const navState = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
-    const salva = this.clienteStorageService.buscarPorCodigo(codigo);
+    const salva = this.clienteStorageService.buscarPorCodigoDoCliente(codigo, usuarioLogado?.email);
     const base = (navState && navState.codigo === codigo ? navState : undefined) ?? salva;
 
     const solicitacao: SolicitacaoCliente = base ?? {
