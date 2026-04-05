@@ -41,25 +41,13 @@ export class AuthService {
       perfil: 'cliente',
     },
     {
-      nome: 'Cliente Demo',
-      email: 'cliente@demo.com',
-      senha: '1234',
-      perfil: 'cliente',
-    },
-    {
-      nome: 'Funcionario Demo',
-      email: 'funcionario@demo.com',
-      senha: '1234',
-      perfil: 'funcionario',
-    },
-    {
       nome: 'Maria',
       email: 'maria@demo.com',
       senha: '1234',
       perfil: 'funcionario',
     },
     {
-      nome: 'Mario',
+      nome: 'Mário',
       email: 'mario@demo.com',
       senha: '1234',
       perfil: 'funcionario',

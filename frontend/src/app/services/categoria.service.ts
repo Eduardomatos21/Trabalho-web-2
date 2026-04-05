@@ -9,7 +9,7 @@ const LS_CHAVE = "categorias";
 export class CategoriaService {
   private readonly categoriasIniciais: Categoria[] = [
     new Categoria(1, 'NOTEBOOK'),
-    new Categoria(2, 'MONITOR'),
+    new Categoria(2, 'DESKTOP'),
     new Categoria(3, 'TECLADO'),
     new Categoria(4, 'IMPRESSORA'),
     new Categoria(5, 'MOUSE'),
@@ -17,10 +17,29 @@ export class CategoriaService {
 
   listarTodos(): Categoria[] {
     const categorias = localStorage[LS_CHAVE];
-    if (categorias) return JSON.parse(categorias);
+    if (!categorias) {
+      localStorage[LS_CHAVE] = JSON.stringify(this.categoriasIniciais);
+      return [...this.categoriasIniciais];
+    }
 
-    localStorage[LS_CHAVE] = JSON.stringify(this.categoriasIniciais);
-    return [...this.categoriasIniciais];
+    const atuais = JSON.parse(categorias) as Categoria[];
+    const map = new Map<string, Categoria>();
+
+    for (const inicial of this.categoriasIniciais) {
+      map.set(inicial.nome.trim().toUpperCase(), inicial);
+    }
+
+    for (const categoria of atuais) {
+      if (!categoria?.nome) continue;
+      map.set(categoria.nome.trim().toUpperCase(), categoria);
+    }
+
+    const normalizadas = [...map.values()];
+    if (normalizadas.length !== atuais.length) {
+      localStorage[LS_CHAVE] = JSON.stringify(normalizadas);
+    }
+
+    return normalizadas;
   }
   inserir(categoria: Categoria): void {
     const categorias = this.listarTodos();

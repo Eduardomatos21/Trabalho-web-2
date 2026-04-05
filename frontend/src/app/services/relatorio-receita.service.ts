@@ -94,7 +94,7 @@ export class RelatorioReceitaService {
     const doc = new jsPDF();
 
     doc.setFontSize(14);
-    doc.text('Relatorio de Receitas por Dia (RF019)', 14, 16);
+    doc.text('Relatorio de Receitas por Dia', 14, 16);
 
     const periodo = this.getPeriodoLabel(dataInicial, dataFinal);
     doc.setFontSize(10);
@@ -115,7 +115,7 @@ export class RelatorioReceitaService {
     const doc = new jsPDF();
 
     doc.setFontSize(14);
-    doc.text('Relatorio de Receitas por Categoria (RF020)', 14, 16);
+    doc.text('Relatorio de Receitas por Categoria', 14, 16);
 
     autoTable(doc, {
       startY: 22,

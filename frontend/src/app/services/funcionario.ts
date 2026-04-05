@@ -7,10 +7,30 @@ const LS_CHAVE = "funcionarios"
   providedIn: 'root',
 })
 export class FuncionarioService {
+  private readonly funcionariosIniciais: Funcionario[] = [
+    new Funcionario(1, 'maria@demo.com', 'Maria', '1991-03-15', '1234'),
+    new Funcionario(2, 'mario@demo.com', 'Mário', '1990-11-08', '1234'),
+  ];
 
   listarTodos(): Funcionario[] {
     const funcionarios = localStorage[LS_CHAVE];
-    return funcionarios ? JSON.parse(funcionarios) : [];
+    if (!funcionarios) {
+      localStorage[LS_CHAVE] = JSON.stringify(this.funcionariosIniciais);
+      return [...this.funcionariosIniciais];
+    }
+
+    try {
+      const atuais = JSON.parse(funcionarios) as Funcionario[];
+      if (!Array.isArray(atuais)) {
+        localStorage[LS_CHAVE] = JSON.stringify(this.funcionariosIniciais);
+        return [...this.funcionariosIniciais];
+      }
+
+      return atuais;
+    } catch {
+      localStorage[LS_CHAVE] = JSON.stringify(this.funcionariosIniciais);
+      return [...this.funcionariosIniciais];
+    }
   }
   
   inserir(funcionario : Funcionario) : void {
