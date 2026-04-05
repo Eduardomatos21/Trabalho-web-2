@@ -102,7 +102,7 @@ export class EditarFuncionario implements OnInit {
       return;
     }
 
-    const emailExiste = this.funcionarioService.buscarPorEmail(email);
+    const emailExiste = this.authService.emailJaCadastrado(email);
 
     if (emailExiste) {
       emailControl.setErrors({ ...(emailControl.errors ?? {}), emailDuplicado: true });

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../services';
 import { ButtonComponent, FormFieldComponent, ModalComponent } from '../shared';
 import { FormValidationHelper } from '../shared/utils';
 
@@ -17,6 +18,7 @@ export class Cadastro {
   private fb     = inject(FormBuilder);
   private http   = inject(HttpClient);
   private router = inject(Router);
+  private authService = inject(AuthService);
 
   form: FormGroup = this.fb.group({
     cpf:         ['', [Validators.required, Validators.pattern(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/)]],
@@ -37,6 +39,7 @@ export class Cadastro {
   enviado    = false;
   sucesso    = false;
   loading    = false;
+  senhaGerada = '';
 
 
   mask(event: Event, tipo: 'cpf' | 'telefone' | 'cep'): void {
@@ -85,9 +88,53 @@ export class Cadastro {
 
   onSubmit(): void {
     this.enviado = true;
+    this.limparErrosUnicidade();
     if (this.form.invalid) return;
+
+    const cpf = this.form.value.cpf as string;
+    const email = this.form.value.email as string;
+
+    if (this.authService.cpfJaCadastrado(cpf)) {
+      this.form.get('cpf')?.setErrors({ ...(this.form.get('cpf')?.errors ?? {}), cpfDuplicado: true });
+      return;
+    }
+
+    if (this.authService.emailJaCadastrado(email)) {
+      this.form.get('email')?.setErrors({ ...(this.form.get('email')?.errors ?? {}), emailDuplicado: true });
+      return;
+    }
+
     this.loading = true;
-    // TODO: chamar CadastroService.cadastrar(this.form.value)
+
+    const resultado = this.authService.cadastrarCliente({
+      cpf,
+      nome: this.form.value.nome as string,
+      email,
+      telefone: this.form.value.telefone as string,
+      endereco: {
+        cep: this.form.value.cep as string,
+        logradouro: this.form.value.logradouro as string,
+        numero: this.form.value.numero as string,
+        complemento: this.form.value.complemento as string,
+        bairro: this.form.value.bairro as string,
+        cidade: this.form.value.cidade as string,
+        estado: this.form.value.estado as string,
+      },
+    });
+
+    if (!resultado.ok) {
+      const control = this.form.get(resultado.campo);
+      if (resultado.campo === 'cpf') {
+        control?.setErrors({ ...(control?.errors ?? {}), cpfDuplicado: true });
+      } else {
+        control?.setErrors({ ...(control?.errors ?? {}), emailDuplicado: true });
+      }
+
+      this.loading = false;
+      return;
+    }
+
+    this.senhaGerada = resultado.senhaGerada;
     this.loading = false;
     this.sucesso = true;
   }
@@ -97,6 +144,15 @@ export class Cadastro {
   }
 
   erro(campo: string): string {
+    const control = this.form.get(campo);
+    if (this.enviado && control?.hasError('cpfDuplicado')) {
+      return 'CPF já cadastrado.';
+    }
+
+    if (this.enviado && control?.hasError('emailDuplicado')) {
+      return 'E-mail já cadastrado.';
+    }
+
     const nomes: Record<string, string> = {
       nome: 'Nome', cpf: 'CPF', email: 'E-mail', telefone: 'Telefone',
       cep: 'CEP', logradouro: 'Logradouro', numero: 'Número',
@@ -115,6 +171,23 @@ export class Cadastro {
   inputClass(campo: string): string {
     const hasError = this.enviado && !!this.form.get(campo)?.invalid;
     return FormValidationHelper.getInputClass(hasError);
+  }
+
+  fecharModalSucesso(): void {
+    this.sucesso = false;
+  }
+
+  private limparErrosUnicidade(): void {
+    this.removerErro('cpf', 'cpfDuplicado');
+    this.removerErro('email', 'emailDuplicado');
+  }
+
+  private removerErro(campo: string, erro: string): void {
+    const control = this.form.get(campo);
+    if (!control?.errors?.[erro]) return;
+
+    const { [erro]: _, ...outrosErros } = control.errors;
+    control.setErrors(Object.keys(outrosErros).length ? outrosErros : null);
   }
 
   get f() { return this.form.controls; }

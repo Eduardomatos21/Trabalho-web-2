@@ -24,7 +24,7 @@ export class TelaOrcamentoCliente implements OnInit {
   readonly menuItemsCliente: SidebarItem[] = [
     { label: 'Página inicial', route: '/cliente' },
     { label: 'Nova solicitação', route: '/cliente/solicitacao' },
-    { label: 'Minhas solicitações', route: '/cliente' }
+    { label: 'Minhas solicitações', route: '/cliente', active: true }
   ];
 
   solicitacao?: SolicitacaoCliente;
