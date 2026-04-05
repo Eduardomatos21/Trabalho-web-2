@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { FuncionarioService } from './funcionario';
 
 export type PerfilUsuario = 'cliente' | 'funcionario';
 
@@ -54,10 +55,14 @@ export class AuthService {
     },
   ];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private funcionarioService: FuncionarioService,
+  ) {}
 
   login(email: string, senha: string): { ok: true; usuario: UsuarioMock } | { ok: false; message: string } {
-    const usuario = this.usuariosMock.find(
+    const usuariosSistema = this.getUsuariosDemo();
+    const usuario = usuariosSistema.find(
       (item) => item.email.toLowerCase() === email.toLowerCase().trim() && item.senha === senha,
     );
 
@@ -74,13 +79,21 @@ export class AuthService {
   }
 
   getUsuariosDemo(): UsuarioMock[] {
-    return this.usuariosMock;
+    const clientes = this.usuariosMock.filter((usuario) => usuario.perfil === 'cliente');
+    const funcionarios = this.funcionarioService.listarTodos().map((funcionario) => ({
+      nome: funcionario.nome,
+      email: funcionario.email,
+      senha: funcionario.senha,
+      perfil: 'funcionario' as const,
+    }));
+
+    return [...clientes, ...funcionarios];
   }
 
   getFuncionariosSistema(): string[] {
-    const funcionarios = this.usuariosMock
-      .filter((usuario) => usuario.perfil === 'funcionario')
-      .map((usuario) => usuario.nome.trim())
+    const funcionarios = this.funcionarioService
+      .listarTodos()
+      .map((funcionario) => funcionario.nome.trim())
       .filter((nome) => nome.length > 0);
 
     return [...new Set(funcionarios)];
