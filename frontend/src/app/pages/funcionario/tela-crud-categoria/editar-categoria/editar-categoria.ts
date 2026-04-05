@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService, CategoriaService } from '../../../../services';
@@ -20,10 +20,10 @@ export class EditarCategoria implements OnInit {
   carregando = false;
 
   readonly menuItemsFuncionario: SidebarItem[] = [
-    { label: 'Página inicial', route: '/funcionario', active: true },
+    { label: 'Página inicial', route: '/funcionario'},
     { label: 'Visualização de solicitações', route: '/funcionario/solicitacoes' },
     { label: 'Relatórios', route: '/funcionario/relatorios' },
-    { label: 'Categorias', route: '/funcionario/categorias' },
+    { label: 'Categorias', route: '/funcionario/categorias', active: true },
     { label: 'Funcionários', route: '/funcionario/listar' },
   ];
 

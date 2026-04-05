@@ -1,6 +1,6 @@
-import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { Component, inject, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService, FuncionarioService } from '../../../../services';
 import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../../shared';
@@ -28,11 +28,11 @@ export class EditarFuncionario implements OnInit {
   emailOriginal: string = '';
 
   readonly menuItemsFuncionario: SidebarItem[] = [
-    { label: 'Página inicial', route: '/funcionario', active: true },
+    { label: 'Página inicial', route: '/funcionario'},
     { label: 'Visualização de solicitações', route: '/funcionario/solicitacoes' },
     { label: 'Relatórios', route: '/funcionario/relatorios' },
     { label: 'Categorias', route: '/funcionario/categorias' },
-    { label: 'Funcionários', route: '/funcionario/listar' },
+    { label: 'Funcionários', route: '/funcionario/listar', active: true },
   ];
 
   constructor() {

@@ -18,7 +18,7 @@
             <h2 class="text-lg font-bold text-slate-900">Lista de funcionários</h2>
             <p class="text-sm text-slate-500">Clique em editar para alterar um funcionário existente.</p>
           </div>
- >         <ui-button variant="success" size="md" (clicked)="novoFuncionario()">Novo funcionário</ui-button>
+          <ui-button variant="success" size="md" (clicked)="novoFuncionario()">Novo funcionário</ui-button>
         </div>
 
         <div class="overflow-x-auto rounded-2xl border border-slate-200">
@@ -36,9 +36,11 @@
                   <td class="py-3 px-4 font-medium text-slate-700">{{ funcionario.nome }}</td>
                   <td class="py-3 px-4 text-slate-700">{{ funcionario.email }}</td>
                   <td class="py-3 px-4 space-x-2">
-                    <ui-button variant="secondary" size="sm" (clicked)="editarFuncionario(funcionario.id)">Editar</ui-button>
-                    <ui-button variant="danger" size="sm" (clicked)="removerFuncionario(funcionario.email)">Excluir</ui-button>
-                  </td>
+                    <div class="flex items-center gap-2">
+                      <ui-button variant="secondary" size="sm" (clicked)="editarFuncionario(funcionario.id)">Editar</ui-button>
+                      <ui-button variant="danger" size="sm" (clicked)="removerFuncionario(funcionario.email)">Excluir</ui-button>
+                    </div>
+                    </td>
                 </tr>
               }
               @if (funcionarios.length === 0) {

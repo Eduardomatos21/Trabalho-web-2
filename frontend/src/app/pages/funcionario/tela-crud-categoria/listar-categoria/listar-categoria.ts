@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService, CategoriaService } from '../../../../services';
 import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../../shared';
@@ -19,10 +19,10 @@ export class ListarCategoria implements OnInit {
   categoriaParaExcluir: number | null = null;
 
   readonly menuItemsFuncionario: SidebarItem[] = [
-    { label: 'Página inicial', route: '/funcionario', active: true },
+    { label: 'Página inicial', route: '/funcionario'},
     { label: 'Visualização de solicitações', route: '/funcionario/solicitacoes' },
     { label: 'Relatórios', route: '/funcionario/relatorios' },
-    { label: 'Categorias', route: '/funcionario/categorias' },
+    { label: 'Categorias', route: '/funcionario/categorias', active: true },
     { label: 'Funcionários', route: '/funcionario/listar' },
   ];
 

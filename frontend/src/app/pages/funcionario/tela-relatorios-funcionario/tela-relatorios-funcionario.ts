@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { AuthService, RelatorioReceitaService, ReceitaPorCategoria, ReceitaPorDia } from '../../../services';
+import { AuthService, ReceitaPorCategoria, ReceitaPorDia, RelatorioReceitaService } from '../../../services';
 import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 
 @Component({
@@ -24,9 +24,9 @@ export class TelaRelatoriosFuncionario implements OnInit {
   }
 
   readonly menuItemsFuncionario: SidebarItem[] = [
-    { label: 'Página inicial', route: '/funcionario', active: true },
+    { label: 'Página inicial', route: '/funcionario'},
     { label: 'Visualização de solicitações', route: '/funcionario/solicitacoes' },
-    { label: 'Relatórios', route: '/funcionario/relatorios' },
+    { label: 'Relatórios', route: '/funcionario/relatorios', active: true },
     { label: 'Categorias', route: '/funcionario/categorias' },
     { label: 'Funcionários', route: '/funcionario/listar' },
   ];
