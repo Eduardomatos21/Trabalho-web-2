@@ -125,6 +125,14 @@ export class TelaInicialFuncionario implements OnInit {
     });
   }
 
+  visualizarSolicitacao(codigo: string): void {
+    const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
+    this.router.navigate(['/funcionario/visualizar'], {
+      queryParams: { solicitacao: codigo },
+      state: { solicitacaoSelecionada: selecionada },
+    });
+  }
+
   navegarParaCategorias(): void {
     this.router.navigate(['/funcionario/categorias']);
   }

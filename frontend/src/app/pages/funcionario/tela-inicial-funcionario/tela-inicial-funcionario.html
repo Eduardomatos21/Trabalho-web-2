@@ -75,9 +75,14 @@
                     </td>
 
                     <td class="py-3">
-                      <ui-button size="sm" (clicked)="efetuarOrcamento(sol.codigo)">
-                        Efetuar Orçamento
-                      </ui-button>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <ui-button size="sm" variant="secondary" (clicked)="visualizarSolicitacao(sol.codigo)">
+                          Visualizar
+                        </ui-button>
+                        <ui-button size="sm" (clicked)="efetuarOrcamento(sol.codigo)">
+                          Efetuar Orçamento
+                        </ui-button>
+                      </div>
                     </td>
                   </tr>
                 }

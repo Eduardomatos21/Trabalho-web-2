@@ -127,6 +127,10 @@ export class TelaSolicitacaoFuncionario implements OnInit {
     return estado;
   }
 
+  descricaoLimitada(descricaoEquipamento: string): string {
+    return descricaoEquipamento.length <= 30 ? descricaoEquipamento : `${descricaoEquipamento.slice(0, 30)}...`;
+  }
+
   acaoLabel(estado: EstadoSolicitacao): string | null {
     if (estado === 'ABERTA') return 'Efetuar Orçamento';
     if (estado === 'APROVADA' || estado === 'REDIRECIONADA') return 'Efetuar Manutenção';
@@ -155,6 +159,13 @@ export class TelaSolicitacaoFuncionario implements OnInit {
       this.solicitacaoParaFinalizar = solicitacao;
       this.modalFinalizacaoAberto = true;
     }
+  }
+
+  visualizarSolicitacao(solicitacao: SolicitacaoCliente): void {
+    this.router.navigate(['/funcionario/visualizar'], {
+      queryParams: { solicitacao: solicitacao.codigo },
+      state: { solicitacaoSelecionada: solicitacao },
+    });
   }
 
   fecharModalFinalizacao(): void {
