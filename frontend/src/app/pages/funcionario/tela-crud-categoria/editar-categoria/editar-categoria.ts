@@ -20,10 +20,11 @@ export class EditarCategoria implements OnInit {
   carregando = false;
 
   readonly menuItemsFuncionario: SidebarItem[] = [
-    { label: 'Página inicial', route: '/funcionario' },
+    { label: 'Página inicial', route: '/funcionario', active: true },
     { label: 'Visualização de solicitações', route: '/funcionario/solicitacoes' },
     { label: 'Relatórios', route: '/funcionario/relatorios' },
-    { label: 'Categorias', route: '/funcionario/categorias', active: true },
+    { label: 'Categorias', route: '/funcionario/categorias' },
+    { label: 'Funcionários', route: '/funcionario/listar' },
   ];
 
   constructor(
