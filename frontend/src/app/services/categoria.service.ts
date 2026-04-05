@@ -7,9 +7,20 @@ const LS_CHAVE = "categorias";
   providedIn: 'root',
 })
 export class CategoriaService {
+  private readonly categoriasIniciais: Categoria[] = [
+    new Categoria(1, 'NOTEBOOK'),
+    new Categoria(2, 'MONITOR'),
+    new Categoria(3, 'TECLADO'),
+    new Categoria(4, 'IMPRESSORA'),
+    new Categoria(5, 'MOUSE'),
+  ];
+
   listarTodos(): Categoria[] {
     const categorias = localStorage[LS_CHAVE];
-    return categorias ? JSON.parse(categorias) : [];
+    if (categorias) return JSON.parse(categorias);
+
+    localStorage[LS_CHAVE] = JSON.stringify(this.categoriasIniciais);
+    return [...this.categoriasIniciais];
   }
   inserir(categoria: Categoria): void {
     const categorias = this.listarTodos();

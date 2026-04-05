@@ -35,9 +35,11 @@
                 <tr class="hover:bg-slate-50">
                   <td class="py-3 px-4 font-medium text-slate-700">{{ categoria.id }}</td>
                   <td class="py-3 px-4 text-slate-700">{{ categoria.nome }}</td>
-                  <td class="py-3 px-4 space-x-2">
-                    <ui-button variant="secondary" size="sm" (clicked)="editarCategoria(categoria.id)">Editar</ui-button>
-                    <ui-button variant="danger" size="sm" (clicked)="removerCategoria(categoria.id)">Excluir</ui-button>
+                  <td class="py-3 px-4">
+                    <div class="flex items-center gap-2">
+                      <ui-button variant="secondary" size="sm" (clicked)="editarCategoria(categoria.id)">Editar</ui-button>
+                      <ui-button variant="danger" size="sm" (clicked)="removerCategoria(categoria.id)">Excluir</ui-button>
+                    </div>
                   </td>
                 </tr>
               }

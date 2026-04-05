@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService, ClienteStorageService } from '../../../services';
+import { AuthService, CategoriaService, ClienteStorageService } from '../../../services';
 import { ButtonComponent, FormFieldComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { SolicitacaoCliente } from '../../../shared/models';
+import { Categoria } from '../../../shared/models/categoria.model';
 import { DateFormatUtil, FormValidationHelper } from '../../../shared/utils';
 
 @Component({
@@ -14,14 +15,16 @@ import { DateFormatUtil, FormValidationHelper } from '../../../shared/utils';
   templateUrl: './tela-solicitacao-cliente.html',
   styleUrl: './tela-solicitacao-cliente.css',
 })
-export class TelaSolicitacaoCliente {
+export class TelaSolicitacaoCliente implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private categoriaService = inject(CategoriaService);
   private clienteStorageService = inject(ClienteStorageService);
 
   enviado = false;
   loading = false;
+  categorias: Categoria[] = [];
 
   readonly menuItemsCliente: SidebarItem[] = [
     { label: 'Página inicial', route: '/cliente' },
@@ -34,6 +37,10 @@ export class TelaSolicitacaoCliente {
     categoriaEquipamento: ['', Validators.required],
     descricaoDefeito: ['', [Validators.required, Validators.minLength(10)]],
   });
+
+  ngOnInit(): void {
+    this.categorias = this.categoriaService.listarTodos();
+  }
 
   onSubmit(): void {
     this.enviado = true;

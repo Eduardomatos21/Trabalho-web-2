@@ -43,11 +43,9 @@
 							formControlName="categoriaEquipamento"
 							[class]="inputClass('categoriaEquipamento')">
 							<option value="">Selecione</option>
-							<option value="NOTEBOOK">Notebook</option>
-							<option value="DESKTOP">Desktop</option>
-							<option value="IMPRESSORA">Impressora</option>
-							<option value="MOUSE">Mouse</option>
-                            <option value="TECLADO">Teclado</option>
+							@for (categoria of categorias; track categoria.id) {
+								<option [value]="categoria.nome">{{ categoria.nome }}</option>
+							}
 						</select>
 					</ui-form-field>
 
