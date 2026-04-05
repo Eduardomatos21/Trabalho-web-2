@@ -16,7 +16,7 @@ import { Funcionario } from '../../../../shared/models/funcionario.model';
 export class ListarFuncionario implements OnInit {
   funcionarios: Funcionario[] = [];
   modalAberto = false;
-  funcionarioParaExcluir: string | null = null;
+  funcionarioParaExcluir: number | null = null;
   mensagemErro: string = ''; 
   modalErroAberto = false;
   mensagemErroTitulo = '';
@@ -61,27 +61,28 @@ export class ListarFuncionario implements OnInit {
     this.router.navigate(['/funcionario/editar', id]);
   }
 
-  removerFuncionario(email: string): void {
-  this.mensagemErro = '';
+  removerFuncionario(id: number): void {
+    this.mensagemErro = '';
 
-  const usuarioLogado = this.authService.getUsuarioLogado();
-  if (usuarioLogado && usuarioLogado.email === email) {
-    this.mensagemErroTexto = 'Você não pode excluir seu próprio cadastro!';
-    this.mensagemErroTitulo = 'Ação não permitida';
-    this.modalErroAberto = true;
-    return;
+    const funcionarioSelecionado = this.funcionarios.find((funcionario) => funcionario.id === id);
+    const usuarioLogado = this.authService.getUsuarioLogado();
+    if (usuarioLogado && funcionarioSelecionado?.email && usuarioLogado.email === funcionarioSelecionado.email) {
+      this.mensagemErroTexto = 'Você não pode excluir seu próprio cadastro!';
+      this.mensagemErroTitulo = 'Ação não permitida';
+      this.modalErroAberto = true;
+      return;
+    }
+
+    if (this.funcionarios.length === 1) {
+      this.mensagemErroTexto = 'É necessário haver pelo menos um funcionário cadastrado!';
+      this.mensagemErroTitulo = 'Ação não permitida';
+      this.modalErroAberto = true;
+      return;
+    }
+
+    this.funcionarioParaExcluir = id;
+    this.modalAberto = true;
   }
-  
-  if (this.funcionarios.length === 1) {
-    this.mensagemErroTexto = 'É necessário haver pelo menos um funcionário cadastrado!';
-    this.mensagemErroTitulo = 'Ação não permitida';
-    this.modalErroAberto = true;
-    return;
-  }
-  
-  this.funcionarioParaExcluir = email;
-  this.modalAberto = true;
-}
 
   fecharModalErro(): void {
     this.modalErroAberto = false;

@@ -41,9 +41,9 @@ export class FuncionarioService {
   localStorage[LS_CHAVE] = JSON.stringify(funcionarios);
   }
 
-  remover(email: string): void {
+  remover(id: number): void {
     let funcionarios = this.listarTodos();
-    funcionarios = funcionarios.filter(funcionario => funcionario.email !== email);
+    funcionarios = funcionarios.filter(funcionario => funcionario.id !== id);
     localStorage[LS_CHAVE] = JSON.stringify(funcionarios);    
   }
 
