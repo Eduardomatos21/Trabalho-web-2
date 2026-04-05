@@ -22,30 +22,38 @@ export class CategoriaService {
       return [...this.categoriasIniciais];
     }
 
-    const atuais = JSON.parse(categorias) as Categoria[];
-    const map = new Map<string, Categoria>();
+    try {
+      const atuais = JSON.parse(categorias) as Categoria[];
+      if (!Array.isArray(atuais)) {
+        localStorage[LS_CHAVE] = JSON.stringify(this.categoriasIniciais);
+        return [...this.categoriasIniciais];
+      }
 
-    for (const inicial of this.categoriasIniciais) {
-      map.set(inicial.nome.trim().toUpperCase(), inicial);
+      return atuais;
+    } catch {
+      localStorage[LS_CHAVE] = JSON.stringify(this.categoriasIniciais);
+      return [...this.categoriasIniciais];
     }
-
-    for (const categoria of atuais) {
-      if (!categoria?.nome) continue;
-      map.set(categoria.nome.trim().toUpperCase(), categoria);
-    }
-
-    const normalizadas = [...map.values()];
-    if (normalizadas.length !== atuais.length) {
-      localStorage[LS_CHAVE] = JSON.stringify(normalizadas);
-    }
-
-    return normalizadas;
   }
   inserir(categoria: Categoria): void {
     const categorias = this.listarTodos();
+    categoria.nome = this.normalizarNome(categoria.nome);
     categoria.id = this.gerarNovoId(categorias);
     categorias.push(categoria);
     localStorage[LS_CHAVE] = JSON.stringify(categorias);
+  }
+
+  nomeJaCadastrado(nome: string, ignorarId?: number): boolean {
+    const nomeNormalizado = this.normalizarNome(nome);
+    if (!nomeNormalizado) return false;
+
+    return this.listarTodos().some((categoria) => {
+      if (ignorarId !== undefined && categoria.id === ignorarId) {
+        return false;
+      }
+
+      return this.normalizarNome(categoria.nome) === nomeNormalizado;
+    });
   }
 
   buscarPorId(id: number): Categoria | undefined {
@@ -70,5 +78,9 @@ export class CategoriaService {
     let categorias = this.listarTodos();
     categorias = categorias.filter((categoria) => categoria.id !== id);
     localStorage[LS_CHAVE] = JSON.stringify(categorias);
+  }
+
+  private normalizarNome(nome: string): string {
+    return nome.trim().toUpperCase();
   }
 }

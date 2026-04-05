@@ -50,9 +50,14 @@ export class EditarCategoria implements OnInit {
         }
       }
     });
+
+    this.form.get('nome')?.valueChanges.subscribe(() => {
+      this.validarNomeUnico();
+    });
   }
 
   salvar(): void {
+    this.validarNomeUnico();
     this.form.markAllAsTouched();
     if (this.form.invalid) {
       return;
@@ -68,6 +73,37 @@ export class EditarCategoria implements OnInit {
     }
 
     this.router.navigate(['/funcionario/categorias']);
+  }
+
+  private validarNomeUnico(): void {
+    const nomeControl = this.form.get('nome');
+    const nome = nomeControl?.value?.trim();
+
+    if (!nomeControl) {
+      return;
+    }
+
+    if (!nome || nomeControl.hasError('required') || nomeControl.hasError('minlength')) {
+      this.removerErroNomeDuplicado();
+      return;
+    }
+
+    if (this.categoriaService.nomeJaCadastrado(nome, this.categoriaId ?? undefined)) {
+      nomeControl.setErrors({ ...(nomeControl.errors ?? {}), nomeDuplicado: true });
+      return;
+    }
+
+    this.removerErroNomeDuplicado();
+  }
+
+  private removerErroNomeDuplicado(): void {
+    const nomeControl = this.form.get('nome');
+    if (!nomeControl?.errors?.['nomeDuplicado']) {
+      return;
+    }
+
+    const { nomeDuplicado, ...outrosErros } = nomeControl.errors;
+    nomeControl.setErrors(Object.keys(outrosErros).length ? outrosErros : null);
   }
 
   cancelar(): void {
@@ -95,6 +131,9 @@ export class EditarCategoria implements OnInit {
     }
     if (this.nomeControl?.hasError('minlength')) {
       return 'Nome precisa ter pelo menos 3 caracteres.';
+    }
+    if (this.nomeControl?.hasError('nomeDuplicado')) {
+      return 'Nome já cadastrado.';
     }
     return '';
   }
