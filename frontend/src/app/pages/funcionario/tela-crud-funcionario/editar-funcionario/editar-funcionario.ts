@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService, FuncionarioService } from '../../../../services';
 import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../../shared';
@@ -26,6 +26,7 @@ export class EditarFuncionario implements OnInit {
   funcionarioId: number | null = null;
   carregando = false;
   emailOriginal: string = '';
+  dataAtualIso = new Date().toISOString().split('T')[0];
 
   readonly menuItemsFuncionario: SidebarItem[] = [
     { label: 'Página inicial', route: '/funcionario'},
@@ -39,9 +40,25 @@ export class EditarFuncionario implements OnInit {
     this.form = this.fb.group({
       nome: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.minLength(10), Validators.email]],
-      dataNascimento: ['', [Validators.required, Validators.pattern(/^\d{2}\/\d{2}\/\d{4}$/)]],
+      dataNascimento: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{2}-\d{2}$/), this.dataNaoFuturaValidator]],
       senha: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(4)]],
     });
+  }
+
+  private dataNaoFuturaValidator(control: AbstractControl): ValidationErrors | null {
+    const valor = control.value;
+
+    if (!valor) {
+      return null;
+    }
+
+    const dataSelecionada = new Date(valor);
+    const hoje = new Date();
+
+    dataSelecionada.setHours(0, 0, 0, 0);
+    hoje.setHours(0, 0, 0, 0);
+
+    return dataSelecionada > hoje ? { dataFutura: true } : null;
   }
 
   ngOnInit(): void {
@@ -68,30 +85,45 @@ export class EditarFuncionario implements OnInit {
   }
 
   validarEmailUnico(): void {
+    const emailControl = this.form.get('email');
+    const email = emailControl?.value?.trim();
 
-  const emailControl = this.form.get('email');
-  const email = emailControl?.value?.trim();
-  
-  if (!email) return;
-
-    if (this.funcionarioId && email === this.emailOriginal) {
-    if (emailControl?.hasError('emailDuplicado')) {
-      emailControl?.setErrors(null);
+    if (!emailControl) {
+      return;
     }
-    return;
+
+    if (!email || emailControl.hasError('email') || emailControl.hasError('minlength')) {
+      this.removerErroEmailDuplicado();
+      return;
+    }
+
+    if (this.funcionarioId && email.toLowerCase() === this.emailOriginal.toLowerCase()) {
+      this.removerErroEmailDuplicado();
+      return;
+    }
+
+    const emailExiste = this.funcionarioService.buscarPorEmail(email);
+
+    if (emailExiste) {
+      emailControl.setErrors({ ...(emailControl.errors ?? {}), emailDuplicado: true });
+      return;
+    }
+
+    this.removerErroEmailDuplicado();
   }
 
-  const emailExiste = this.funcionarioService.buscarPorEmail(email);
-  
-  if (emailExiste) {
-    emailControl?.setErrors({ emailDuplicado: true });
-  } else if (emailControl?.hasError('emailDuplicado')) {
-    emailControl?.setErrors(null);
-  }
+  private removerErroEmailDuplicado(): void {
+    const emailControl = this.form.get('email');
+    if (!emailControl?.errors?.['emailDuplicado']) {
+      return;
+    }
 
+    const { emailDuplicado, ...outrosErros } = emailControl.errors;
+    emailControl.setErrors(Object.keys(outrosErros).length ? outrosErros : null);
   }
 
   salvar(): void {
+    this.validarEmailUnico();
     this.form.markAllAsTouched();
     if (this.form.invalid) {
       return;
@@ -114,7 +146,7 @@ export class EditarFuncionario implements OnInit {
         this.funcionarioService.atualizar(funcionario);
       }
     } else {
-      const novoFuncionario = { nome: nome } as Funcionario;
+      const novoFuncionario = new Funcionario(0, email, nome, dataNascimento, senha);
       this.funcionarioService.inserir(novoFuncionario);
     }
 
@@ -161,6 +193,12 @@ export class EditarFuncionario implements OnInit {
     if (this.emailControl?.hasError('required')) {
       return 'Email é obrigatório.';
     }
+    if (this.emailControl?.hasError('email')) {
+      return 'Formato de email inválido.';
+    }
+    if (this.emailControl?.hasError('minlength')) {
+      return 'Email precisa ter pelo menos 10 caracteres.';
+    }
     if (this.emailControl?.hasError('emailDuplicado')) {
       return 'Email já cadastrado';
     }
@@ -183,7 +221,11 @@ export class EditarFuncionario implements OnInit {
     }
     
     if (control?.hasError('pattern')) {
-      return 'Formato inválido. Use DD/MM/AAAA (exemplo: 15/11/1993).';
+      return 'Formato inválido. Use AAAA-MM-DD (exemplo: 1993-11-15).';
+    }
+
+    if (control?.hasError('dataFutura')) {
+      return 'Data de nascimento não pode ser no futuro.';
     }
     
     return '';

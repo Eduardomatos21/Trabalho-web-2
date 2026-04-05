@@ -37,10 +37,10 @@
           >
             <input
               id="dataNascimento"
-              type="text"
+              type="date"
               formControlName="dataNascimento"
+              [max]="dataAtualIso"
               class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-              placeholder="DD/MM/AAAA"
             />
           </ui-form-field>
 
@@ -52,7 +52,7 @@
           >
             <input
               id="email"
-              type="text"
+              type="email"
               formControlName="email"
               class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
               placeholder="Digite o email"
