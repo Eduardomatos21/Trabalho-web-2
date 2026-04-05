@@ -44,18 +44,18 @@ export class TelaManutencaoFuncionario implements OnInit {
   modalSucessoAberto = false;
   redirecionado = false;
 
-  // Lista de funcionários disponíveis (simulada; depois deve buscar do backend)
-  funcionariosDisponiveis = ['Maria', 'Mario'];
+  funcionariosDisponiveis: string[] = [];
 
   form: FormGroup = this.fb.group({
     descricaoManutencao: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(400)]],
     orientacoesCliente: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(400)]],
-    funcionarioRedirecionamento: ['', Validators.required],
+    funcionarioRedirecionamento: [''],
   });
 
   ngOnInit(): void {
     const codigo = this.route.snapshot.queryParamMap.get('solicitacao');
     this.solicitacao = this.buscarSolicitacao(codigo);
+    this.funcionariosDisponiveis = this.authService.getFuncionariosSistema();
   }
 
   get funcionarioLogadoNome(): string {
@@ -76,7 +76,11 @@ export class TelaManutencaoFuncionario implements OnInit {
 
   confirmarManutencao(): void {
     this.enviado = true;
-    if (!this.solicitacao || this.form.invalid) return;
+    const descricaoControl = this.form.get('descricaoManutencao');
+    const orientacoesControl = this.form.get('orientacoesCliente');
+    if (!this.solicitacao || !descricaoControl || !orientacoesControl || descricaoControl.invalid || orientacoesControl.invalid) {
+      return;
+    }
 
     this.loading = true;
 
@@ -119,7 +123,12 @@ export class TelaManutencaoFuncionario implements OnInit {
 
   confirmarRedirecionamento(): void {
     this.enviado = true;
-    if (!this.solicitacao || this.form.get('funcionarioRedirecionamento')?.invalid) return;
+    const redirecionamentoControl = this.form.get('funcionarioRedirecionamento');
+    if (!this.solicitacao || !redirecionamentoControl) return;
+
+    redirecionamentoControl.setValidators([Validators.required]);
+    redirecionamentoControl.updateValueAndValidity();
+    if (redirecionamentoControl.invalid) return;
 
     const funcionarioDestino = this.form.value.funcionarioRedirecionamento;
     if (funcionarioDestino === this.funcionarioLogadoNome) {
@@ -144,6 +153,7 @@ export class TelaManutencaoFuncionario implements OnInit {
     const atualizada: SolicitacaoCliente = {
       ...this.solicitacao,
       estado: 'REDIRECIONADA',
+      funcionarioDestinoRedirecionamento: funcionarioDestino,
       historico: [...historicoAtual, eventoRedirecionamento],
     };
 

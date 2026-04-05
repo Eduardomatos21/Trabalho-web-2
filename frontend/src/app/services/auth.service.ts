@@ -28,6 +28,18 @@ export class AuthService {
       senha: '1234',
       perfil: 'funcionario',
     },
+    {
+      nome: 'Maria',
+      email: 'maria@demo.com',
+      senha: '1234',
+      perfil: 'funcionario',
+    },
+    {
+      nome: 'Mario',
+      email: 'mario@demo.com',
+      senha: '1234',
+      perfil: 'funcionario',
+    },
   ];
 
   constructor(private router: Router) {}
@@ -51,6 +63,15 @@ export class AuthService {
 
   getUsuariosDemo(): UsuarioMock[] {
     return this.usuariosMock;
+  }
+
+  getFuncionariosSistema(): string[] {
+    const funcionarios = this.usuariosMock
+      .filter((usuario) => usuario.perfil === 'funcionario')
+      .map((usuario) => usuario.nome.trim())
+      .filter((nome) => nome.length > 0);
+
+    return [...new Set(funcionarios)];
   }
 
   getUsuarioLogado(): UsuarioMock | undefined {
