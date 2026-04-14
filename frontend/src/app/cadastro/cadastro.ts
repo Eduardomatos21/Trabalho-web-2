@@ -1,11 +1,29 @@
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { Component, inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse, HttpStatusCode } from '@angular/common/http';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../services';
+import { finalize } from 'rxjs';
 import { ButtonComponent, FormFieldComponent, ModalComponent } from '../shared';
 import { FormValidationHelper } from '../shared/utils';
+
+interface AutocadastroClientePayload {
+  cpf: string;
+  nome: string;
+  email: string;
+  telefone: string;
+  endereco: {
+    cep: string;
+    numero: string;
+    complemento?: string;
+  };
+}
+
+interface AutocadastroClienteResponse {
+  idCliente: number;
+  email: string;
+  mensagem: string;
+}
 
 @Component({
   selector: 'app-cadastro',
@@ -15,10 +33,12 @@ import { FormValidationHelper } from '../shared/utils';
   styleUrl: './cadastro.css',
 })
 export class Cadastro {
+  private readonly apiBaseUrl = 'http://localhost:8081';
+
   private fb     = inject(FormBuilder);
   private http   = inject(HttpClient);
   private router = inject(Router);
-  private authService = inject(AuthService);
+  private cdr    = inject(ChangeDetectorRef);
 
   form: FormGroup = this.fb.group({
     cpf:         ['', [Validators.required, Validators.pattern(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/)]],
@@ -39,7 +59,27 @@ export class Cadastro {
   enviado    = false;
   sucesso    = false;
   loading    = false;
-  senhaGerada = '';
+  mensagemSucesso = 'Cadastro concluido. A senha temporaria foi enviada por e-mail.';
+  erroServidor = '';
+  private campoConflitoPendente: 'cpf' | 'email' | null = null;
+
+  constructor() {
+    this.form.valueChanges.subscribe(() => {
+      this.erroServidor = '';
+    });
+
+    this.form.get('cpf')?.valueChanges.subscribe(() => {
+      this.removerErro('cpf', 'cpfDuplicado');
+      this.campoConflitoPendente = this.campoConflitoPendente === 'cpf' ? null : this.campoConflitoPendente;
+      this.erroServidor = '';
+    });
+
+    this.form.get('email')?.valueChanges.subscribe(() => {
+      this.removerErro('email', 'emailDuplicado');
+      this.campoConflitoPendente = this.campoConflitoPendente === 'email' ? null : this.campoConflitoPendente;
+      this.erroServidor = '';
+    });
+  }
 
 
   mask(event: Event, tipo: 'cpf' | 'telefone' | 'cep'): void {
@@ -87,56 +127,50 @@ export class Cadastro {
   }
 
   onSubmit(): void {
+    if (this.loading) return;
+
     this.enviado = true;
     this.limparErrosUnicidade();
+    this.erroServidor = '';
+    this.campoConflitoPendente = null;
     if (this.form.invalid) return;
 
-    const cpf = this.form.value.cpf as string;
-    const email = this.form.value.email as string;
-
-    if (this.authService.cpfJaCadastrado(cpf)) {
-      this.form.get('cpf')?.setErrors({ ...(this.form.get('cpf')?.errors ?? {}), cpfDuplicado: true });
-      return;
-    }
-
-    if (this.authService.emailJaCadastrado(email)) {
-      this.form.get('email')?.setErrors({ ...(this.form.get('email')?.errors ?? {}), emailDuplicado: true });
-      return;
-    }
-
     this.loading = true;
+    this.form.disable({ emitEvent: false });
 
-    const resultado = this.authService.cadastrarCliente({
-      cpf,
-      nome: this.form.value.nome as string,
-      email,
-      telefone: this.form.value.telefone as string,
+    const raw = this.form.getRawValue();
+
+    const payload: AutocadastroClientePayload = {
+      cpf: raw.cpf as string,
+      nome: raw.nome as string,
+      email: raw.email as string,
+      telefone: raw.telefone as string,
       endereco: {
-        cep: this.form.value.cep as string,
-        logradouro: this.form.value.logradouro as string,
-        numero: this.form.value.numero as string,
-        complemento: this.form.value.complemento as string,
-        bairro: this.form.value.bairro as string,
-        cidade: this.form.value.cidade as string,
-        estado: this.form.value.estado as string,
+        cep: raw.cep as string,
+        numero: raw.numero as string,
+        complemento: raw.complemento as string,
       },
-    });
+    };
 
-    if (!resultado.ok) {
-      const control = this.form.get(resultado.campo);
-      if (resultado.campo === 'cpf') {
-        control?.setErrors({ ...(control?.errors ?? {}), cpfDuplicado: true });
-      } else {
-        control?.setErrors({ ...(control?.errors ?? {}), emailDuplicado: true });
-      }
-
-      this.loading = false;
-      return;
-    }
-
-    this.senhaGerada = resultado.senhaGerada;
-    this.loading = false;
-    this.sucesso = true;
+    this.http
+      .post<AutocadastroClienteResponse>(`${this.apiBaseUrl}/clientes/autocadastro`, payload, { observe: 'response' })
+      .pipe(finalize(() => {
+        this.loading = false;
+        this.form.enable({ emitEvent: false });
+        this.aplicarErroConflitoPendente();
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (response) => {
+          this.mensagemSucesso = response.body?.mensagem ?? this.mensagemSucesso;
+          this.sucesso = true;
+          this.cdr.detectChanges();
+        },
+        error: (error: HttpErrorResponse) => {
+          this.tratarErroCadastro(error);
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   irParaLogin(): void {
@@ -177,6 +211,92 @@ export class Cadastro {
     this.sucesso = false;
   }
 
+  private tratarErroCadastro(error: HttpErrorResponse): void {
+    const mensagemRaw = this.extrairMensagemErro(error);
+    const mensagem = this.normalizarMensagemErro(mensagemRaw, error.status);
+
+    if (error.status === HttpStatusCode.Conflict) {
+      const campoConflito = this.identificarCampoConflito(mensagemRaw);
+
+      if (campoConflito === 'cpf') {
+        this.campoConflitoPendente = 'cpf';
+        this.erroServidor = 'CPF ja cadastrado.';
+        return;
+      }
+
+      if (campoConflito === 'email') {
+        this.campoConflitoPendente = 'email';
+        this.erroServidor = 'E-mail ja cadastrado.';
+        return;
+      }
+
+      this.erroServidor = 'CPF ou e-mail ja cadastrado.';
+      return;
+    }
+
+    this.erroServidor = mensagem ?? 'Nao foi possivel concluir o cadastro agora.';
+  }
+
+  private extrairMensagemErro(error: HttpErrorResponse): string | undefined {
+    if (!error.error) {
+      return undefined;
+    }
+
+    if (typeof error.error === 'string') {
+      try {
+        const parsed = JSON.parse(error.error) as { message?: string; error?: string };
+        return parsed.message ?? parsed.error;
+      } catch {
+        return error.error;
+      }
+    }
+
+    return (error.error.message as string | undefined) ?? (error.error.error as string | undefined);
+  }
+
+  private normalizarMensagemErro(mensagem: string | undefined, status: number): string | undefined {
+    if (!mensagem) {
+      return undefined;
+    }
+
+    const limpa = mensagem.trim();
+    const lower = limpa.toLowerCase();
+
+    if (lower === 'conflict') {
+      return status === HttpStatusCode.Conflict ? 'CPF ou e-mail ja cadastrado.' : undefined;
+    }
+
+    if (lower === 'bad request') {
+      return 'Dados invalidos. Verifique os campos e tente novamente.';
+    }
+
+    if (lower === 'unsupported media type') {
+      return 'Falha no formato da requisicao. Atualize a pagina e tente novamente.';
+    }
+
+    return limpa;
+  }
+
+  private identificarCampoConflito(mensagem: string | undefined): 'cpf' | 'email' | null {
+    if (!mensagem) {
+      return null;
+    }
+
+    const lower = mensagem.toLowerCase();
+    const temCpf = lower.includes('cpf');
+    const temEmail = lower.includes('e-mail') || lower.includes('email');
+
+    if (temCpf && !temEmail) {
+      return 'cpf';
+    }
+
+    if (temEmail && !temCpf) {
+      return 'email';
+    }
+
+    return null;
+  }
+
   private limparErrosUnicidade(): void {
     this.removerErro('cpf', 'cpfDuplicado');
     this.removerErro('email', 'emailDuplicado');
@@ -188,6 +308,22 @@ export class Cadastro {
 
     const { [erro]: _, ...outrosErros } = control.errors;
     control.setErrors(Object.keys(outrosErros).length ? outrosErros : null);
+  }
+
+  private aplicarErroConflitoPendente(): void {
+    if (!this.campoConflitoPendente) {
+      return;
+    }
+
+    if (this.campoConflitoPendente === 'cpf') {
+      const control = this.form.get('cpf');
+      control?.setErrors({ ...(control.errors ?? {}), cpfDuplicado: true });
+    } else {
+      const control = this.form.get('email');
+      control?.setErrors({ ...(control.errors ?? {}), emailDuplicado: true });
+    }
+
+    this.campoConflitoPendente = null;
   }
 
   get f() { return this.form.controls; }

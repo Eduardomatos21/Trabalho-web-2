@@ -2,6 +2,10 @@ drop database web10;
 create database web10;
 use web10;
 
+CREATE USER 'web2_user'@'localhost' IDENTIFIED BY 'web2_pass';
+GRANT ALL PRIVILEGES ON web10.* TO 'web2_user'@'localhost';
+FLUSH PRIVILEGES;
+
 CREATE TABLE endereco (
     id_endereco int PRIMARY KEY auto_increment,
     cep varchar(8),
@@ -31,6 +35,8 @@ CREATE TABLE cliente (
     nome varchar(50),
     email varchar(50) UNIQUE,
     telefone varchar(11),
+    senha_hash varchar(120),
+    senha_salt varchar(60),
     id_endereco int,
     foreign key (id_endereco)
     references endereco (id_endereco)

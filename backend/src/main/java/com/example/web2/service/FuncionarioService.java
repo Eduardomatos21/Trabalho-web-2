@@ -1,94 +1,94 @@
-package com.example.web2.service;
+//package com.example.web2.service;
 
-import java.io.ByteArrayOutputStream;
-import java.util.List;
+//import java.io.ByteArrayOutputStream;
+//import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+//import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.stereotype.Service;
 
-import com.example.web2.repository.SolicitacaoRepository;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.pdf.PdfWriter;
+//import com.example.web2.repository.SolicitacaoRepository;
+//import com.itextpdf.text.Document;
+//import com.itextpdf.text.Paragraph;
+//import com.itextpdf.text.pdf.PdfWriter;
 
-@Service
-public class FuncionarioService {
+//@Service
+//public class FuncionarioService {
 
-    @Autowired
-    private SolicitacaoRepository solicitacaoRepository;
+//    @Autowired
+//    private SolicitacaoRepository solicitacaoRepository;
 
-    public byte[] gerarPdf(){
+    //public byte[] gerarPdf(){
 
-        List<Object[]> dados = solicitacaoRepository.somarReceitaPorDia();
+        //List<Object[]> dados = solicitacaoRepository.somarReceitaPorDia();
+//
+        //Document documento = new Document();
 
-        Document documento = new Document();
+        //try{
 
-        try{
+            //ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            //PdfWriter.getInstance(documento, output);
 
-            PdfWriter.getInstance(documento, output);
+            //documento.open();
 
-            documento.open();
+            //documento.add(new Paragraph("Relatório de Receita por Dia"));
+            //documento.add(new Paragraph(" "));
 
-            documento.add(new Paragraph("Relatório de Receita por Dia"));
-            documento.add(new Paragraph(" "));
+            //for(Object[] linha : dados){
 
-            for(Object[] linha : dados){
+                //String data = linha[0].toString();
+                //String valor = linha[1].toString();
 
-                String data = linha[0].toString();
-                String valor = linha[1].toString();
+               // documento.add(
+               //     new Paragraph("Data: " + data + " | Receita: " + valor)
+               // );
 
-                documento.add(
-                    new Paragraph("Data: " + data + " | Receita: " + valor)
-                );
+            //}
 
-            }
+            //documento.close();
 
-            documento.close();
+            //return output.toByteArray();
 
-            return output.toByteArray();
+        //}catch(Exception e){
+//
+           // e.printStackTrace();
+            //return null;
 
-        }catch(Exception e){
+        //}
 
-            e.printStackTrace();
-            return null;
+        //try{
 
-        }
+            //ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        try{
+            //PdfWriter.getInstance(documento, output);
 
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            //documento.open();
 
-            PdfWriter.getInstance(documento, output);
+            //documento.add(new Paragraph("Relatório de Receita por Dia"));
+            //documento.add(new Paragraph(" "));
 
-            documento.open();
+            //for(Object[] linha : dados){
 
-            documento.add(new Paragraph("Relatório de Receita por Dia"));
-            documento.add(new Paragraph(" "));
+             // //  String data = linha[0].toString();
+             //   String valor = linha[1].toString();
 
-            for(Object[] linha : dados){
+             //   documento.add(
+             ////       new Paragraph("Data: " + data + " | Receita: " + valor)
+             //   );
+//
+           // }
+//
+           // documento.close();
 
-                String data = linha[0].toString();
-                String valor = linha[1].toString();
+          ////  return output.toByteArray();
 
-                documento.add(
-                    new Paragraph("Data: " + data + " | Receita: " + valor)
-                );
+        //}catch(Exception e){
 
-            }
+        //    e.printStackTrace();
+      //      return null;
 
-            documento.close();
+    //    }
 
-            return output.toByteArray();
+  //  }
 
-        }catch(Exception e){
-
-            e.printStackTrace();
-            return null;
-
-        }
-
-    }
-
-}
+//}

@@ -32,8 +32,6 @@ public class RelatorioReceitaDiaService {
 
             Document documento = new Document(pdf);
 
-            documento.open();
-
             documento.add(new Paragraph("Relatório de Receita por Dia"));
             documento.add(new Paragraph(" "));
 

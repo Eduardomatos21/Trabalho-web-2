@@ -134,6 +134,10 @@
 								Finalizar cadastro
 							</ui-button>
 						</div>
+
+						@if (erroServidor) {
+							<p class="text-sm text-red-600 font-medium">{{ erroServidor }}</p>
+						}
 					</form>
 				</div>
 			</section>
@@ -149,11 +153,7 @@
 			</svg>
 		</div>
 		<p class="text-sm text-slate-600 leading-relaxed">
-			Cliente cadastrado com sucesso. Uma senha de 4 digitos foi enviada para o e-mail informado.
-		</p>
-		<p class="text-xs text-slate-500 mt-3">Simulação frontend da entrega por e-mail:</p>
-		<p class="mt-1 inline-flex items-center rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-semibold tracking-wider text-slate-800">
-			Senha: {{ senhaGerada }}
+			{{ mensagemSucesso }}
 		</p>
 	</div>
 

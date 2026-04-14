@@ -1,5 +1,7 @@
 package com.example.web2.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -22,6 +24,14 @@ public class Cliente {
 
     @Column(length = 11)
     private String telefone;
+
+    @JsonIgnore
+    @Column(name = "senha_hash", length = 120)
+    private String senhaHash;
+
+    @JsonIgnore
+    @Column(name = "senha_salt", length = 60)
+    private String senhaSalt;
 
     @ManyToOne
     @JoinColumn(name = "id_endereco")
@@ -76,5 +86,21 @@ public class Cliente {
 
     public void setEndereco(Endereco endereco) {
         this.endereco = endereco;
+    }
+
+    public String getSenhaHash() {
+        return senhaHash;
+    }
+
+    public void setSenhaHash(String senhaHash) {
+        this.senhaHash = senhaHash;
+    }
+
+    public String getSenhaSalt() {
+        return senhaSalt;
+    }
+
+    public void setSenhaSalt(String senhaSalt) {
+        this.senhaSalt = senhaSalt;
     }
 }
