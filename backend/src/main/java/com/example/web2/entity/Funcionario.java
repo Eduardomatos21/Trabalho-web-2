@@ -3,11 +3,15 @@ package com.example.web2.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "Funcionario")
+@Table(name = "funcionario")
 public class Funcionario {
 
     @Id
-    @Column(name = "cpf", length = 11)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_funcionario")
+    private Integer id;
+
+    @Column(name = "cpf", length = 11, unique = true)
     private String cpf;
 
     @Column(length = 50)
@@ -32,6 +36,14 @@ public class Funcionario {
         this.email = email;
         this.telefone = telefone;
         this.endereco = endereco;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getCpf() {

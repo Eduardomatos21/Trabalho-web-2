@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 import com.example.web2.entity.Funcionario;
 
 @Repository
-public interface FuncionarioRepository extends JpaRepository<Funcionario, String>{
+public interface FuncionarioRepository extends JpaRepository<Funcionario, Integer>{
 }

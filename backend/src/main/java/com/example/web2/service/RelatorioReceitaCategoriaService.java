@@ -42,12 +42,12 @@ public class RelatorioReceitaCategoriaService {
 
                 String categoria = (String) linha[0];
 
-                Double total = (Double) linha[1];
+                Number total = (Number) linha[1];
 
                 document.add(
                     new Paragraph(
                         "Categoria: " + categoria
-                        + " | Receita total: " + total
+                        + " | Receita total: " + total.toString()
                     )
                 );
 

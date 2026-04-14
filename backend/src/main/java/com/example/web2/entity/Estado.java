@@ -8,5 +8,5 @@ public enum Estado {
     REDIRECIONADA,
     ARRUMADA,
     PAGA,
-    FINALIZADA
+    FINALIZADO
 }

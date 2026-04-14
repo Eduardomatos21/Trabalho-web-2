@@ -4,6 +4,8 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -11,15 +13,17 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "Equipamento")
+@Table(name = "equipamento")
 public class Equipamento {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_equipamento")
     private Integer id;
 
-    @Column(length = 50)
-    private String categoria;
+    @ManyToOne
+    @JoinColumn(name = "id_categoria")
+    private Categoria categoria;
 
     @Column(length = 50)
     private String marca;
@@ -31,7 +35,7 @@ public class Equipamento {
     private String descricao;
 
     @ManyToOne
-    @JoinColumn(name = "cpf")
+    @JoinColumn(name = "id_cliente")
     private Cliente cliente;
 
     @OneToMany(mappedBy = "equipamento")
@@ -41,7 +45,7 @@ public class Equipamento {
         return id;
     }
 
-    public String getCategoria () {
+    public Categoria getCategoria () {
         return categoria;
     }
 
@@ -69,7 +73,7 @@ public class Equipamento {
         this.id = id;
     }
 
-    public void setCategoria (String categoria) {
+    public void setCategoria (Categoria categoria) {
         this.categoria = categoria;
     }
 

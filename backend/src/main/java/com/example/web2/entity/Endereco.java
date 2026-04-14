@@ -11,7 +11,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "Endereco")
+@Table(name = "endereco")
 public class Endereco {
 
     @Id
@@ -19,11 +19,21 @@ public class Endereco {
     @Column(name = "id_endereco")
     private Integer id;
 
-    private Integer cep;
+    @Column(length = 8)
+    private String cep;
+
     private String rua;
     private String bairro;
     private Integer numero;
+
+    @Column(length = 100)
+    private String complemento;
+
     private String cidade;
+
+    @Column(length = 2)
+    private String estado;
+
     private String pais;
 
 
@@ -37,7 +47,7 @@ public class Endereco {
         return id; 
     }
 
-    public Integer getCep () {
+    public String getCep () {
         return cep; 
     }
 
@@ -53,8 +63,16 @@ public class Endereco {
         return numero; 
     }
 
+    public String getComplemento () {
+        return complemento;
+    }
+
     public String getCidade () {
         return cidade; 
+    }
+
+    public String getEstado () {
+        return estado;
     }
     
     public String getPais () {
@@ -65,7 +83,7 @@ public class Endereco {
         this.id = id;
     }
 
-    public void setCep (Integer cep) {
+    public void setCep (String cep) {
         this.cep = cep;
     }
 
@@ -81,9 +99,17 @@ public class Endereco {
         this.numero = numero;
     }
 
+    public void setComplemento (String complemento) {
+        this.complemento = complemento;
+    }
+
     public void setCidade (String cidade) {
         this.cidade = cidade;
     }  
+
+    public void setEstado (String estado) {
+        this.estado = estado;
+    }
 
     public void setPais (String pais) {
         this.pais = pais;

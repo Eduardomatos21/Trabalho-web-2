@@ -14,7 +14,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "Historico")
+@Table(name = "historico")
 public class Historico {
 
     @Id
@@ -27,16 +27,18 @@ public class Historico {
     private Solicitacao solicitacao;
 
     @ManyToOne
-    @JoinColumn(name = "cpf")
+    @JoinColumn(name = "id_funcionario")
     private Funcionario funcionario;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "estado_anterior")
     private Estado estadoAnterior;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "estado_atual")
     private Estado estadoAtual;
 
-    @Column(name = "dataHora")
+    @Column(name = "data_hora")
     private LocalDateTime dataHora;
 
     public Historico() {

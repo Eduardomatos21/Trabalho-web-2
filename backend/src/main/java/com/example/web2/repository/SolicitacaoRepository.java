@@ -17,9 +17,9 @@ public interface SolicitacaoRepository extends JpaRepository<Solicitacao, Intege
     List<Object[]> somarReceitaPorDia();
 
     @Query("""
-    SELECT s.equipamento.categoria, SUM(s.valorOrcamento)
+    SELECT s.equipamento.categoria.nome, SUM(s.valorOrcamento)
     FROM Solicitacao s
-    GROUP BY s.equipamento.categoria
+    GROUP BY s.equipamento.categoria.nome
     """)
     List<Object[]> somarReceitaPorCategoria();
 }

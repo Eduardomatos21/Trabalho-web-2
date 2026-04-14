@@ -7,9 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.web2.repository.SolicitacaoRepository;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
 
 @Service
 public class RelatorioReceitaDiaService {
@@ -21,13 +22,15 @@ public class RelatorioReceitaDiaService {
 
         List<Object[]> dados = solicitacaoRepository.somarReceitaPorDia();
 
-        Document documento = new Document();
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
 
         try{
 
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            PdfWriter writer = new PdfWriter(output);
 
-            PdfWriter.getInstance(documento, output);
+            PdfDocument pdf = new PdfDocument(writer);
+
+            Document documento = new Document(pdf);
 
             documento.open();
 
@@ -47,14 +50,13 @@ public class RelatorioReceitaDiaService {
 
             documento.close();
 
-            return output.toByteArray();
-
         }catch(Exception e){
 
             e.printStackTrace();
-            return null;
 
         }
+
+        return output.toByteArray();
 
     }
 
