@@ -1,169 +1,62 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { Observable, catchError, map, of } from 'rxjs';
 import { FuncionarioService } from './funcionario';
 
 export type PerfilUsuario = 'cliente' | 'funcionario';
 
-export interface UsuarioMock {
+export interface UsuarioAutenticado {
   nome: string;
   email: string;
-  senha: string;
   perfil: PerfilUsuario;
+  token: string;
+  expiraEm: string;
 }
 
-export interface EnderecoCadastroCliente {
-  cep: string;
-  logradouro: string;
-  numero: string;
-  complemento?: string;
-  bairro: string;
-  cidade: string;
-  estado: string;
-}
-
-export interface ClienteCadastro {
-  cpf: string;
+interface SessaoApiResponse {
+  token: string;
   nome: string;
   email: string;
-  telefone: string;
-  endereco: EnderecoCadastroCliente;
-  senha: string;
-}
-
-export interface NovoClienteCadastro {
-  cpf: string;
-  nome: string;
-  email: string;
-  telefone: string;
-  endereco: EnderecoCadastroCliente;
+  perfil: PerfilUsuario;
+  expiraEm: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly apiBaseUrl = 'http://localhost:8081';
   private readonly usuarioStorageKey = 'usuarioLogado';
-  private readonly clientesStorageKey = 'clientesCadastrados';
-
-  private readonly clientesIniciais: ClienteCadastro[] = [
-    {
-      cpf: '111.111.111-11',
-      nome: 'José',
-      email: 'jose@demo.com',
-      telefone: '(11) 98888-1111',
-      endereco: {
-        cep: '01001-000',
-        logradouro: 'Praça da Sé',
-        numero: '100',
-        complemento: '',
-        bairro: 'Sé',
-        cidade: 'São Paulo',
-        estado: 'SP',
-      },
-      senha: '1234',
-    },
-    {
-      cpf: '222.222.222-22',
-      nome: 'João',
-      email: 'joao@demo.com',
-      telefone: '(21) 97777-2222',
-      endereco: {
-        cep: '20040-010',
-        logradouro: 'Rua da Quitanda',
-        numero: '250',
-        complemento: '',
-        bairro: 'Centro',
-        cidade: 'Rio de Janeiro',
-        estado: 'RJ',
-      },
-      senha: '1234',
-    },
-    {
-      cpf: '333.333.333-33',
-      nome: 'Joana',
-      email: 'joana@demo.com',
-      telefone: '(31) 96666-3333',
-      endereco: {
-        cep: '30130-010',
-        logradouro: 'Avenida Afonso Pena',
-        numero: '900',
-        complemento: 'Sala 305',
-        bairro: 'Centro',
-        cidade: 'Belo Horizonte',
-        estado: 'MG',
-      },
-      senha: '1234',
-    },
-    {
-      cpf: '444.444.444-44',
-      nome: 'Joaquina',
-      email: 'joaquina@demo.com',
-      telefone: '(41) 95555-4444',
-      endereco: {
-        cep: '80010-000',
-        logradouro: 'Rua XV de Novembro',
-        numero: '450',
-        complemento: '',
-        bairro: 'Centro',
-        cidade: 'Curitiba',
-        estado: 'PR',
-      },
-      senha: '1234',
-    },
-  ];
-
-  // Usuários fixos para demonstração do protótipo sem backend.
-  private readonly usuariosMock: UsuarioMock[] = [
-    {
-      nome: 'Maria',
-      email: 'maria@demo.com',
-      senha: '1234',
-      perfil: 'funcionario',
-    },
-    {
-      nome: 'Mário',
-      email: 'mario@demo.com',
-      senha: '1234',
-      perfil: 'funcionario',
-    },
-  ];
 
   constructor(
     private router: Router,
+    private http: HttpClient,
     private funcionarioService: FuncionarioService,
   ) {}
 
-  login(email: string, senha: string): { ok: true; usuario: UsuarioMock } | { ok: false; message: string } {
-    const usuariosSistema = this.getUsuariosDemo();
-    const usuario = usuariosSistema.find(
-      (item) => item.email.toLowerCase() === email.toLowerCase().trim() && item.senha === senha,
-    );
+  login(email: string, senha: string): Observable<UsuarioAutenticado> {
+    return this.http
+      .post<SessaoApiResponse>(`${this.apiBaseUrl}/auth/login`, {
+        email: email.trim().toLowerCase(),
+        senha: senha.trim(),
+      })
+      .pipe(
+        map((response) => {
+          const usuario: UsuarioAutenticado = {
+            nome: response.nome,
+            email: response.email,
+            perfil: response.perfil,
+            token: response.token,
+            expiraEm: response.expiraEm,
+          };
 
-    if (!usuario) {
-      return { ok: false, message: 'Credenciais inválidas(demonstração).' };
-    }
-
-    localStorage.setItem(this.usuarioStorageKey, JSON.stringify(usuario));
-    return { ok: true, usuario };
+          localStorage.setItem(this.usuarioStorageKey, JSON.stringify(usuario));
+          return usuario;
+        }),
+      );
   }
 
   navegarPosLogin(perfil: PerfilUsuario): void {
     this.router.navigate([perfil === 'funcionario' ? '/funcionario' : '/cliente']);
-  }
-
-  getUsuariosDemo(): UsuarioMock[] {
-    const clientes = this.carregarClientesCadastro().map((cliente) => ({
-      nome: cliente.nome,
-      email: cliente.email,
-      senha: cliente.senha,
-      perfil: 'cliente' as const,
-    }));
-    const funcionarios = this.funcionarioService.listarTodos().map((funcionario) => ({
-      nome: funcionario.nome,
-      email: funcionario.email,
-      senha: funcionario.senha,
-      perfil: 'funcionario' as const,
-    }));
-
-    return [...clientes, ...funcionarios];
   }
 
   getFuncionariosSistema(): string[] {
@@ -175,68 +68,32 @@ export class AuthService {
     return [...new Set(funcionarios)];
   }
 
-  cadastrarCliente(novoCliente: NovoClienteCadastro):
-    | { ok: true; senhaGerada: string }
-    | { ok: false; campo: 'cpf' | 'email'; message: string } {
-    const cpfNormalizado = this.normalizarCpf(novoCliente.cpf);
-    const emailNormalizado = this.normalizarEmail(novoCliente.email);
-
-    if (this.cpfJaCadastrado(cpfNormalizado)) {
-      return { ok: false, campo: 'cpf', message: 'CPF já cadastrado.' };
-    }
-
-    if (this.emailJaCadastrado(emailNormalizado)) {
-      return { ok: false, campo: 'email', message: 'E-mail já cadastrado.' };
-    }
-
-    const senhaGerada = this.gerarSenhaNumerica4Digitos();
-    const clientes = this.carregarClientesCadastro();
-
-    const clienteSalvo: ClienteCadastro = {
-      cpf: novoCliente.cpf.trim(),
-      nome: novoCliente.nome.trim(),
-      email: emailNormalizado,
-      telefone: novoCliente.telefone.trim(),
-      endereco: {
-        cep: novoCliente.endereco.cep.trim(),
-        logradouro: novoCliente.endereco.logradouro.trim(),
-        numero: novoCliente.endereco.numero.trim(),
-        complemento: (novoCliente.endereco.complemento ?? '').trim(),
-        bairro: novoCliente.endereco.bairro.trim(),
-        cidade: novoCliente.endereco.cidade.trim(),
-        estado: novoCliente.endereco.estado.trim().toUpperCase(),
-      },
-      senha: senhaGerada,
-    };
-
-    clientes.push(clienteSalvo);
-    localStorage.setItem(this.clientesStorageKey, JSON.stringify(clientes));
-
-    return { ok: true, senhaGerada };
-  }
-
-  cpfJaCadastrado(cpf: string): boolean {
-    const cpfNormalizado = this.normalizarCpf(cpf);
-    return this.carregarClientesCadastro().some((cliente) => this.normalizarCpf(cliente.cpf) === cpfNormalizado);
-  }
-
   emailJaCadastrado(email: string): boolean {
     const emailNormalizado = this.normalizarEmail(email);
-    return this.getUsuariosDemo().some((usuario) => this.normalizarEmail(usuario.email) === emailNormalizado);
+    return this.funcionarioService
+      .listarTodos()
+      .some((funcionario) => this.normalizarEmail(funcionario.email) === emailNormalizado);
   }
 
-  getUsuarioLogado(): UsuarioMock | undefined {
+  getUsuarioLogado(): UsuarioAutenticado | undefined {
     const raw = localStorage.getItem(this.usuarioStorageKey);
     if (!raw) return undefined;
 
     try {
-      const usuario = JSON.parse(raw) as Partial<UsuarioMock>;
+      const usuario = JSON.parse(raw) as Partial<UsuarioAutenticado>;
       if (
         typeof usuario.nome === 'string' &&
         typeof usuario.email === 'string' &&
-        typeof usuario.perfil === 'string'
+        typeof usuario.perfil === 'string' &&
+        typeof usuario.token === 'string' &&
+        typeof usuario.expiraEm === 'string'
       ) {
-        return usuario as UsuarioMock;
+        if (this.sessaoExpirada(usuario.expiraEm)) {
+          localStorage.removeItem(this.usuarioStorageKey);
+          return undefined;
+        }
+
+        return usuario as UsuarioAutenticado;
       }
     } catch {
       return undefined;
@@ -246,40 +103,69 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem(this.usuarioStorageKey);
-    this.router.navigate(['/login']);
-  }
-
-  private carregarClientesCadastro(): ClienteCadastro[] {
-    const raw = localStorage.getItem(this.clientesStorageKey);
-    if (!raw) {
-      localStorage.setItem(this.clientesStorageKey, JSON.stringify(this.clientesIniciais));
-      return [...this.clientesIniciais];
+    const token = this.getToken();
+    if (!token) {
+      this.encerrarSessaoLocal();
+      return;
     }
 
-    try {
-      const data = JSON.parse(raw) as ClienteCadastro[];
-      if (!Array.isArray(data)) {
-        localStorage.setItem(this.clientesStorageKey, JSON.stringify(this.clientesIniciais));
-        return [...this.clientesIniciais];
-      }
-
-      return data;
-    } catch {
-      localStorage.setItem(this.clientesStorageKey, JSON.stringify(this.clientesIniciais));
-      return [...this.clientesIniciais];
-    }
+    this.http.post<void>(`${this.apiBaseUrl}/auth/logout`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .pipe(catchError(() => of(void 0)))
+      .subscribe(() => {
+        this.encerrarSessaoLocal();
+      });
   }
 
-  private gerarSenhaNumerica4Digitos(): string {
-    return String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+  getToken(): string | null {
+    const usuario = this.getUsuarioLogado();
+    return usuario?.token ?? null;
+  }
+
+  extrairMensagemErroLogin(error: HttpErrorResponse): string {
+    if (error.status === 401) {
+      return 'E-mail ou senha inválidos.';
+    }
+
+    const mensagem = this.extrairMensagemErro(error);
+    if (mensagem) {
+      return mensagem;
+    }
+
+    return 'Não foi possível realizar login agora. Tente novamente.';
   }
 
   private normalizarEmail(email: string): string {
     return email.trim().toLowerCase();
   }
 
-  private normalizarCpf(cpf: string): string {
-    return cpf.replace(/\D/g, '');
+  private sessaoExpirada(expiraEm: string): boolean {
+    const expiraEmDate = new Date(expiraEm);
+    if (Number.isNaN(expiraEmDate.getTime())) {
+      return true;
+    }
+
+    return expiraEmDate.getTime() <= Date.now();
+  }
+
+  private encerrarSessaoLocal(): void {
+    localStorage.removeItem(this.usuarioStorageKey);
+    this.router.navigate(['/login']);
+  }
+
+  private extrairMensagemErro(error: HttpErrorResponse): string | undefined {
+    if (!error.error) {
+      return undefined;
+    }
+
+    if (typeof error.error === 'string') {
+      return error.error;
+    }
+
+    const message = (error.error.message as string | undefined) ?? (error.error.error as string | undefined);
+    return message?.trim() || undefined;
   }
 }

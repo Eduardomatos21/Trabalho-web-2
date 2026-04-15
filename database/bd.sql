@@ -24,6 +24,8 @@ CREATE TABLE funcionario (
     nome varchar(50),
     email varchar(50) UNIQUE,
     telefone varchar(11),
+    senha_hash varchar(120),
+    senha_salt varchar(60),
     id_endereco int,
     foreign key (id_endereco)
     references endereco (id_endereco)
@@ -87,6 +89,18 @@ CREATE TABLE historico (
     estado_atual ENUM ('ABERTA', 'ORCADA', 'APROVADA', 'REJEITADA', 'REDIRECIONADA', 'ARRUMADA', 'PAGA', 'FINALIZADO') default 'ABERTA',
     data_hora datetime default current_timestamp
 );
+
+CREATE TABLE sessao_usuario (
+    id_sessao int PRIMARY KEY auto_increment,
+    token varchar(120) UNIQUE,
+    perfil varchar(20),
+    id_usuario int,
+    nome varchar(50),
+    email varchar(50),
+    criado_em datetime,
+    expira_em datetime,
+    ativo boolean default true
+);
     
 -- =========================
 -- CARGA INICIAL (MASSA FRONTEND)
@@ -98,6 +112,7 @@ DELETE FROM historico;
 DELETE FROM solicitacao;
 DELETE FROM equipamento;
 DELETE FROM categoria;
+DELETE FROM sessao_usuario;
 DELETE FROM cliente;
 DELETE FROM funcionario;
 DELETE FROM endereco;
@@ -107,6 +122,7 @@ ALTER TABLE categoria AUTO_INCREMENT = 1;
 ALTER TABLE equipamento AUTO_INCREMENT = 1;
 ALTER TABLE solicitacao AUTO_INCREMENT = 1;
 ALTER TABLE historico AUTO_INCREMENT = 1;
+ALTER TABLE sessao_usuario AUTO_INCREMENT = 1;
 
 INSERT INTO endereco (cep, rua, bairro, numero, complemento, cidade, estado, pais) VALUES
 ('01001000', 'Praça da Sé', 'Sé', 100, NULL, 'São Paulo', 'SP', 'Brasil'),

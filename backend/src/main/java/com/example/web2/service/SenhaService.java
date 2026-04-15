@@ -46,6 +46,31 @@ public class SenhaService {
         }
     }
 
+    public boolean validarSenha(String senhaPura, String hashEsperadoBase64, String saltBase64) {
+        if (senhaPura == null || hashEsperadoBase64 == null || saltBase64 == null) {
+            return false;
+        }
+
+        try {
+            byte[] salt = Base64.getDecoder().decode(saltBase64);
+
+            PBEKeySpec spec = new PBEKeySpec(
+                    senhaPura.toCharArray(),
+                    salt,
+                    ITERATIONS,
+                    KEY_LENGTH
+            );
+
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            byte[] hashCalculado = factory.generateSecret(spec).getEncoded();
+            String hashCalculadoBase64 = Base64.getEncoder().encodeToString(hashCalculado);
+
+            return hashCalculadoBase64.equals(hashEsperadoBase64);
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
     public record HashComSalt(String hash, String salt) {
     }
 }

@@ -17,16 +17,6 @@
 					<p class="mt-3 text-sm leading-relaxed">
 						Entre com seu e-mail e a senha de 4 dígitos enviada para você ao se cadastrar.
 					</p>
-
-					<div class="mt-5 rounded-xl bg-white/10 border border-white/20 p-4 text-xs">
-						<p class="font-semibold uppercase tracking-wide mb-2">Modo demonstração</p>
-						@for (usuario of usuariosDemo; track usuario.email) {
-							<div class="mb-1 last:mb-0">
-								<span class="font-semibold">{{ usuario.perfil }}:</span>
-								{{ usuario.email }} / {{ usuario.senha }}
-							</div>
-						}
-					</div>
 				</div>
 
 				<div class="mt-4 text-sm text-slate-600 text-center lg:text-left">

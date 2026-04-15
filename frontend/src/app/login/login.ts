@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../services';
 import { ButtonComponent, FormFieldComponent } from '../shared';
 import { FormValidationHelper } from '../shared/utils';
@@ -16,8 +18,6 @@ import { FormValidationHelper } from '../shared/utils';
 export class Login {
   private fb     = inject(FormBuilder);
   private authService = inject(AuthService);
-
-  readonly usuariosDemo = this.authService.getUsuariosDemo();
 
   form: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -34,20 +34,26 @@ export class Login {
     this.erroLogin = '';
     if (this.form.invalid) return;
 
-    this.loading = true;
-
     const email = this.form.value.email as string;
     const senha = this.form.value.senha as string;
-    const resultado = this.authService.login(email, senha);
 
-    if (!resultado.ok) {
-      this.erroLogin = resultado.message;
-      this.loading = false;
-      return;
-    }
+    this.loading = true;
+    this.form.disable({ emitEvent: false });
 
-    this.authService.navegarPosLogin(resultado.usuario.perfil);
-    this.loading = false;
+    this.authService
+      .login(email, senha)
+      .pipe(finalize(() => {
+        this.loading = false;
+        this.form.enable({ emitEvent: false });
+      }))
+      .subscribe({
+        next: (usuario) => {
+          this.authService.navegarPosLogin(usuario.perfil);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.erroLogin = this.authService.extrairMensagemErroLogin(error);
+        },
+      });
   }
 
   erro(campo: string): string {

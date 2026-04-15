@@ -1,4 +1,5 @@
 export { AuthService } from './auth.service';
+export type { PerfilUsuario, UsuarioAutenticado } from './auth.service';
 export { CategoriaService } from './categoria.service';
 export { FuncionarioService } from './funcionario';
 export { ClienteStorageService } from './cliente-storage.service';

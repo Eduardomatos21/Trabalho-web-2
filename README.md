@@ -86,3 +86,5 @@ Operating System  : win32 x64
 │ typescript                │ 5.9.3             │ ~5.9.2            │      │
 └───────────────────────────┴───────────────────┴───────────────────┘
 
+5. Para rodar o backend abra um segundo terminal, vá para o diretório "backend" e digite:
+   .\mvnw.cmd spring-boot:run
