@@ -1,43 +1,53 @@
 import { Injectable } from '@angular/core';
-import { SolicitacaoCliente } from '../shared/models/solicitacao.model';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { EstadoSolicitacao, SolicitacaoCliente } from '../shared/models/solicitacao.model';
 
-const LS_CHAVE = "solicitacoes";
+interface SolicitacaoClienteHomeResponse {
+  codigo: string;
+  dataHora: string;
+  descricaoEquipamento: string;
+  categoriaEquipamento: string;
+  estado: string;
+  valorOrcamento?: number;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class SolicitacaoService {
+  private readonly apiBaseUrl = 'http://localhost:8081';
 
-  listarTodos(): SolicitacaoCliente[] {
-    const solicitacoes = localStorage[LS_CHAVE];
-    return solicitacoes ? JSON.parse(solicitacoes) : [];
+  constructor(private http: HttpClient) {}
+
+  listarMinhasSolicitacoes(): Observable<SolicitacaoCliente[]> {
+    return this.http
+      .get<SolicitacaoClienteHomeResponse[]>(`${this.apiBaseUrl}/solicitacoes/minhas`)
+      .pipe(map((response) => response.map((item) => this.toSolicitacaoCliente(item))));
   }
 
-  inserir(solicitacao: SolicitacaoCliente): void {
-    const solicitacoes = this.listarTodos();
-    solicitacao.codigo = solicitacao.codigo ?? `SOL-${Date.now()}`;
-    solicitacoes.push(solicitacao);
-    localStorage[LS_CHAVE] = JSON.stringify(solicitacoes);
+  resgatarServico(codigo: string): Observable<SolicitacaoCliente> {
+    return this.http
+      .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/resgatar`, {})
+      .pipe(map((response) => this.toSolicitacaoCliente(response)));
   }
 
-  buscarPorCodigo(codigo: string): SolicitacaoCliente | undefined {
-    const solicitacoes = this.listarTodos();
-    return solicitacoes.find(s => s.codigo === codigo);
+  private toSolicitacaoCliente(response: SolicitacaoClienteHomeResponse): SolicitacaoCliente {
+    return {
+      codigo: response.codigo,
+      dataHora: response.dataHora,
+      descricaoEquipamento: response.descricaoEquipamento,
+      categoriaEquipamento: response.categoriaEquipamento,
+      estado: this.mapEstado(response.estado),
+      valorOrcamento: response.valorOrcamento,
+    };
   }
 
-  atualizar(solicitacao: SolicitacaoCliente): void {
-    const solicitacoes = this.listarTodos();
-    solicitacoes.forEach((obj, index, objs) => {
-      if (solicitacao.codigo === obj.codigo) {
-        objs[index] = solicitacao;
-      }
-    });
-    localStorage[LS_CHAVE] = JSON.stringify(solicitacoes);
-  }
+  private mapEstado(estadoApi: string): EstadoSolicitacao {
+    if (estadoApi === 'ORCADA') {
+      return 'ORÇADA';
+    }
 
-  remover(codigo: string): void {
-    let solicitacoes = this.listarTodos();
-    solicitacoes = solicitacoes.filter(s => s.codigo !== codigo);
-    localStorage[LS_CHAVE] = JSON.stringify(solicitacoes);
+    return estadoApi as EstadoSolicitacao;
   }
 }

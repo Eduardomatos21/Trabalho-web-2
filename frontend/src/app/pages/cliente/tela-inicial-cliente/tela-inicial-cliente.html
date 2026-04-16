@@ -19,7 +19,7 @@
                    <!-- TEXTO DE APRESENTAÇÃO -->
                    <div>
                        <p class="text-xs uppercase tracking-widest text-teal-700 font-semibold">Área do cliente</p>
-                       <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Bem-vindo de volta</h2>
+                       <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Bem-vindo de volta, {{ nomeUsuarioLogado }}</h2>
                        <p class="text-sm text-slate-500 mt-2">Acompanhe o status dos seus equipamentos e abra novas solicitações.</p>
                    </div>
                    <!-- AÇÃO PRINCIPAL -->
@@ -56,6 +56,18 @@
 
                <!-- LISTAGEM -->
                <div class="overflow-x-auto">
+                   @if (erroCarregamento) {
+                       <div class="px-6 py-4 text-sm text-red-700 bg-red-50 border-b border-red-200">
+                           {{ erroCarregamento }}
+                       </div>
+                   }
+
+                   @if (loading) {
+                       <div class="px-6 py-4 text-sm text-slate-500 border-b border-slate-100">
+                           Carregando solicitacoes...
+                       </div>
+                   }
+
                    <table class="w-full min-w-190 text-sm">
                        <thead>
                            <tr class="border-b border-slate-200 text-left text-slate-500 uppercase text-xs tracking-wider">

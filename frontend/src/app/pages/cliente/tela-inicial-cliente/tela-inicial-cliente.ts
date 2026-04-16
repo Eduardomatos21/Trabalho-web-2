@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService, ClienteStorageService } from '../../../services';
+import { Subscription, finalize } from 'rxjs';
+import { AuthService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
-import { EstadoSolicitacao, HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
-import { DateFormatUtil, SolicitacaoHistoricoUtil, SolicitacaoUiUtil } from '../../../shared/utils';
+import { EstadoSolicitacao, SolicitacaoCliente } from '../../../shared/models';
+import { DateFormatUtil, SolicitacaoUiUtil } from '../../../shared/utils';
 
 
 
@@ -19,11 +20,12 @@ type OrdemDataHora = 'asc' | 'desc';
  templateUrl: './tela-inicial-cliente.html',
  styleUrl: './tela-inicial-cliente.css',
 })
-export class TelaInicialCliente implements OnInit {
+export class TelaInicialCliente implements OnInit, OnDestroy {
  constructor(
    private router: Router,
    private authService: AuthService,
-   private clienteStorageService: ClienteStorageService,
+   private solicitacaoService: SolicitacaoService,
+   private cdr: ChangeDetectorRef,
  ) {}
 
 
@@ -44,75 +46,20 @@ export class TelaInicialCliente implements OnInit {
  ];
 
 
- private readonly solicitacoesBase: SolicitacaoCliente[] = [
-   {
-     codigo: 'SOL-1042',
-     dataHora: '20/03/2026 14:30',
-     descricaoEquipamento: 'Notebook Dell Inspiron 15 com bateria viciada e falha de boot',
-     categoriaEquipamento: 'NOTEBOOK',
-     descricaoDefeito: 'Não liga após atualização de BIOS; LEDs frontais piscam sem iniciar o sistema.',
-     estado: 'ORÇADA',
-   },
-   {
-     codigo: 'SOL-1044',
-     dataHora: '20/03/2026 14:30',
-     descricaoEquipamento: 'Monitor LG UltraWide 29',
-     categoriaEquipamento: 'MONITOR',
-     descricaoDefeito: 'Tela com cintilação intermitente e perda de sinal após alguns minutos de uso.',
-     estado: 'ORÇADA',
-   },
-   {
-     codigo: 'SOL-1034',
-     dataHora: '17/03/2026 09:10',
-     descricaoEquipamento: 'Monitor LG UltraWide 29',
-     categoriaEquipamento: 'MONITOR',
-     descricaoDefeito: 'Linhas horizontais finas na metade inferior da tela.',
-     estado: 'APROVADA',
-   },
-   {
-     codigo: 'SOL-1018',
-     dataHora: '08/03/2026 11:42',
-     descricaoEquipamento: 'Teclado Mecânico RGB',
-     categoriaEquipamento: 'TECLADO',
-     descricaoDefeito: 'Teclas da fileira superior não respondem e iluminação RGB não sincroniza.',
-     estado: 'REJEITADA',
-   },
-   {
-     codigo: 'SOL-1051',
-     dataHora: '21/03/2026 16:05',
-     descricaoEquipamento: 'Impressora HP LaserJet Pro MFP com atolamento recorrente',
-     categoriaEquipamento: 'IMPRESSORA',
-     descricaoDefeito: 'Atolamento de papel constante no segundo estágio do alimentador automático.',
-     estado: 'ARRUMADA',
-   },
-   {
-     codigo: 'SOL-0997',
-     dataHora: '03/03/2026 08:25',
-     descricaoEquipamento: 'Mouse sem fio Logitech MX Master',
-     categoriaEquipamento: 'MOUSE',
-     descricaoDefeito: 'Cursor falha e desconecta de forma aleatória mesmo com bateria carregada.',
-     estado: 'ABERTA',
-   },
- ];
-
-
  solicitacoes: SolicitacaoCliente[] = [];
  solicitacao?: SolicitacaoCliente;
  modalResgatarAberto = false;
  solicitacaoSelecionada: SolicitacaoCliente | null = null;
+ loading = false;
+ erroCarregamento = '';
+ private carregamentoSub?: Subscription;
 
- private readonly valoresMockSolicitacoesIniciais: Record<string, number> = {
-  'SOL-1042': 249.9,
-  'SOL-1044': 249.9,
-  'SOL-1051': 249.9,
-  'SOL-1034': 235.9,
- };
-  ngOnInit(): void {
-   const usuarioLogado = this.authService.getUsuarioLogado();
-   this.solicitacoes = this.clienteStorageService.mesclarSolicitacoes(
-     this.solicitacoesBase,
-     this.clienteStorageService.carregarSolicitacoesPorCliente(usuarioLogado?.email),
-   );
+ ngOnInit(): void {
+   this.carregarSolicitacoes();
+ }
+
+ ngOnDestroy(): void {
+   this.carregamentoSub?.unsubscribe();
  }
 
 
@@ -139,6 +86,10 @@ get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
       { ...this.indicadoresConfig[2], valor: concluidas },
     ];
   }
+
+ get nomeUsuarioLogado(): string {
+   return this.authService.getUsuarioLogado()?.nome ?? 'Cliente';
+ }
 
  get valorResgateFormatado(): string {
    const valor = this.valorOrcadoParaSolicitacao(this.solicitacaoSelecionada);
@@ -222,58 +173,30 @@ get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
  resgatarServico(): void {
    if (!this.solicitacaoSelecionada) return;
 
+  const codigo = this.solicitacaoSelecionada.codigo;
+  this.loading = true;
+  this.solicitacaoService
+    .resgatarServico(codigo)
+    .pipe(finalize(() => {
+      this.loading = false;
+    }))
+    .subscribe({
+      next: (atualizada) => {
+        const index = this.solicitacoes.findIndex((s) => s.codigo === atualizada.codigo);
+        if (index !== -1) {
+          this.solicitacoes[index] = atualizada;
+        }
 
-  const eventoResgatar = this.criarEventoHistorico('Orçamento resgatado pelo cliente');
-  const historicoAtual =
-    this.solicitacaoSelecionada.historico && this.solicitacaoSelecionada.historico.length > 0
-      ? this.solicitacaoSelecionada.historico
-      : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacaoSelecionada.codigo, this.solicitacaoSelecionada.dataHora);
-
-
-
-
-  const atualizada: SolicitacaoCliente = {
-    ...this.solicitacaoSelecionada,
-    estado: 'APROVADA',
-    historico: [...historicoAtual, eventoResgatar],
-  };
-
-
-
-
-  this.salvarSolicitacao(atualizada);
-  this.solicitacao = atualizada;
-
-
-  const index = this.solicitacoes.findIndex(s => s.codigo === atualizada.codigo);
-    if (index !== -1) {
-      this.solicitacoes[index] = atualizada;
-    }
-
-
- this.modalResgatarAberto = false;
- this.solicitacaoSelecionada = null;
-
-
-
-
+        this.modalResgatarAberto = false;
+        this.solicitacaoSelecionada = null;
+      },
+      error: () => {
+        this.modalResgatarAberto = false;
+        this.solicitacaoSelecionada = null;
+        this.erroCarregamento = 'Nao foi possivel resgatar a solicitacao agora. Atualize a pagina e tente novamente.';
+      },
+    });
 }
-
-
-
- private salvarSolicitacao(solicitacao: SolicitacaoCliente): void {
-   this.clienteStorageService.salvarSolicitacao(solicitacao);
- }
-
-
- private criarEventoHistorico(descricao: string): HistoricoAtualizacao {
-     const usuario = this.authService.getUsuarioLogado();
-      return {
-       dataHora: DateFormatUtil.formatarDataHora(new Date()),
-       funcionario: usuario?.perfil === 'funcionario' ? usuario.nome : '',
-       descricao,
-     };
- }
 
   private valorOrcadoParaSolicitacao(solicitacao?: SolicitacaoCliente | null): number {
     if (!solicitacao) return 0;
@@ -282,8 +205,7 @@ get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
       return solicitacao.valorOrcamento;
     }
 
-    const valorMock = this.valoresMockSolicitacoesIniciais[solicitacao.codigo];
-    return typeof valorMock === 'number' ? valorMock : 0;
+    return 0;
   }
 
   private countByStates(states: EstadoSolicitacao[]): number {
@@ -292,6 +214,29 @@ get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
 
  logout(): void {
    this.authService.logout();
+ }
+
+ private carregarSolicitacoes(): void {
+   this.loading = true;
+   this.erroCarregamento = '';
+
+   this.carregamentoSub = this.solicitacaoService
+     .listarMinhasSolicitacoes()
+     .pipe(finalize(() => {
+       this.loading = false;
+       this.cdr.detectChanges();
+     }))
+     .subscribe({
+       next: (solicitacoes) => {
+         this.solicitacoes = solicitacoes;
+         this.cdr.detectChanges();
+       },
+       error: () => {
+         this.solicitacoes = [];
+         this.erroCarregamento = 'Nao foi possivel carregar suas solicitacoes.';
+         this.cdr.detectChanges();
+       },
+     });
  }
 
 }
