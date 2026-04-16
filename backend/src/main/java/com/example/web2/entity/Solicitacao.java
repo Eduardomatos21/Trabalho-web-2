@@ -32,6 +32,9 @@ public class Solicitacao {
     @Column(name = "descricao_problema", length = 100)
     private String descricaoProblema;
 
+    @Column(name = "descricao_equipamento", length = 120)
+    private String descricaoEquipamento;
+
     @Enumerated(EnumType.STRING)
     private Estado estado;
 
@@ -43,8 +46,12 @@ public class Solicitacao {
     private Funcionario funcionario;
 
     @ManyToOne
-    @JoinColumn(name = "id_equipamento")
-    private Equipamento equipamento;
+    @JoinColumn(name = "id_categoria")
+    private Categoria categoria;
+
+    @ManyToOne
+    @JoinColumn(name = "id_cliente")
+    private Cliente cliente;
 
     public Solicitacao() {}
 
@@ -80,6 +87,14 @@ public class Solicitacao {
         this.descricaoProblema = descricaoProblema;
     }
 
+    public String getDescricaoEquipamento() {
+        return descricaoEquipamento;
+    }
+
+    public void setDescricaoEquipamento(String descricaoEquipamento) {
+        this.descricaoEquipamento = descricaoEquipamento;
+    }
+
     public Estado getEstado() {
         return estado;
     }
@@ -104,11 +119,19 @@ public class Solicitacao {
         this.funcionario = funcionario;
     }
 
-    public Equipamento getEquipamento() {
-        return equipamento;
+    public Categoria getCategoria() {
+        return categoria;
     }
 
-    public void setEquipamento(Equipamento equipamento) {
-        this.equipamento = equipamento;
+    public void setCategoria(Categoria categoria) {
+        this.categoria = categoria;
+    }
+
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
     }
 }

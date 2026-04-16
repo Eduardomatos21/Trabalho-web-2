@@ -5,9 +5,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import com.example.web2.entity.Solicitacao;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SolicitacaoRepository extends JpaRepository<Solicitacao, Integer>{
+    Optional<Solicitacao> findByCodigo(String codigo);
+
+    List<Solicitacao> findByClienteEmailIgnoreCaseOrderByDataHoraDesc(String email);
+
     @Query("""
     SELECT DATE(s.dataHora), SUM(s.valorOrcamento)
     FROM Solicitacao s
@@ -17,9 +22,9 @@ public interface SolicitacaoRepository extends JpaRepository<Solicitacao, Intege
     List<Object[]> somarReceitaPorDia();
 
     @Query("""
-    SELECT s.equipamento.categoria.nome, SUM(s.valorOrcamento)
+    SELECT s.categoria.nome, SUM(s.valorOrcamento)
     FROM Solicitacao s
-    GROUP BY s.equipamento.categoria.nome
+    GROUP BY s.categoria.nome
     """)
     List<Object[]> somarReceitaPorCategoria();
 }

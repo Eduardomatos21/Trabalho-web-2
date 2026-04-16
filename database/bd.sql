@@ -49,32 +49,23 @@ CREATE TABLE categoria (
     nome varchar(50) UNIQUE
 );
 
-CREATE TABLE equipamento (
-    id_equipamento int PRIMARY KEY auto_increment,
-    id_categoria int,
-    foreign key (id_categoria)
-    references categoria (id_categoria),
-    marca varchar(50),
-    modelo varchar(50),
-    descricao varchar(50),
-    id_cliente int,
-    foreign key (id_cliente)
-    references cliente (id_cliente)
-);
-
 CREATE TABLE solicitacao (
     id_solicitacao int PRIMARY KEY auto_increment,
     codigo varchar(20) UNIQUE,
     data_hora datetime default current_timestamp,
+    descricao_equipamento varchar(120),
     descricao_problema varchar(100),
     estado ENUM ('ABERTA', 'ORCADA', 'APROVADA', 'REJEITADA', 'REDIRECIONADA', 'ARRUMADA', 'PAGA', 'FINALIZADO') default 'ABERTA',
     valor_orcamento decimal(10,2),
+    id_categoria int,
+    foreign key (id_categoria)
+    references categoria (id_categoria),
+    id_cliente int,
+    foreign key (id_cliente)
+    references cliente (id_cliente),
     id_funcionario int,
     foreign key (id_funcionario)
-    references funcionario (id_funcionario),
-    id_equipamento int,
-    foreign key (id_equipamento)
-    references equipamento (id_equipamento)
+    references funcionario (id_funcionario)
 );
 
 CREATE TABLE historico (
@@ -110,7 +101,6 @@ SET NAMES utf8mb4;
 
 DELETE FROM historico;
 DELETE FROM solicitacao;
-DELETE FROM equipamento;
 DELETE FROM categoria;
 DELETE FROM sessao_usuario;
 DELETE FROM cliente;
@@ -119,7 +109,6 @@ DELETE FROM endereco;
 
 ALTER TABLE endereco AUTO_INCREMENT = 1;
 ALTER TABLE categoria AUTO_INCREMENT = 1;
-ALTER TABLE equipamento AUTO_INCREMENT = 1;
 ALTER TABLE solicitacao AUTO_INCREMENT = 1;
 ALTER TABLE historico AUTO_INCREMENT = 1;
 ALTER TABLE sessao_usuario AUTO_INCREMENT = 1;
@@ -149,50 +138,28 @@ INSERT INTO categoria (nome) VALUES
 ('IMPRESSORA'),
 ('MOUSE');
 
-INSERT INTO equipamento (id_categoria, marca, modelo, descricao, id_cliente) VALUES
-(1, 'Lenovo', 'IdeaPad 3', 'Notebook Lenovo IdeaPad 3', 2),
-(2, 'AMD', 'Ryzen 5', 'Desktop Gamer Ryzen 5', 1),
-(4, 'Epson', 'L3250', 'Impressora Epson L3250', 3),
-(5, 'Logitech', 'M170', 'Mouse Logitech M170', 4),
-(3, 'Redragon', 'Mecânico', 'Teclado mecânico Redragon', 2),
-(1, 'Acer', 'Aspire 5', 'Notebook Acer Aspire 5', 1),
-(2, 'Dell', 'OptiPlex', 'Desktop corporativo Dell OptiPlex', 3),
-(4, 'HP', 'LaserJet M404', 'Impressora HP LaserJet M404', 4),
-(1, 'Samsung', 'Book', 'Notebook Samsung Book', 2),
-(5, 'HyperX', 'Pulsefire', 'Mouse gamer HyperX Pulsefire', 1),
-(3, 'Logitech', 'K380', 'Teclado Logitech K380', 3),
-(2, 'HP', 'ProDesk', 'Desktop HP ProDesk', 4),
-(4, 'Brother', 'DCP-L2540DW', 'Impressora Brother DCP-L2540DW', 2),
-(5, 'Microsoft', 'Wireless', 'Mouse sem fio Microsoft', 1),
-(1, 'ASUS', 'VivoBook', 'Notebook ASUS VivoBook', 3),
-(3, 'Corsair', 'K55', 'Teclado Corsair K55', 4),
-(2, 'Intel', 'i5 10a', 'Desktop Intel i5 10ª geração', 2),
-(4, 'Canon', 'G3110', 'Impressora Canon G3110', 1),
-(5, 'Razer', 'DeathAdder', 'Mouse Razer DeathAdder', 3),
-(1, 'HP', 'Pavilion', 'Notebook HP Pavilion', 4);
-
 -- As solicitacoes agora possuem coluna propria `codigo` (sem embutir no texto).
-INSERT INTO solicitacao (codigo, data_hora, descricao_problema, estado, valor_orcamento, id_funcionario, id_equipamento) VALUES
-('SOL-0001', '2026-03-01 08:15:00', 'Não liga após queda de energia.', 'ABERTA', NULL, 1, 1),
-('SOL-0002', '2026-03-02 09:30:00', 'Reinicia sozinho durante jogos.', 'ORCADA', 420.00, 2, 2),
-('SOL-0003', '2026-03-03 10:05:00', 'Puxando folha em branco.', 'APROVADA', 180.00, 1, 3),
-('SOL-0004', '2026-03-04 11:45:00', 'Cursor travando e clique duplo.', 'REJEITADA', 95.00, 2, 4),
-('SOL-0005', '2026-03-05 08:55:00', 'Teclas WASD sem resposta.', 'REDIRECIONADA', 140.00, 1, 5),
-('SOL-0006', '2026-03-06 09:20:00', 'Aquecimento e desligamento.', 'ARRUMADA', 260.00, 1, 6),
-('SOL-0007', '2026-03-07 10:50:00', 'Tela azul intermitente.', 'PAGA', 310.00, 2, 7),
-('SOL-0008', '2026-03-08 13:15:00', 'Atolamento recorrente.', 'FINALIZADO', 350.00, 1, 8),
-('SOL-0009', '2026-03-09 09:05:00', 'Falha no teclado embutido.', 'ORCADA', 210.00, 2, 9),
-('SOL-0010', '2026-03-10 08:40:00', 'Botão esquerdo sem clique.', 'FINALIZADO', 120.00, 2, 10),
-('SOL-0011', '2026-03-11 11:20:00', 'Conexão bluetooth instável.', 'APROVADA', 150.00, 1, 11),
-('SOL-0012', '2026-03-12 14:05:00', 'Não reconhece SSD secundário.', 'REJEITADA', 275.00, 1, 12),
-('SOL-0013', '2026-03-13 08:10:00', 'Falha no scanner automático.', 'FINALIZADO', 390.00, 2, 13),
-('SOL-0014', '2026-03-14 09:35:00', 'Consumo alto de bateria.', 'ORCADA', 85.00, 1, 14),
-('SOL-0015', '2026-03-15 10:55:00', 'Sem imagem na tela, só HDMI.', 'ARRUMADA', 330.00, 2, 15),
-('SOL-0016', '2026-03-16 13:20:00', 'Retroiluminação falhando.', 'REDIRECIONADA', 205.00, 2, 16),
-('SOL-0017', '2026-03-17 09:00:00', 'Sem áudio nas saídas traseiras.', 'ABERTA', NULL, 1, 17),
-('SOL-0018', '2026-03-18 12:10:00', 'Impressão falhando em cores.', 'APROVADA', 245.00, 1, 18),
-('SOL-0019', '2026-03-19 15:25:00', 'Falha no scroll central.', 'PAGA', 115.00, 1, 19),
-('SOL-0020', '2026-03-20 07:50:00', 'Webcam não reconhecida.', 'FINALIZADO', 290.00, 2, 20);
+INSERT INTO solicitacao (codigo, data_hora, descricao_equipamento, descricao_problema, estado, valor_orcamento, id_categoria, id_cliente, id_funcionario) VALUES
+('SOL-0001', '2026-03-01 08:15:00', 'Notebook Lenovo IdeaPad 3', 'Não liga após queda de energia.', 'ABERTA', NULL, 1, 2, 1),
+('SOL-0002', '2026-03-02 09:30:00', 'Desktop Gamer Ryzen 5', 'Reinicia sozinho durante jogos.', 'ORCADA', 420.00, 2, 1, 2),
+('SOL-0003', '2026-03-03 10:05:00', 'Impressora Epson L3250', 'Puxando folha em branco.', 'APROVADA', 180.00, 4, 3, 1),
+('SOL-0004', '2026-03-04 11:45:00', 'Mouse Logitech M170', 'Cursor travando e clique duplo.', 'REJEITADA', 95.00, 5, 4, 2),
+('SOL-0005', '2026-03-05 08:55:00', 'Teclado mecânico Redragon', 'Teclas WASD sem resposta.', 'REDIRECIONADA', 140.00, 3, 2, 1),
+('SOL-0006', '2026-03-06 09:20:00', 'Notebook Acer Aspire 5', 'Aquecimento e desligamento.', 'ARRUMADA', 260.00, 1, 1, 1),
+('SOL-0007', '2026-03-07 10:50:00', 'Desktop corporativo Dell OptiPlex', 'Tela azul intermitente.', 'PAGA', 310.00, 2, 3, 2),
+('SOL-0008', '2026-03-08 13:15:00', 'Impressora HP LaserJet M404', 'Atolamento recorrente.', 'FINALIZADO', 350.00, 4, 4, 1),
+('SOL-0009', '2026-03-09 09:05:00', 'Notebook Samsung Book', 'Falha no teclado embutido.', 'ORCADA', 210.00, 1, 2, 2),
+('SOL-0010', '2026-03-10 08:40:00', 'Mouse gamer HyperX Pulsefire', 'Botão esquerdo sem clique.', 'FINALIZADO', 120.00, 5, 1, 2),
+('SOL-0011', '2026-03-11 11:20:00', 'Teclado Logitech K380', 'Conexão bluetooth instável.', 'APROVADA', 150.00, 3, 3, 1),
+('SOL-0012', '2026-03-12 14:05:00', 'Desktop HP ProDesk', 'Não reconhece SSD secundário.', 'REJEITADA', 275.00, 2, 4, 1),
+('SOL-0013', '2026-03-13 08:10:00', 'Impressora Brother DCP-L2540DW', 'Falha no scanner automático.', 'FINALIZADO', 390.00, 4, 2, 2),
+('SOL-0014', '2026-03-14 09:35:00', 'Mouse sem fio Microsoft', 'Consumo alto de bateria.', 'ORCADA', 85.00, 5, 1, 1),
+('SOL-0015', '2026-03-15 10:55:00', 'Notebook ASUS VivoBook', 'Sem imagem na tela, só HDMI.', 'ARRUMADA', 330.00, 1, 3, 2),
+('SOL-0016', '2026-03-16 13:20:00', 'Teclado Corsair K55', 'Retroiluminação falhando.', 'REDIRECIONADA', 205.00, 3, 4, 2),
+('SOL-0017', '2026-03-17 09:00:00', 'Desktop Intel i5 10a geração', 'Sem áudio nas saídas traseiras.', 'ABERTA', NULL, 2, 2, 1),
+('SOL-0018', '2026-03-18 12:10:00', 'Impressora Canon G3110', 'Impressão falhando em cores.', 'APROVADA', 245.00, 4, 1, 1),
+('SOL-0019', '2026-03-19 15:25:00', 'Mouse Razer DeathAdder', 'Falha no scroll central.', 'PAGA', 115.00, 5, 3, 1),
+('SOL-0020', '2026-03-20 07:50:00', 'Notebook HP Pavilion', 'Webcam não reconhecida.', 'FINALIZADO', 290.00, 1, 4, 2);
 
 INSERT INTO historico (id_solicitacao, id_funcionario, estado_anterior, estado_atual, data_hora) VALUES
 (1, 1, 'ABERTA', 'ABERTA', '2026-03-01 09:40:00'),
