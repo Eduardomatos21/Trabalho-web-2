@@ -21,4 +21,19 @@ public class CategoriaService {
     public Categoria salvar(Categoria categoria) {
         return categoriaRepository.save(categoria);
     }
+    public Categoria buscarPorId(Integer id) {
+    return categoriaRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+    }
+
+    public Categoria atualizar(Integer id, Categoria categoria) {
+        Categoria existente = buscarPorId(id);
+        existente.setNome(categoria.getNome());
+        return categoriaRepository.save(existente);
+    }
+
+    public void deletar(Integer id) {
+        Categoria categoria = buscarPorId(id);
+        categoriaRepository.delete(categoria);
+    }
 }
