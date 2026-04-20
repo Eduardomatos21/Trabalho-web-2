@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService, CategoriaService, ClienteStorageService } from '../../../services';
+import { finalize } from 'rxjs';
+import { AuthService, CategoriaService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, FormFieldComponent, SidebarComponent, type SidebarItem } from '../../../shared';
-import { SolicitacaoCliente } from '../../../shared/models';
 import { Categoria } from '../../../shared/models/categoria.model';
-import { DateFormatUtil, FormValidationHelper } from '../../../shared/utils';
+import { FormValidationHelper } from '../../../shared/utils';
 
 @Component({
   selector: 'app-tela-solicitacao-cliente',
@@ -20,11 +21,12 @@ export class TelaSolicitacaoCliente implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private categoriaService = inject(CategoriaService);
-  private clienteStorageService = inject(ClienteStorageService);
+  private solicitacaoService = inject(SolicitacaoService);
 
   enviado = false;
   loading = false;
   categorias: Categoria[] = [];
+  erroServidor = '';
 
   readonly menuItemsCliente: SidebarItem[] = [
     { label: 'Página inicial', route: '/cliente' },
@@ -39,31 +41,37 @@ export class TelaSolicitacaoCliente implements OnInit {
   });
 
   ngOnInit(): void {
-    this.categorias = this.categoriaService.listarTodos();
+    this.categoriaService.listarTodosApi().subscribe((categorias) => {
+      this.categorias = categorias;
+    });
   }
 
   onSubmit(): void {
     this.enviado = true;
+    this.erroServidor = '';
     if (this.form.invalid) return;
 
     this.loading = true;
-    const usuarioLogado = this.authService.getUsuarioLogado();
+    this.form.disable({ emitEvent: false });
 
-    const novaSolicitacao: SolicitacaoCliente = {
-      codigo: this.gerarCodigo(),
-      nomeCliente: usuarioLogado?.nome || 'Cliente',
-      emailCliente: usuarioLogado?.email || undefined,
-      dataHora: DateFormatUtil.formatarDataHora(new Date()),
-      descricaoEquipamento: this.form.value.descricaoEquipamento,
-      categoriaEquipamento: this.form.value.categoriaEquipamento,
-      descricaoDefeito: this.form.value.descricaoDefeito,
-      estado: 'ABERTA',
-    };
-
-    this.clienteStorageService.salvarSolicitacao(novaSolicitacao);
-
-    this.loading = false;
-    this.router.navigate(['/cliente']);
+    this.solicitacaoService
+      .criarSolicitacao({
+        descricaoEquipamento: String(this.form.getRawValue().descricaoEquipamento ?? '').trim(),
+        categoriaEquipamento: String(this.form.getRawValue().categoriaEquipamento ?? '').trim(),
+        descricaoDefeito: String(this.form.getRawValue().descricaoDefeito ?? '').trim(),
+      })
+      .pipe(finalize(() => {
+        this.loading = false;
+        this.form.enable({ emitEvent: false });
+      }))
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/cliente']);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.erroServidor = this.extrairMensagemErro(error);
+        },
+      });
   }
 
   erro(campo: string): string {
@@ -79,8 +87,27 @@ export class TelaSolicitacaoCliente implements OnInit {
     this.authService.logout();
   }
 
-  private gerarCodigo(): string {
-    const sufixo = String(Date.now()).slice(-4);
-    return `SOL-${sufixo}`;
+  private extrairMensagemErro(error: HttpErrorResponse): string {
+    if (error.status === 400) {
+      return 'Dados invalidos. Revise os campos e tente novamente.';
+    }
+
+    if (error.status === 401) {
+      return 'Sessao expirada. Faca login novamente.';
+    }
+
+    if (error.status === 403) {
+      return 'Operacao nao permitida para o perfil atual.';
+    }
+
+    if (typeof error.error === 'string' && error.error.trim()) {
+      return error.error.trim();
+    }
+
+    if (error.error?.message) {
+      return String(error.error.message);
+    }
+
+    return 'Nao foi possivel registrar a solicitacao agora.';
   }
 }

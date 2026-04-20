@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.example.web2.controller.dto.CriarSolicitacaoClienteRequest;
 import com.example.web2.controller.dto.SolicitacaoClienteHomeResponse;
 import com.example.web2.service.RelatorioReceitaDiaService;
 import com.example.web2.service.RelatorioReceitaCategoriaService;
@@ -27,6 +28,7 @@ import com.example.web2.entity.Historico;
 import com.example.web2.entity.Solicitacao;
 import com.example.web2.repository.HistoricoRepository;
 import com.example.web2.repository.SolicitacaoRepository;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/solicitacoes")
@@ -95,6 +97,16 @@ public class SolicitacaoController {
     ) {
         String token = extrairToken(authorizationHeader);
         return solicitacaoClienteService.resgatarServico(token, codigo);
+    }
+
+    @PostMapping("/cliente")
+    @ResponseStatus(HttpStatus.CREATED)
+    public SolicitacaoClienteHomeResponse criarSolicitacaoCliente(
+            @RequestHeader(name = "Authorization", required = false) String authorizationHeader,
+            @Valid @RequestBody CriarSolicitacaoClienteRequest request
+    ) {
+        String token = extrairToken(authorizationHeader);
+        return solicitacaoClienteService.criarSolicitacao(token, request);
     }
 
     @GetMapping("/{id}/historicos")

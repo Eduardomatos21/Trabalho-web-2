@@ -20,6 +20,12 @@
 			<section class="bg-white rounded-3xl border border-slate-200 overflow-hidden">
 				<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="p-6 md:p-8 space-y-5">
 
+					@if (erroServidor) {
+						<div class="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+							{{ erroServidor }}
+						</div>
+					}
+
 					<ui-form-field
 						label="Descrição do equipamento"
 						fieldId="descricaoEquipamento"

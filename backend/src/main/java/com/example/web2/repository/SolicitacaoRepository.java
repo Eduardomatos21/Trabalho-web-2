@@ -11,6 +11,8 @@ import java.util.Optional;
 public interface SolicitacaoRepository extends JpaRepository<Solicitacao, Integer>{
     Optional<Solicitacao> findByCodigo(String codigo);
 
+    Optional<Solicitacao> findTopByOrderByIdDesc();
+
     List<Solicitacao> findByClienteEmailIgnoreCaseOrderByDataHoraDesc(String email);
 
     @Query("""

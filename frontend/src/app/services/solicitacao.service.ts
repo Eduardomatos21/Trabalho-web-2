@@ -12,6 +12,12 @@ interface SolicitacaoClienteHomeResponse {
   valorOrcamento?: number;
 }
 
+interface CriarSolicitacaoClienteRequest {
+  descricaoEquipamento: string;
+  categoriaEquipamento: string;
+  descricaoDefeito: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -29,6 +35,12 @@ export class SolicitacaoService {
   resgatarServico(codigo: string): Observable<SolicitacaoCliente> {
     return this.http
       .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/resgatar`, {})
+      .pipe(map((response) => this.toSolicitacaoCliente(response)));
+  }
+
+  criarSolicitacao(payload: CriarSolicitacaoClienteRequest): Observable<SolicitacaoCliente> {
+    return this.http
+      .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/cliente`, payload)
       .pipe(map((response) => this.toSolicitacaoCliente(response)));
   }
 

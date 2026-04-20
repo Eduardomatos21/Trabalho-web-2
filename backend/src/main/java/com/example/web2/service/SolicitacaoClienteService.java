@@ -3,6 +3,7 @@ package com.example.web2.service;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -14,10 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.web2.controller.dto.SessaoResponse;
+import com.example.web2.controller.dto.CriarSolicitacaoClienteRequest;
 import com.example.web2.controller.dto.SolicitacaoClienteHomeResponse;
+import com.example.web2.entity.Categoria;
+import com.example.web2.entity.Cliente;
 import com.example.web2.entity.Estado;
 import com.example.web2.entity.Historico;
 import com.example.web2.entity.Solicitacao;
+import com.example.web2.repository.CategoriaRepository;
+import com.example.web2.repository.ClienteRepository;
 import com.example.web2.repository.HistoricoRepository;
 import com.example.web2.repository.SolicitacaoRepository;
 
@@ -34,6 +40,12 @@ public class SolicitacaoClienteService {
 
     @Autowired
     private AutenticacaoService autenticacaoService;
+
+    @Autowired
+    private ClienteRepository clienteRepository;
+
+    @Autowired
+    private CategoriaRepository categoriaRepository;
 
     @Transactional(readOnly = true)
     public List<SolicitacaoClienteHomeResponse> listarMinhasSolicitacoes(String token) {
@@ -70,6 +82,41 @@ public class SolicitacaoClienteService {
         historicoRepository.save(historico);
 
         return toHomeResponse(atualizada);
+    }
+
+    @Transactional
+    public SolicitacaoClienteHomeResponse criarSolicitacao(String token, CriarSolicitacaoClienteRequest request) {
+        SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
+        validarPerfilCliente(sessao);
+
+        Cliente cliente = clienteRepository.findByEmailIgnoreCase(sessao.email())
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Cliente da sessao nao encontrado."));
+
+        Categoria categoria = categoriaRepository.findByNomeIgnoreCase(request.categoriaEquipamento().trim())
+                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, "Categoria invalida."));
+
+        Solicitacao solicitacao = new Solicitacao();
+        solicitacao.setCodigo(gerarProximoCodigoSolicitacao());
+        solicitacao.setDataHora(LocalDateTime.now());
+        solicitacao.setDescricaoEquipamento(request.descricaoEquipamento().trim());
+        solicitacao.setDescricaoProblema(request.descricaoDefeito().trim());
+        solicitacao.setCategoria(categoria);
+        solicitacao.setCliente(cliente);
+        solicitacao.setEstado(Estado.ABERTA);
+        solicitacao.setValorOrcamento(null);
+        solicitacao.setFuncionario(null);
+
+        Solicitacao criada = solicitacaoRepository.save(solicitacao);
+
+        Historico historicoInicial = new Historico();
+        historicoInicial.setSolicitacao(criada);
+        historicoInicial.setFuncionario(null);
+        historicoInicial.setEstadoAnterior(Estado.ABERTA);
+        historicoInicial.setEstadoAtual(Estado.ABERTA);
+        historicoInicial.setDataHora(LocalDateTime.now());
+        historicoRepository.save(historicoInicial);
+
+        return toHomeResponse(criada);
     }
 
     private void validarPerfilCliente(SessaoResponse sessao) {
@@ -115,5 +162,14 @@ public class SolicitacaoClienteService {
                 solicitacao.getEstado().name(),
                 solicitacao.getValorOrcamento()
         );
+    }
+
+    private String gerarProximoCodigoSolicitacao() {
+        int ultimoId = solicitacaoRepository.findTopByOrderByIdDesc()
+                .map(Solicitacao::getId)
+                .orElse(0);
+
+        int proximo = ultimoId + 1;
+        return String.format("SOL-%04d", proximo);
     }
 }

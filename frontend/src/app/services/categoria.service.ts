@@ -1,4 +1,6 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable, catchError, finalize, of, shareReplay, tap } from 'rxjs';
 import { Categoria } from '../shared/models/categoria.model';
 
 const LS_CHAVE = "categorias";
@@ -7,6 +9,12 @@ const LS_CHAVE = "categorias";
   providedIn: 'root',
 })
 export class CategoriaService {
+  private readonly apiBaseUrl = 'http://localhost:8081';
+  private categoriasCache: Categoria[] = [];
+  private requisicaoCategorias$?: Observable<Categoria[]>;
+
+  constructor(private http: HttpClient) {}
+
   private readonly categoriasIniciais: Categoria[] = [
     new Categoria(1, 'NOTEBOOK'),
     new Categoria(2, 'DESKTOP'),
@@ -34,6 +42,42 @@ export class CategoriaService {
       localStorage[LS_CHAVE] = JSON.stringify(this.categoriasIniciais);
       return [...this.categoriasIniciais];
     }
+  }
+
+  listarTodosApi(): Observable<Categoria[]> {
+    if (this.categoriasCache.length > 0) {
+      return of([...this.categoriasCache]);
+    }
+
+    if (this.requisicaoCategorias$) {
+      return this.requisicaoCategorias$;
+    }
+
+    this.requisicaoCategorias$ = this.http
+      .get<Categoria[]>(`${this.apiBaseUrl}/categoria`)
+      .pipe(
+        catchError(() => of(this.listarTodos())),
+        tap((categorias) => {
+          this.categoriasCache = [...categorias];
+        }),
+        finalize(() => {
+          this.requisicaoCategorias$ = undefined;
+        }),
+        shareReplay(1),
+      );
+
+    return this.requisicaoCategorias$;
+  }
+
+  precarregarCategorias(): void {
+    this.listarTodosApi().subscribe({
+      next: () => {
+        // Prefetch silencioso para evitar atraso no primeiro acesso ao select.
+      },
+      error: () => {
+        // Erros serao tratados pela tela que consome as categorias.
+      },
+    });
   }
   inserir(categoria: Categoria): void {
     const categorias = this.listarTodos();
