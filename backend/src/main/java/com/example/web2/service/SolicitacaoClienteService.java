@@ -111,7 +111,7 @@ public class SolicitacaoClienteService {
         Historico historicoInicial = new Historico();
         historicoInicial.setSolicitacao(criada);
         historicoInicial.setFuncionario(null);
-        historicoInicial.setEstadoAnterior(Estado.ABERTA);
+        historicoInicial.setEstadoAnterior(null); //não existia status antes do aberta
         historicoInicial.setEstadoAtual(Estado.ABERTA);
         historicoInicial.setDataHora(LocalDateTime.now());
         historicoRepository.save(historicoInicial);
