@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService, ClienteStorageService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
@@ -15,7 +15,6 @@ import { DateFormatUtil, SolicitacaoHistoricoUtil } from '../../../shared/utils'
 })
 export class TelaPagamentoCliente implements OnInit {
   constructor(
-    private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
     private clienteStorageService: ClienteStorageService,
@@ -38,8 +37,7 @@ export class TelaPagamentoCliente implements OnInit {
   };
 
   ngOnInit(): void {
-    const codigo = this.route.snapshot.queryParamMap.get('solicitacao');
-    this.solicitacao = this.buscarSolicitacao(codigo);
+    this.solicitacao = this.buscarSolicitacao();
   }
 
   get valorServicoFormatado(): string {
@@ -82,7 +80,6 @@ export class TelaPagamentoCliente implements OnInit {
 
     this.modalPagamentoAberto = false;
     this.router.navigate(['/cliente/visualizar'], {
-      queryParams: { solicitacao: this.solicitacao.codigo },
       state: { solicitacaoSelecionada: this.solicitacao },
     });
   }
@@ -95,22 +92,24 @@ export class TelaPagamentoCliente implements OnInit {
     this.authService.logout();
   }
 
-  private buscarSolicitacao(codigo: string | null): SolicitacaoCliente {
+  private buscarSolicitacao(): SolicitacaoCliente {
     const usuarioLogado = this.authService.getUsuarioLogado();
     const navState = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
-    const encontrada = this.clienteStorageService.buscarPorCodigoDoCliente(codigo, usuarioLogado?.email);
+    const encontrada = navState?.codigo
+      ? this.clienteStorageService.buscarPorCodigoDoCliente(navState.codigo, usuarioLogado?.email)
+      : undefined;
     if (encontrada) {
-      if (navState && navState.codigo === codigo) {
+      if (navState && navState.codigo === encontrada.codigo) {
         return { ...navState, ...encontrada };
       }
 
       return encontrada;
     }
 
-    if (navState && navState.codigo === codigo) return navState;
+    if (navState) return navState;
 
     return {
-      codigo: codigo ?? 'N/A',
+      codigo: 'N/A',
       dataHora: '-',
       descricaoEquipamento: '-',
       categoriaEquipamento: '-',

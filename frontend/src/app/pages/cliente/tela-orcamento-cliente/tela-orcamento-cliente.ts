@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize, timeout } from 'rxjs';
 import { AuthService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
@@ -15,7 +15,6 @@ import { SolicitacaoCliente } from '../../../shared/models';
 })
 export class TelaOrcamentoCliente implements OnInit {
   constructor(
-    private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
     private solicitacaoService: SolicitacaoService,
@@ -41,8 +40,7 @@ export class TelaOrcamentoCliente implements OnInit {
       this.solicitacao = solicitacaoNavegada;
     }
 
-    const codigoDaRota = this.route.snapshot.queryParamMap.get('solicitacao');
-    const codigo = codigoDaRota ?? solicitacaoNavegada?.codigo ?? null;
+    const codigo = solicitacaoNavegada?.codigo ?? null;
     this.carregarSolicitacao(codigo);
   }
 

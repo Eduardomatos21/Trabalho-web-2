@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService, ClienteStorageService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { EstadoSolicitacao, HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
@@ -19,7 +19,6 @@ type SolicitacaoComHistorico = SolicitacaoCliente & {
 })
 export class TelaVisualizarCliente implements OnInit {
   constructor(
-    private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
     private clienteStorageService: ClienteStorageService,
@@ -43,8 +42,7 @@ export class TelaVisualizarCliente implements OnInit {
   };
 
   ngOnInit(): void {
-    const codigo = this.route.snapshot.queryParamMap.get('solicitacao');
-    this.solicitacao = this.carregarSolicitacao(codigo);
+    this.solicitacao = this.carregarSolicitacao();
   }
 
   estadoClasse(estado: EstadoSolicitacao): string {
@@ -60,7 +58,6 @@ export class TelaVisualizarCliente implements OnInit {
 
     if (this.solicitacao.estado === 'ORÇADA') {
       this.router.navigate(['/cliente/orcamento'], {
-        queryParams: { solicitacao: this.solicitacao.codigo },
         state: { solicitacaoSelecionada: this.solicitacao },
       });
       return;
@@ -68,7 +65,6 @@ export class TelaVisualizarCliente implements OnInit {
 
     if (this.solicitacao.estado === 'ARRUMADA') {
       this.router.navigate(['/cliente/pagamento'], {
-        queryParams: { solicitacao: this.solicitacao.codigo },
         state: { solicitacaoSelecionada: this.solicitacao },
       });
       return;
@@ -124,14 +120,16 @@ export class TelaVisualizarCliente implements OnInit {
     this.authService.logout();
   }
 
-  private carregarSolicitacao(codigo: string | null): SolicitacaoComHistorico {
+  private carregarSolicitacao(): SolicitacaoComHistorico {
     const usuarioLogado = this.authService.getUsuarioLogado();
     const navState = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
-    const salva = this.clienteStorageService.buscarPorCodigoDoCliente(codigo, usuarioLogado?.email);
-    const base = (navState && navState.codigo === codigo ? navState : undefined) ?? salva;
+    const salva = navState?.codigo
+      ? this.clienteStorageService.buscarPorCodigoDoCliente(navState.codigo, usuarioLogado?.email)
+      : undefined;
+    const base = navState ?? salva;
 
     const solicitacao: SolicitacaoCliente = base ?? {
-      codigo: codigo ?? 'N/A',
+      codigo: 'N/A',
       dataHora: '-',
       descricaoEquipamento: '-',
       categoriaEquipamento: '-',

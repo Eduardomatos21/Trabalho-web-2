@@ -117,7 +117,6 @@ get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
  visualizarSolicitacao(codigo: string): void {
    const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
    this.router.navigate(['/cliente/visualizar'], {
-     queryParams: { solicitacao: codigo },
      state: { solicitacaoSelecionada: selecionada },
    });
  }
@@ -127,7 +126,6 @@ get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
    if (estado === 'ORÇADA') {
      const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
      this.router.navigate(['/cliente/orcamento'], {
-       queryParams: { solicitacao: codigo },
        state: { solicitacaoSelecionada: selecionada },
      });
      return;
@@ -145,7 +143,6 @@ get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
    if (estado === 'ARRUMADA') {
       const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
       this.router.navigate(['/cliente/pagamento'], {
-        queryParams: { solicitacao: codigo },
         state: { solicitacaoSelecionada: selecionada },
       });
       return;
