@@ -142,6 +142,14 @@ public class SolicitacaoClienteService {
     }
 
     private SolicitacaoClienteHomeResponse toHomeResponse(Solicitacao solicitacao) {
+        String nomeCliente = solicitacao.getCliente() != null && solicitacao.getCliente().getNome() != null
+            ? solicitacao.getCliente().getNome()
+            : "Cliente";
+
+        String emailCliente = solicitacao.getCliente() != null && solicitacao.getCliente().getEmail() != null
+            ? solicitacao.getCliente().getEmail()
+            : "-";
+
         String descricaoEquipamento = solicitacao.getDescricaoEquipamento() != null
             ? solicitacao.getDescricaoEquipamento()
             : "-";
@@ -154,11 +162,18 @@ public class SolicitacaoClienteService {
                 ? solicitacao.getDataHora().format(DATA_HORA_FORMATTER)
                 : "-";
 
+        String descricaoDefeito = solicitacao.getDescricaoProblema() != null
+            ? solicitacao.getDescricaoProblema()
+            : "-";
+
         return new SolicitacaoClienteHomeResponse(
                 solicitacao.getCodigo(),
                 dataHoraFormatada,
+            nomeCliente,
+            emailCliente,
                 descricaoEquipamento,
                 categoriaEquipamento,
+            descricaoDefeito,
                 solicitacao.getEstado().name(),
                 solicitacao.getValorOrcamento()
         );

@@ -8,6 +8,12 @@
 
 	<!-- CONTEÚDO PRINCIPAL -->
 	<main class="flex-1 p-4 sm:p-6 lg:p-8">
+		@if (!carregando && erroCarregamento) {
+			<div class="max-w-5xl mx-auto rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+				{{ erroCarregamento }}
+			</div>
+		}
+
 		<div class="max-w-5xl mx-auto space-y-6">
 
 			<header class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8">
@@ -22,27 +28,27 @@
 					<div class="grid sm:grid-cols-2 gap-4 text-sm">
 						<div>
 							<p class="text-slate-500">Código</p>
-							<p class="font-semibold text-slate-800">{{ solicitacao?.codigo }}</p>
+							<p class="font-semibold text-slate-800">{{ solicitacaoView.codigo }}</p>
 						</div>
 						<div>
 							<p class="text-slate-500">Data/Hora</p>
-							<p class="font-semibold text-slate-800">{{ solicitacao?.dataHora }}</p>
+							<p class="font-semibold text-slate-800">{{ solicitacaoView.dataHora }}</p>
 						</div>
 						<div class="sm:col-span-2">
 							<p class="text-slate-500">Descrição do equipamento</p>
-							<p class="font-semibold text-slate-800">{{ solicitacao?.descricaoEquipamento }}</p>
+							<p class="font-semibold text-slate-800">{{ solicitacaoView.descricaoEquipamento }}</p>
 						</div>
 						<div>
 							<p class="text-slate-500">Categoria</p>
-							<p class="font-semibold text-slate-800">{{ solicitacao?.categoriaEquipamento || '-' }}</p>
+							<p class="font-semibold text-slate-800">{{ solicitacaoView.categoriaEquipamento || '-' }}</p>
 						</div>
 						<div>
 							<p class="text-slate-500">Estado atual</p>
-							<p class="font-semibold text-slate-800">{{ solicitacao?.estado }}</p>
+							<p class="font-semibold text-slate-800">{{ solicitacaoView.estado }}</p>
 						</div>
 						<div class="sm:col-span-2">
 							<p class="text-slate-500">Descrição do defeito</p>
-							<p class="font-semibold text-slate-800">{{ solicitacao?.descricaoDefeito || '-' }}</p>
+							<p class="font-semibold text-slate-800">{{ solicitacaoView.descricaoDefeito || '-' }}</p>
 						</div>
 					</div>
 				</article>
@@ -63,7 +69,7 @@
 					Rejeitar o Serviço
 				</ui-button>
 
-				<ui-button variant="success" (clicked)="aprovarServico()">
+				<ui-button variant="success" [disabled]="!solicitacaoView.valorOrcamento" (clicked)="aprovarServico()">
 					Aprovar o Serviço
 				</ui-button>
 

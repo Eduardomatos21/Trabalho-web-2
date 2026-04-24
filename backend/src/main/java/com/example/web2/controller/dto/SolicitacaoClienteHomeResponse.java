@@ -5,8 +5,11 @@ import java.math.BigDecimal;
 public record SolicitacaoClienteHomeResponse(
         String codigo,
         String dataHora,
+        String nomeCliente,
+        String emailCliente,
         String descricaoEquipamento,
         String categoriaEquipamento,
+        String descricaoDefeito,
         String estado,
         BigDecimal valorOrcamento
 ) {

@@ -6,8 +6,11 @@ import { EstadoSolicitacao, SolicitacaoCliente } from '../shared/models/solicita
 interface SolicitacaoClienteHomeResponse {
   codigo: string;
   dataHora: string;
+  nomeCliente: string;
+  emailCliente: string;
   descricaoEquipamento: string;
   categoriaEquipamento: string;
+  descricaoDefeito: string;
   estado: string;
   valorOrcamento?: number;
 }
@@ -32,6 +35,16 @@ export class SolicitacaoService {
       .pipe(map((response) => response.map((item) => this.toSolicitacaoCliente(item))));
   }
 
+  buscarMinhaSolicitacaoPorCodigo(codigo: string): Observable<SolicitacaoCliente | null> {
+    const codigoNormalizado = codigo.trim().toUpperCase();
+
+    return this.listarMinhasSolicitacoes().pipe(
+      map((solicitacoes) =>
+        solicitacoes.find((item) => item.codigo?.trim().toUpperCase() === codigoNormalizado) ?? null,
+      ),
+    );
+  }
+
   resgatarServico(codigo: string): Observable<SolicitacaoCliente> {
     return this.http
       .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/resgatar`, {})
@@ -48,8 +61,11 @@ export class SolicitacaoService {
     return {
       codigo: response.codigo,
       dataHora: response.dataHora,
+      nomeCliente: response.nomeCliente,
+      emailCliente: response.emailCliente,
       descricaoEquipamento: response.descricaoEquipamento,
       categoriaEquipamento: response.categoriaEquipamento,
+      descricaoDefeito: response.descricaoDefeito,
       estado: this.mapEstado(response.estado),
       valorOrcamento: response.valorOrcamento,
     };
