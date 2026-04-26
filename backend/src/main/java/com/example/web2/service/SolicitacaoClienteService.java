@@ -85,6 +85,59 @@ public class SolicitacaoClienteService {
     }
 
     @Transactional
+    public SolicitacaoClienteHomeResponse aprovarServico(String token, String codigoSolicitacao) {
+        SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
+        validarPerfilCliente(sessao);
+
+        Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigoSolicitacao)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Solicitacao nao encontrada."));
+
+        validarDonoSolicitacao(solicitacao, sessao.email());
+        validarRegraAprovacao(solicitacao);
+
+        Estado estadoAnterior = solicitacao.getEstado();
+        solicitacao.setEstado(Estado.APROVADA);
+        Solicitacao atualizada = solicitacaoRepository.save(solicitacao);
+
+        Historico historico = new Historico();
+        historico.setSolicitacao(atualizada);
+        historico.setFuncionario(null);
+        historico.setEstadoAnterior(estadoAnterior);
+        historico.setEstadoAtual(Estado.APROVADA);
+        historico.setDataHora(LocalDateTime.now());
+        historicoRepository.save(historico);
+
+        return toHomeResponse(atualizada);
+    }
+
+    @Transactional
+    public SolicitacaoClienteHomeResponse rejeitarServico(String token, String codigoSolicitacao, String motivoRejeicao) {
+        SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
+        validarPerfilCliente(sessao);
+
+        Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigoSolicitacao)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Solicitacao nao encontrada."));
+
+        validarDonoSolicitacao(solicitacao, sessao.email());
+        validarRegraRejeicao(solicitacao);
+
+        Estado estadoAnterior = solicitacao.getEstado();
+        solicitacao.setEstado(Estado.REJEITADA);
+        solicitacao.setMotivoRejeicao(normalizarMotivoRejeicao(motivoRejeicao));
+        Solicitacao atualizada = solicitacaoRepository.save(solicitacao);
+
+        Historico historico = new Historico();
+        historico.setSolicitacao(atualizada);
+        historico.setFuncionario(null);
+        historico.setEstadoAnterior(estadoAnterior);
+        historico.setEstadoAtual(Estado.REJEITADA);
+        historico.setDataHora(LocalDateTime.now());
+        historicoRepository.save(historico);
+
+        return toHomeResponse(atualizada);
+    }
+
+    @Transactional
     public SolicitacaoClienteHomeResponse criarSolicitacao(String token, CriarSolicitacaoClienteRequest request) {
         SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
         validarPerfilCliente(sessao);
@@ -141,6 +194,27 @@ public class SolicitacaoClienteService {
         }
     }
 
+    private void validarRegraAprovacao(Solicitacao solicitacao) {
+        if (solicitacao.getEstado() != Estado.ORCADA) {
+            throw new ResponseStatusException(CONFLICT, "Somente solicitacoes orcadas podem ser aprovadas.");
+        }
+    }
+
+    private void validarRegraRejeicao(Solicitacao solicitacao) {
+        if (solicitacao.getEstado() != Estado.ORCADA) {
+            throw new ResponseStatusException(CONFLICT, "Somente solicitacoes orcadas podem ser rejeitadas.");
+        }
+    }
+
+    private String normalizarMotivoRejeicao(String motivoRejeicao) {
+        if (motivoRejeicao == null) {
+            return null;
+        }
+
+        String motivoNormalizado = motivoRejeicao.trim();
+        return motivoNormalizado.isEmpty() ? null : motivoNormalizado;
+    }
+
     private SolicitacaoClienteHomeResponse toHomeResponse(Solicitacao solicitacao) {
         String nomeCliente = solicitacao.getCliente() != null && solicitacao.getCliente().getNome() != null
             ? solicitacao.getCliente().getNome()
@@ -166,6 +240,8 @@ public class SolicitacaoClienteService {
             ? solicitacao.getDescricaoProblema()
             : "-";
 
+        String motivoRejeicao = solicitacao.getMotivoRejeicao();
+
         return new SolicitacaoClienteHomeResponse(
                 solicitacao.getCodigo(),
                 dataHoraFormatada,
@@ -174,6 +250,7 @@ public class SolicitacaoClienteService {
                 descricaoEquipamento,
                 categoriaEquipamento,
             descricaoDefeito,
+            motivoRejeicao,
                 solicitacao.getEstado().name(),
                 solicitacao.getValorOrcamento()
         );

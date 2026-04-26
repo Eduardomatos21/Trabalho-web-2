@@ -8,7 +8,7 @@
 
 	<!-- CONTEÚDO PRINCIPAL -->
 	<main class="flex-1 p-4 sm:p-6 lg:p-8">
-		@if (!carregando && erroCarregamento) {
+		@if (erroCarregamento) {
 			<div class="max-w-5xl mx-auto rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
 				{{ erroCarregamento }}
 			</div>
@@ -69,7 +69,7 @@
 					Rejeitar o Serviço
 				</ui-button>
 
-				<ui-button variant="success" [disabled]="!solicitacaoView.valorOrcamento" (clicked)="aprovarServico()">
+				<ui-button variant="success" (clicked)="aprovarServico()">
 					Aprovar o Serviço
 				</ui-button>
 

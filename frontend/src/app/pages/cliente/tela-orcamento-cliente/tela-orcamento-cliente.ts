@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { finalize, timeout } from 'rxjs';
 import { AuthService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { SolicitacaoCliente } from '../../../shared/models';
@@ -18,6 +17,7 @@ export class TelaOrcamentoCliente implements OnInit {
     private router: Router,
     private authService: AuthService,
     private solicitacaoService: SolicitacaoService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   readonly menuItemsCliente: SidebarItem[] = [
@@ -27,12 +27,14 @@ export class TelaOrcamentoCliente implements OnInit {
   ];
 
   solicitacao?: SolicitacaoCliente;
-  carregando = false;
   erroCarregamento = '';
   modalAprovacaoAberto = false;
   modalRejeicaoAberto = false;
   modalRejeicaoConfirmadaAberto = false;
   motivoRejeicao = '';
+  private codigoSolicitacao: string | null = null;
+  private aprovacaoEmAndamento = false;
+  private rejeicaoEmAndamento = false;
 
   ngOnInit(): void {
     const solicitacaoNavegada = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
@@ -41,6 +43,7 @@ export class TelaOrcamentoCliente implements OnInit {
     }
 
     const codigo = solicitacaoNavegada?.codigo ?? null;
+    this.codigoSolicitacao = codigo;
     this.carregarSolicitacao(codigo);
   }
 
@@ -64,16 +67,32 @@ export class TelaOrcamentoCliente implements OnInit {
   }
 
   aprovarServico(): void {
-    if (!this.solicitacao) return;
+    if (this.aprovacaoEmAndamento) return;
 
-    const atualizada: SolicitacaoCliente = {
-      ...this.solicitacao,
-      valorOrcamento: this.valorOrcado,
-      estado: 'APROVADA',
-    };
-    this.solicitacao = atualizada;
+    const codigo = this.solicitacao?.codigo ?? this.codigoSolicitacao;
+    if (!codigo) {
+      this.erroCarregamento = 'Solicitacao invalida para aprovacao.';
+      return;
+    }
 
-    this.modalAprovacaoAberto = true;
+    this.erroCarregamento = '';
+    this.aprovacaoEmAndamento = true;
+    this.solicitacaoService.aprovarServico(codigo).subscribe({
+      next: (atualizada) => {
+        this.solicitacao = {
+          ...this.solicitacao,
+          ...atualizada,
+        };
+        this.codigoSolicitacao = atualizada.codigo;
+        this.modalAprovacaoAberto = true;
+        this.aprovacaoEmAndamento = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.erroCarregamento = 'Nao foi possivel aprovar o orcamento agora.';
+        this.aprovacaoEmAndamento = false;
+      },
+    });
   }
 
   confirmarAprovacao(): void {
@@ -86,20 +105,35 @@ export class TelaOrcamentoCliente implements OnInit {
   }
 
   confirmarRejeicao(): void {
-    if (!this.solicitacao) return;
+    if (this.rejeicaoEmAndamento) return;
 
+    const codigo = this.solicitacao?.codigo ?? this.codigoSolicitacao;
+    if (!codigo) {
+      this.erroCarregamento = 'Solicitacao invalida para rejeicao.';
+      return;
+    }
+
+    this.erroCarregamento = '';
+    this.rejeicaoEmAndamento = true;
     const motivo = this.motivoRejeicao.trim();
 
-    const atualizada: SolicitacaoCliente = {
-      ...this.solicitacao,
-      valorOrcamento: this.valorOrcado,
-      estado: 'REJEITADA',
-      motivoRejeicao: motivo || undefined,
-    };
-    this.solicitacao = atualizada;
-
-    this.modalRejeicaoAberto = false;
-    this.modalRejeicaoConfirmadaAberto = true;
+    this.solicitacaoService.rejeitarServico(codigo, motivo).subscribe({
+      next: (atualizada) => {
+        this.solicitacao = {
+          ...this.solicitacao,
+          ...atualizada,
+        };
+        this.codigoSolicitacao = atualizada.codigo;
+        this.modalRejeicaoAberto = false;
+        this.modalRejeicaoConfirmadaAberto = true;
+        this.rejeicaoEmAndamento = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.erroCarregamento = 'Nao foi possivel rejeitar o orcamento agora.';
+        this.rejeicaoEmAndamento = false;
+      },
+    });
   }
 
   fecharModalRejeicao(): void {
@@ -131,13 +165,10 @@ export class TelaOrcamentoCliente implements OnInit {
       return;
     }
 
-    this.carregando = true;
     this.erroCarregamento = '';
 
     this.solicitacaoService
       .buscarMinhaSolicitacaoPorCodigo(codigo)
-      .pipe(timeout(10000))
-      .pipe(finalize(() => (this.carregando = false)))
       .subscribe({
         next: (solicitacao) => {
           if (!solicitacao) {

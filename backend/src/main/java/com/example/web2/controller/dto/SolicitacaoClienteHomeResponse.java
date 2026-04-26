@@ -10,6 +10,7 @@ public record SolicitacaoClienteHomeResponse(
         String descricaoEquipamento,
         String categoriaEquipamento,
         String descricaoDefeito,
+        String motivoRejeicao,
         String estado,
         BigDecimal valorOrcamento
 ) {

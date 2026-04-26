@@ -11,8 +11,13 @@ interface SolicitacaoClienteHomeResponse {
   descricaoEquipamento: string;
   categoriaEquipamento: string;
   descricaoDefeito: string;
+  motivoRejeicao?: string;
   estado: string;
   valorOrcamento?: number;
+}
+
+interface RejeitarSolicitacaoClienteRequest {
+  motivoRejeicao?: string;
 }
 
 interface CriarSolicitacaoClienteRequest {
@@ -51,6 +56,22 @@ export class SolicitacaoService {
       .pipe(map((response) => this.toSolicitacaoCliente(response)));
   }
 
+  aprovarServico(codigo: string): Observable<SolicitacaoCliente> {
+    return this.http
+      .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/aprovar`, {})
+      .pipe(map((response) => this.toSolicitacaoCliente(response)));
+  }
+
+  rejeitarServico(codigo: string, motivoRejeicao?: string): Observable<SolicitacaoCliente> {
+    const payload: RejeitarSolicitacaoClienteRequest = {
+      motivoRejeicao: motivoRejeicao?.trim() || undefined,
+    };
+
+    return this.http
+      .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/rejeitar`, payload)
+      .pipe(map((response) => this.toSolicitacaoCliente(response)));
+  }
+
   criarSolicitacao(payload: CriarSolicitacaoClienteRequest): Observable<SolicitacaoCliente> {
     return this.http
       .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/cliente`, payload)
@@ -66,6 +87,7 @@ export class SolicitacaoService {
       descricaoEquipamento: response.descricaoEquipamento,
       categoriaEquipamento: response.categoriaEquipamento,
       descricaoDefeito: response.descricaoDefeito,
+      motivoRejeicao: response.motivoRejeicao,
       estado: this.mapEstado(response.estado),
       valorOrcamento: response.valorOrcamento,
     };

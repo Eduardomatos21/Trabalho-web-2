@@ -35,6 +35,9 @@ public class Solicitacao {
     @Column(name = "descricao_equipamento", length = 120)
     private String descricaoEquipamento;
 
+    @Column(name = "motivo_rejeicao", length = 300)
+    private String motivoRejeicao;
+
     @Enumerated(EnumType.STRING)
     private Estado estado;
 
@@ -93,6 +96,14 @@ public class Solicitacao {
 
     public void setDescricaoEquipamento(String descricaoEquipamento) {
         this.descricaoEquipamento = descricaoEquipamento;
+    }
+
+    public String getMotivoRejeicao() {
+        return motivoRejeicao;
+    }
+
+    public void setMotivoRejeicao(String motivoRejeicao) {
+        this.motivoRejeicao = motivoRejeicao;
     }
 
     public Estado getEstado() {

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.web2.controller.dto.CriarSolicitacaoClienteRequest;
+import com.example.web2.controller.dto.RejeitarSolicitacaoClienteRequest;
 import com.example.web2.controller.dto.SolicitacaoClienteHomeResponse;
 import com.example.web2.service.RelatorioReceitaDiaService;
 import com.example.web2.service.RelatorioReceitaCategoriaService;
@@ -97,6 +98,26 @@ public class SolicitacaoController {
     ) {
         String token = extrairToken(authorizationHeader);
         return solicitacaoClienteService.resgatarServico(token, codigo);
+    }
+
+    @PostMapping("/{codigo}/cliente/aprovar")
+    public SolicitacaoClienteHomeResponse aprovarServico(
+            @PathVariable String codigo,
+            @RequestHeader(name = "Authorization", required = false) String authorizationHeader
+    ) {
+        String token = extrairToken(authorizationHeader);
+        return solicitacaoClienteService.aprovarServico(token, codigo);
+    }
+
+    @PostMapping("/{codigo}/cliente/rejeitar")
+    public SolicitacaoClienteHomeResponse rejeitarServico(
+            @PathVariable String codigo,
+            @RequestHeader(name = "Authorization", required = false) String authorizationHeader,
+            @Valid @RequestBody(required = false) RejeitarSolicitacaoClienteRequest request
+    ) {
+        String token = extrairToken(authorizationHeader);
+        String motivo = request != null ? request.motivoRejeicao() : null;
+        return solicitacaoClienteService.rejeitarServico(token, codigo, motivo);
     }
 
     @PostMapping("/cliente")

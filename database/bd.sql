@@ -55,6 +55,7 @@ CREATE TABLE solicitacao (
     data_hora datetime default current_timestamp,
     descricao_equipamento varchar(120),
     descricao_problema varchar(100),
+    motivo_rejeicao varchar(300),
     estado ENUM ('ABERTA', 'ORCADA', 'APROVADA', 'REJEITADA', 'REDIRECIONADA', 'ARRUMADA', 'PAGA', 'FINALIZADO') default 'ABERTA',
     valor_orcamento decimal(10,2),
     id_categoria int,
