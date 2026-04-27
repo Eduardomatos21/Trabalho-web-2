@@ -22,6 +22,7 @@ public interface SolicitacaoRepository extends JpaRepository<Solicitacao, Intege
     List<Solicitacao> findByEstadoOrderByDataHoraAsc(Estado estado);
     List<Solicitacao> findByDataHoraBetweenOrderByDataHoraAsc(LocalDateTime inicio, LocalDateTime fim);
     List<Solicitacao> findAllByOrderByDataHoraAsc();
+    
 
 
     @Query("""

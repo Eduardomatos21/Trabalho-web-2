@@ -4,6 +4,7 @@ import { AuthService, ClienteStorageService } from '../../../services';
 import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { EstadoSolicitacao, SolicitacaoCliente } from '../../../shared/models';
 import { DateFormatUtil, SolicitacaoUiUtil } from '../../../shared/utils';
+import { SolicitacaoService } from '../../../services/solicitacao.service';
 
 type OrdemDataHora = 'asc' | 'desc';
 
@@ -18,7 +19,8 @@ export class TelaInicialFuncionario implements OnInit {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private clienteStorageService: ClienteStorageService,
+    // private clienteStorageService: ClienteStorageService,
+    private solicitacaoService: SolicitacaoService,
   ) {}
 
   readonly menuItemsFuncionario: SidebarItem[] = [
@@ -31,7 +33,95 @@ export class TelaInicialFuncionario implements OnInit {
 
   ordemDataHora: OrdemDataHora = 'asc';
 
-  private readonly solicitacoesBase: SolicitacaoCliente[] = [
+
+
+  solicitacoes: SolicitacaoCliente[] = [];
+
+  ngOnInit(): void {
+    this.carregarDoBackend();
+  }
+
+  carregarDoBackend(): void {
+  this.solicitacaoService.buscarAbertas().subscribe({
+    next: (data) => {
+      this.solicitacoes = data.map((item) => ({
+        codigo: `SOL-${item.codigo}`,
+        nomeCliente: item.nomeCliente?.trim() || 'Cliente',
+        emailCliente: '',
+        dataHora: item.dataHora,
+        descricaoEquipamento: item.descricaoEquipamento,
+        estado: item.estado as any
+      }));
+    },
+    error: (err) => {
+      console.error('Erro ao buscar do backend', err);
+    }
+  });
+}
+
+  get solicitacoesAbertasOrdenadas(): SolicitacaoCliente[] {
+    return this.solicitacoes
+      .filter((sol) => sol.estado === 'ABERTA')
+      .sort((a, b) => {
+        const diff = DateFormatUtil.parseDataHora(a.dataHora) - DateFormatUtil.parseDataHora(b.dataHora);
+        return this.ordemDataHora === 'asc' ? diff : -diff;
+      });
+  }
+
+  alternarOrdemDataHora(): void {
+    this.ordemDataHora = this.ordemDataHora === 'asc' ? 'desc' : 'asc';
+  }
+
+  descricaoLimitada(produto: string): string {
+    return produto.length <= 30 ? produto : `${produto.slice(0, 30)}...`;
+  }
+
+  estadoClasse(estado: EstadoSolicitacao): string {
+    return SolicitacaoUiUtil.estadoClasse(estado);
+  }
+
+  nomeCliente(solicitacao: SolicitacaoCliente): string {
+    return solicitacao.nomeCliente?.trim() || 'Cliente';
+  }
+
+  logout(): void {
+    this.authService.logout();
+  }
+
+  efetuarOrcamento(codigo: string): void {
+    const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
+    this.router.navigate(['/funcionario/orcamento'], {
+      queryParams: { solicitacao: codigo },
+      state: { solicitacaoSelecionada: selecionada },
+    });
+  }
+
+  visualizarSolicitacao(codigo: string): void {
+    const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
+    this.router.navigate(['/funcionario/visualizar'], {
+      queryParams: { solicitacao: codigo },
+      state: { solicitacaoSelecionada: selecionada },
+    });
+  }
+
+  navegarParaCategorias(): void {
+    this.router.navigate(['/funcionario/categorias']);
+  }
+
+
+
+  //DEPRECATED - Mantido apenas para referência de estruturação inicial, antes da integração com backend
+
+  /*private carregarSolicitacoesFuncionario(): SolicitacaoCliente[] {
+    const salvasCliente = this.clienteStorageService
+      .carregarSolicitacoes()
+      .map((sol) => ({ ...sol, nomeCliente: sol.nomeCliente?.trim() || 'Cliente' }));
+
+    return this.clienteStorageService.mesclarSolicitacoes(this.solicitacoesBase, salvasCliente);
+  }*/
+
+
+  /*private readonly solicitacoesBase: SolicitacaoCliente[] = [
     {
       codigo: 'SOL-1042',
       nomeCliente: 'João da Silva',
@@ -208,69 +298,6 @@ export class TelaInicialFuncionario implements OnInit {
       descricaoEquipamento: 'Roteador TP-Link Archer parou de emitir sinal 5GHz',
       estado: 'ORÇADA',
     },
-  ];
-
-  solicitacoes: SolicitacaoCliente[] = [];
-
-  ngOnInit(): void {
-    this.solicitacoes = this.carregarSolicitacoesFuncionario();
-  }
-
-  get solicitacoesAbertasOrdenadas(): SolicitacaoCliente[] {
-    return this.solicitacoes
-      .filter((sol) => sol.estado === 'ABERTA')
-      .sort((a, b) => {
-        const diff = DateFormatUtil.parseDataHora(a.dataHora) - DateFormatUtil.parseDataHora(b.dataHora);
-        return this.ordemDataHora === 'asc' ? diff : -diff;
-      });
-  }
-
-  alternarOrdemDataHora(): void {
-    this.ordemDataHora = this.ordemDataHora === 'asc' ? 'desc' : 'asc';
-  }
-
-  descricaoLimitada(produto: string): string {
-    return produto.length <= 30 ? produto : `${produto.slice(0, 30)}...`;
-  }
-
-  estadoClasse(estado: EstadoSolicitacao): string {
-    return SolicitacaoUiUtil.estadoClasse(estado);
-  }
-
-  nomeCliente(solicitacao: SolicitacaoCliente): string {
-    return solicitacao.nomeCliente?.trim() || 'Cliente';
-  }
-
-  logout(): void {
-    this.authService.logout();
-  }
-
-  efetuarOrcamento(codigo: string): void {
-    const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
-    this.router.navigate(['/funcionario/orcamento'], {
-      queryParams: { solicitacao: codigo },
-      state: { solicitacaoSelecionada: selecionada },
-    });
-  }
-
-  visualizarSolicitacao(codigo: string): void {
-    const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
-    this.router.navigate(['/funcionario/visualizar'], {
-      queryParams: { solicitacao: codigo },
-      state: { solicitacaoSelecionada: selecionada },
-    });
-  }
-
-  navegarParaCategorias(): void {
-    this.router.navigate(['/funcionario/categorias']);
-  }
-
-  private carregarSolicitacoesFuncionario(): SolicitacaoCliente[] {
-    const salvasCliente = this.clienteStorageService
-      .carregarSolicitacoes()
-      .map((sol) => ({ ...sol, nomeCliente: sol.nomeCliente?.trim() || 'Cliente' }));
-
-    return this.clienteStorageService.mesclarSolicitacoes(this.solicitacoesBase, salvasCliente);
-  }
+  ];*/
 
 }

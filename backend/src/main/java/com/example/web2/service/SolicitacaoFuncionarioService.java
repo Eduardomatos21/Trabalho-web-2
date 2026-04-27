@@ -140,4 +140,23 @@ public class SolicitacaoFuncionarioService {
                 "Operação permitida apenas para funcionários");
         }
     }
+
+    private final SolicitacaoRepository repository;
+
+    public SolicitacaoFuncionarioService(SolicitacaoRepository repository) {
+        this.repository = repository;
+    }
+
+    public List<Solicitacao> buscarAbertas() {
+        return repository.findByEstadoOrderByDataHoraAsc(Estado.ABERTA);
+    }
+
+
+
+
+
+
+
+
+    
 }
