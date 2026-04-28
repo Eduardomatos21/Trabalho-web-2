@@ -79,6 +79,7 @@ CREATE TABLE historico (
     references funcionario (id_funcionario),
     estado_anterior ENUM ('ABERTA', 'ORCADA', 'APROVADA', 'REJEITADA', 'REDIRECIONADA', 'ARRUMADA', 'PAGA', 'FINALIZADO') default 'ABERTA',
     estado_atual ENUM ('ABERTA', 'ORCADA', 'APROVADA', 'REJEITADA', 'REDIRECIONADA', 'ARRUMADA', 'PAGA', 'FINALIZADO') default 'ABERTA',
+    observacao varchar(400) NULL,
     data_hora datetime default current_timestamp
 );
 

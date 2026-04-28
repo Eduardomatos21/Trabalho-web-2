@@ -40,6 +40,9 @@ public class Historico {
 
     @Column(name = "data_hora")
     private LocalDateTime dataHora;
+    
+    @Column(name = "observacao")
+    private String observacao;
 
     public Historico() {
     }
@@ -90,5 +93,13 @@ public class Historico {
 
     public void setDataHora(LocalDateTime dataHora) {
         this.dataHora = dataHora;
+    }
+
+    public String getObservacao() {
+        return observacao;
+    }
+
+    public void setObservacao(String observacao) {
+        this.observacao = observacao;
     }
 }
