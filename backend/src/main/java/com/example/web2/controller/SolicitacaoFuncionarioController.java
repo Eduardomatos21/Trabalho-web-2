@@ -87,4 +87,25 @@ public class SolicitacaoFuncionarioController {
 
         return token;
     }
+
+    private final SolicitacaoFuncionarioService service;
+
+    public SolicitacaoFuncionarioController(SolicitacaoFuncionarioService service) {
+        this.service = service;
+    }
+
+    @GetMapping("/abertas")
+    public List<Solicitacao> listarAbertas() {
+        return service.buscarAbertas();
+    }
+
+
+
+
+
+
+
+
+
+    
 }

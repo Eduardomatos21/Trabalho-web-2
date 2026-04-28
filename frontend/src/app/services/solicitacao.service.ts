@@ -16,6 +16,14 @@ interface SolicitacaoClienteHomeResponse {
   valorOrcamento?: number;
 }
 
+interface SolicitacaoFuncionarioHomeResponse {
+  codigo: string;
+  dataHora: string;
+  nomeCliente: string;
+  descricaoEquipamento: string;
+  estado: string;
+}
+
 interface RejeitarSolicitacaoClienteRequest {
   motivoRejeicao?: string;
 }
@@ -100,4 +108,17 @@ export class SolicitacaoService {
 
     return estadoApi as EstadoSolicitacao;
   }
+
+  buscarAbertas(): Observable<SolicitacaoFuncionarioHomeResponse[]> {
+    return this.http.get<SolicitacaoFuncionarioHomeResponse[]>(`${this.apiBaseUrl}/abertas`);
+  }
+
+
+
+
+
+
+
+
+
 }
