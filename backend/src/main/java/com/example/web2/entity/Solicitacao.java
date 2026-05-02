@@ -29,6 +29,9 @@ public class Solicitacao {
     @Column(name = "data_hora")
     private LocalDateTime dataHora;
 
+    @Column(name = "data_hora_pagamento")
+    private LocalDateTime dataHoraPagamento;
+
     @Column(name = "descricao_problema", length = 100)
     private String descricaoProblema;
 
@@ -80,6 +83,14 @@ public class Solicitacao {
 
     public void setDataHora(LocalDateTime dataHora) {
         this.dataHora = dataHora;
+    }
+
+    public LocalDateTime getDataHoraPagamento() {
+        return dataHoraPagamento;
+    }
+
+    public void setDataHoraPagamento(LocalDateTime dataHoraPagamento) {
+        this.dataHoraPagamento = dataHoraPagamento;
     }
 
     public String getDescricaoProblema() {

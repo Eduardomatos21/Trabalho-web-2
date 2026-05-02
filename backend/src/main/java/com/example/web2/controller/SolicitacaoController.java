@@ -120,6 +120,15 @@ public class SolicitacaoController {
         return solicitacaoClienteService.rejeitarServico(token, codigo, motivo);
     }
 
+    @PostMapping("/{codigo}/cliente/pagar")
+    public SolicitacaoClienteHomeResponse pagarServico(
+            @PathVariable String codigo,
+            @RequestHeader(name = "Authorization", required = false) String authorizationHeader
+    ) {
+        String token = extrairToken(authorizationHeader);
+        return solicitacaoClienteService.pagarServico(token, codigo);
+    }
+
     @PostMapping("/cliente")
     @ResponseStatus(HttpStatus.CREATED)
     public SolicitacaoClienteHomeResponse criarSolicitacaoCliente(

@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 public record SolicitacaoClienteHomeResponse(
         String codigo,
         String dataHora,
+        String dataHoraPagamento,
         String nomeCliente,
         String emailCliente,
         String descricaoEquipamento,

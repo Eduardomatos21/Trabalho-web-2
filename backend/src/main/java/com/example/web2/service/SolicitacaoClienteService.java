@@ -139,6 +139,34 @@ public class SolicitacaoClienteService {
     }
 
     @Transactional
+    public SolicitacaoClienteHomeResponse pagarServico(String token, String codigoSolicitacao) {
+        SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
+        validarPerfilCliente(sessao);
+
+        Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigoSolicitacao)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Solicitacao nao encontrada."));
+
+        validarDonoSolicitacao(solicitacao, sessao.email());
+        validarRegraPagamento(solicitacao);
+
+        Estado estadoAnterior = solicitacao.getEstado();
+        solicitacao.setEstado(Estado.PAGA);
+        solicitacao.setDataHoraPagamento(LocalDateTime.now());
+        Solicitacao atualizada = solicitacaoRepository.save(solicitacao);
+
+        Historico historico = new Historico();
+        historico.setSolicitacao(atualizada);
+        historico.setFuncionario(null);
+        historico.setEstadoAnterior(estadoAnterior);
+        historico.setEstadoAtual(Estado.PAGA);
+        historico.setDataHora(LocalDateTime.now());
+        historico.setObservacao("Pagamento confirmado pelo cliente");
+        historicoRepository.save(historico);
+
+        return toHomeResponse(atualizada);
+    }
+
+    @Transactional
     public SolicitacaoClienteHomeResponse criarSolicitacao(String token, CriarSolicitacaoClienteRequest request) {
         SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
         validarPerfilCliente(sessao);
@@ -207,6 +235,12 @@ public class SolicitacaoClienteService {
         }
     }
 
+    private void validarRegraPagamento(Solicitacao solicitacao) {
+        if (solicitacao.getEstado() != Estado.ARRUMADA) {
+            throw new ResponseStatusException(CONFLICT, "Somente solicitacoes arrumadas podem ser pagas.");
+        }
+    }
+
     private String normalizarMotivoRejeicao(String motivoRejeicao) {
         if (motivoRejeicao == null) {
             return null;
@@ -237,6 +271,10 @@ public class SolicitacaoClienteService {
                 ? solicitacao.getDataHora().format(DATA_HORA_FORMATTER)
                 : "-";
 
+        String dataHoraPagamentoFormatada = solicitacao.getDataHoraPagamento() != null
+            ? solicitacao.getDataHoraPagamento().format(DATA_HORA_FORMATTER)
+            : null;
+
         String descricaoDefeito = solicitacao.getDescricaoProblema() != null
             ? solicitacao.getDescricaoProblema()
             : "-";
@@ -246,6 +284,7 @@ public class SolicitacaoClienteService {
         return new SolicitacaoClienteHomeResponse(
                 solicitacao.getCodigo(),
                 dataHoraFormatada,
+                dataHoraPagamentoFormatada,
             nomeCliente,
             emailCliente,
                 descricaoEquipamento,

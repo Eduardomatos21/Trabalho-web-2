@@ -1,10 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService, ClienteStorageService } from '../../../services';
+import { AuthService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
-import { HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
-import { DateFormatUtil, SolicitacaoHistoricoUtil } from '../../../shared/utils';
+import { SolicitacaoCliente } from '../../../shared/models';
 
 @Component({
   selector: 'app-tela-pagamento-cliente',
@@ -17,7 +16,8 @@ export class TelaPagamentoCliente implements OnInit {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private clienteStorageService: ClienteStorageService,
+    private solicitacaoService: SolicitacaoService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   readonly menuItemsCliente: SidebarItem[] = [
@@ -29,15 +29,8 @@ export class TelaPagamentoCliente implements OnInit {
   solicitacao?: SolicitacaoCliente;
   modalPagamentoAberto = false;
 
-  private readonly valoresMockSolicitacoesIniciais: Record<string, number> = {
-    'SOL-1042': 249.9,
-    'SOL-1044': 249.9,
-    'SOL-1051': 249.9,
-    'SOL-1034': 235.9,
-  };
-
   ngOnInit(): void {
-    this.solicitacao = this.buscarSolicitacao();
+    this.carregarSolicitacao();
   }
 
   get valorServicoFormatado(): string {
@@ -47,29 +40,11 @@ export class TelaPagamentoCliente implements OnInit {
   confirmarPagamento(): void {
     if (!this.solicitacao) return;
 
-    const dataPagamento = DateFormatUtil.formatarDataHora(new Date());
-    const eventoPagamento: HistoricoAtualizacao = {
-      dataHora: dataPagamento,
-      funcionario: '',
-      descricao: 'Pagamento confirmado pelo cliente',
-    };
-
-    const historicoAtual =
-      this.solicitacao.historico && this.solicitacao.historico.length > 0
-        ? this.solicitacao.historico
-        : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacao.codigo, this.solicitacao.dataHora);
-
-    const atualizada: SolicitacaoCliente = {
-      ...this.solicitacao,
-      valorOrcamento: this.valorServico,
-      estado: 'PAGA',
-      dataHoraPagamento: dataPagamento,
-      historico: [...historicoAtual, eventoPagamento],
-    };
-
-    this.clienteStorageService.salvarSolicitacao(atualizada);
-    this.solicitacao = atualizada;
-    this.modalPagamentoAberto = true;
+    this.solicitacaoService.pagarServico(this.solicitacao.codigo).subscribe((atualizada) => {
+      this.solicitacao = atualizada;
+      this.modalPagamentoAberto = true;
+      this.cdr.detectChanges();
+    });
   }
 
   concluirPagamento(): void {
@@ -79,9 +54,7 @@ export class TelaPagamentoCliente implements OnInit {
     }
 
     this.modalPagamentoAberto = false;
-    this.router.navigate(['/cliente/visualizar'], {
-      state: { solicitacaoSelecionada: this.solicitacao },
-    });
+    this.router.navigate(['/cliente']);
   }
 
   voltar(): void {
@@ -92,23 +65,10 @@ export class TelaPagamentoCliente implements OnInit {
     this.authService.logout();
   }
 
-  private buscarSolicitacao(): SolicitacaoCliente {
-    const usuarioLogado = this.authService.getUsuarioLogado();
+  private carregarSolicitacao(): void {
     const navState = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
-    const encontrada = navState?.codigo
-      ? this.clienteStorageService.buscarPorCodigoDoCliente(navState.codigo, usuarioLogado?.email)
-      : undefined;
-    if (encontrada) {
-      if (navState && navState.codigo === encontrada.codigo) {
-        return { ...navState, ...encontrada };
-      }
 
-      return encontrada;
-    }
-
-    if (navState) return navState;
-
-    return {
+    this.solicitacao = navState ?? {
       codigo: 'N/A',
       dataHora: '-',
       descricaoEquipamento: '-',
@@ -116,18 +76,21 @@ export class TelaPagamentoCliente implements OnInit {
       descricaoDefeito: '-',
       estado: 'ARRUMADA',
     };
+
+    if (!navState?.codigo) return;
+
+    this.solicitacaoService.buscarMinhaSolicitacaoPorCodigo(navState.codigo).subscribe((atualizada) => {
+      if (atualizada) {
+        this.solicitacao = atualizada;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   private get valorServico(): number {
     if (typeof this.solicitacao?.valorOrcamento === 'number' && this.solicitacao.valorOrcamento > 0) {
       return this.solicitacao.valorOrcamento;
     }
-
-    const codigo = this.solicitacao?.codigo;
-    if (codigo && this.valoresMockSolicitacoesIniciais[codigo]) {
-      return this.valoresMockSolicitacoesIniciais[codigo];
-    }
-
     return 0;
   }
 }

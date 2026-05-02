@@ -53,6 +53,7 @@ CREATE TABLE solicitacao (
     id_solicitacao int PRIMARY KEY auto_increment,
     codigo varchar(20) UNIQUE,
     data_hora datetime default current_timestamp,
+    data_hora_pagamento datetime NULL,
     descricao_equipamento varchar(120),
     descricao_problema varchar(100),
     motivo_rejeicao varchar(300),

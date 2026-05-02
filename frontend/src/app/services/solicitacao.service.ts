@@ -6,6 +6,7 @@ import { EstadoSolicitacao, SolicitacaoCliente } from '../shared/models/solicita
 interface SolicitacaoClienteHomeResponse {
   codigo: string;
   dataHora: string;
+  dataHoraPagamento?: string;
   nomeCliente: string;
   emailCliente: string;
   descricaoEquipamento: string;
@@ -80,6 +81,12 @@ export class SolicitacaoService {
       .pipe(map((response) => this.toSolicitacaoCliente(response)));
   }
 
+  pagarServico(codigo: string): Observable<SolicitacaoCliente> {
+    return this.http
+      .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/pagar`, {})
+      .pipe(map((response) => this.toSolicitacaoCliente(response)));
+  }
+
   criarSolicitacao(payload: CriarSolicitacaoClienteRequest): Observable<SolicitacaoCliente> {
     return this.http
       .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/cliente`, payload)
@@ -98,6 +105,7 @@ export class SolicitacaoService {
       motivoRejeicao: response.motivoRejeicao,
       estado: this.mapEstado(response.estado),
       valorOrcamento: response.valorOrcamento,
+      dataHoraPagamento: response.dataHoraPagamento,
     };
   }
 
