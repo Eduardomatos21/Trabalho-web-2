@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { Subscription, finalize } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { AuthService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { EstadoSolicitacao, SolicitacaoCliente } from '../../../shared/models';
@@ -48,9 +48,10 @@ export class TelaInicialCliente implements OnInit, OnDestroy {
 
  solicitacoes: SolicitacaoCliente[] = [];
  solicitacao?: SolicitacaoCliente;
- modalResgatarAberto = false;
+  modalConfirmarResgateAberto = false;
+  modalResgateSucessoAberto = false;
+  resgateEmAndamento = false;
  solicitacaoSelecionada: SolicitacaoCliente | null = null;
- loading = false;
  erroCarregamento = '';
  private carregamentoSub?: Subscription;
 
@@ -135,7 +136,7 @@ get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
    if (estado === 'REJEITADA') {
      const selecionada = this.solicitacoes.find((s) => s.codigo === codigo) || null;
      this.solicitacaoSelecionada = selecionada;
-     this.modalResgatarAberto = true;
+      this.modalConfirmarResgateAberto = true;
      return;
    }
 
@@ -156,27 +157,32 @@ get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
 
 
   closeModal(): void {
-   this.modalResgatarAberto = false;
+   this.modalConfirmarResgateAberto = false;
    this.solicitacaoSelecionada = null;
+   this.resgateEmAndamento = false;
  }
+
+  closeModalSucesso(): void {
+    this.modalResgateSucessoAberto = false;
+    this.solicitacaoSelecionada = null;
+    this.resgateEmAndamento = false;
+  }
 
 
   confirmarAprovacao(): void {
-   this.modalResgatarAberto = false;
+    this.modalConfirmarResgateAberto = false;
    this.router.navigate(['/cliente']);
  }
 
 
  resgatarServico(): void {
-   if (!this.solicitacaoSelecionada) return;
+   if (!this.solicitacaoSelecionada || this.resgateEmAndamento) return;
 
   const codigo = this.solicitacaoSelecionada.codigo;
-  this.loading = true;
+  this.resgateEmAndamento = true;
+  this.modalConfirmarResgateAberto = false;
   this.solicitacaoService
     .resgatarServico(codigo)
-    .pipe(finalize(() => {
-      this.loading = false;
-    }))
     .subscribe({
       next: (atualizada) => {
         const index = this.solicitacoes.findIndex((s) => s.codigo === atualizada.codigo);
@@ -184,12 +190,13 @@ get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
           this.solicitacoes[index] = atualizada;
         }
 
-        this.modalResgatarAberto = false;
-        this.solicitacaoSelecionada = null;
+        this.modalResgateSucessoAberto = true;
+        this.resgateEmAndamento = false;
+        this.cdr.detectChanges();
       },
       error: () => {
-        this.modalResgatarAberto = false;
         this.solicitacaoSelecionada = null;
+        this.resgateEmAndamento = false;
         this.erroCarregamento = 'Nao foi possivel resgatar a solicitacao agora. Atualize a pagina e tente novamente.';
       },
     });
@@ -214,15 +221,10 @@ get indicadores(): Array<{ titulo: string; valor: number; classe: string }> {
  }
 
  private carregarSolicitacoes(): void {
-   this.loading = true;
    this.erroCarregamento = '';
 
    this.carregamentoSub = this.solicitacaoService
      .listarMinhasSolicitacoes()
-     .pipe(finalize(() => {
-       this.loading = false;
-       this.cdr.detectChanges();
-     }))
      .subscribe({
        next: (solicitacoes) => {
          this.solicitacoes = solicitacoes;

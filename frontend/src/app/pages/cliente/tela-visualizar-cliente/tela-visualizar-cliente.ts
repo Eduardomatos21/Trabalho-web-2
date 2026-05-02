@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService, ClienteStorageService } from '../../../services';
+import { AuthService, ClienteStorageService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { EstadoSolicitacao, HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
-import { DateFormatUtil, SolicitacaoHistoricoUtil, SolicitacaoUiUtil } from '../../../shared/utils';
+import { SolicitacaoHistoricoUtil, SolicitacaoUiUtil } from '../../../shared/utils';
 
 type SolicitacaoComHistorico = SolicitacaoCliente & {
   historico: HistoricoAtualizacao[];
@@ -22,6 +22,8 @@ export class TelaVisualizarCliente implements OnInit {
     private router: Router,
     private authService: AuthService,
     private clienteStorageService: ClienteStorageService,
+    private solicitacaoService: SolicitacaoService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   readonly menuItemsCliente: SidebarItem[] = [
@@ -33,6 +35,7 @@ export class TelaVisualizarCliente implements OnInit {
   solicitacao?: SolicitacaoComHistorico;
   modalResgatarAberto = false;
   modalResgateSucessoAberto = false;
+  resgateEmAndamento = false;
 
   private readonly valoresMockSolicitacoesIniciais: Record<string, number> = {
     'SOL-1042': 249.9,
@@ -84,11 +87,15 @@ export class TelaVisualizarCliente implements OnInit {
 
   closeModal(): void {
     this.modalResgatarAberto = false;
+    this.resgateEmAndamento = false;
   }
 
   closeModalSucesso(): void {
     this.modalResgateSucessoAberto = false;
+    this.resgateEmAndamento = false;
+    this.router.navigate(['/cliente']);
   }
+
 
   get valorOrcadoFormatado(): string {
     const valor = this.valorOrcadoParaSolicitacao(this.solicitacao);
@@ -96,24 +103,18 @@ export class TelaVisualizarCliente implements OnInit {
   }
 
   resgatarServico(): void {
-    if (!this.solicitacao) return;
+    if (!this.solicitacao || this.resgateEmAndamento) return;
 
-    const eventoResgatar = this.criarEventoHistorico('Orçamento resgatado pelo cliente');
-    const historicoAtual =
-      this.solicitacao.historico && this.solicitacao.historico.length > 0
-        ? this.solicitacao.historico
-        : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacao.codigo, this.solicitacao.dataHora);
-
-    const atualizada: SolicitacaoComHistorico = {
-      ...this.solicitacao,
-      estado: 'APROVADA',
-      historico: [...historicoAtual, eventoResgatar],
-    };
-
-    this.clienteStorageService.salvarSolicitacao(atualizada);
-    this.solicitacao = atualizada;
+    this.resgateEmAndamento = true;
     this.modalResgatarAberto = false;
-    this.modalResgateSucessoAberto = true;
+    this.solicitacaoService.resgatarServico(this.solicitacao.codigo).subscribe(() => {
+      this.modalResgateSucessoAberto = true;
+      this.resgateEmAndamento = false;
+      this.cdr.detectChanges();
+    },
+    () => {
+      this.resgateEmAndamento = false;
+    });
   }
 
   logout(): void {
@@ -149,18 +150,7 @@ export class TelaVisualizarCliente implements OnInit {
     };
   }
 
-  private criarEventoHistorico(descricao: string): HistoricoAtualizacao {
-    const usuario = this.authService.getUsuarioLogado();
-
-    return {
-      dataHora: DateFormatUtil.formatarDataHora(new Date()),
-      funcionario: usuario?.perfil === 'funcionario' ? usuario.nome : '',
-      descricao,
-    };
-  }
-
-
-    private valorOrcadoParaSolicitacao(solicitacao?: SolicitacaoCliente | null): number {
+  private valorOrcadoParaSolicitacao(solicitacao?: SolicitacaoCliente | null): number {
     if (!solicitacao) return 0;
 
     if (typeof solicitacao.valorOrcamento === 'number' && solicitacao.valorOrcamento > 0) {

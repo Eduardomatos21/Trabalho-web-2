@@ -79,6 +79,7 @@ public class SolicitacaoClienteService {
         historico.setEstadoAnterior(estadoAnterior);
         historico.setEstadoAtual(Estado.APROVADA);
         historico.setDataHora(LocalDateTime.now());
+        historico.setObservacao("Resgate do servico pelo cliente");
         historicoRepository.save(historico);
 
         return toHomeResponse(atualizada);

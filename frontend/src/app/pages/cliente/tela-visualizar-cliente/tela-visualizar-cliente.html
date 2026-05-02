@@ -104,6 +104,7 @@
 			</svg>
 		</div>
 		<p class="text-sm text-slate-700 font-medium">Deseja resgatar este serviço?</p>
+		<p class="text-sm text-slate-500 mt-2">Valor do pedido: {{ valorOrcadoFormatado }}</p>
 	</div>
 
 	<div modal-footer class="flex justify-center gap-2">
@@ -119,12 +120,11 @@
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
 			</svg>
 		</div>
-		<p class="text-sm text-slate-700 font-medium">
-			Serviço Aprovado no Valor {{ valorOrcadoFormatado }}
-		</p>
+		<p class="text-sm text-slate-700 font-medium">Serviço Aprovado no Valor {{ valorOrcadoFormatado }}</p>
 	</div>
 
 	<div modal-footer class="flex justify-center">
 		<ui-button variant="success" (clicked)="closeModalSucesso()">OK</ui-button>
 	</div>
 </ui-modal>
+
