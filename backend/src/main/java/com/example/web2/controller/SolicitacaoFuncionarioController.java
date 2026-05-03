@@ -2,10 +2,12 @@ package com.example.web2.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,7 +31,10 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/funcionario/solicitacoes")
 @CrossOrigin(origins = "http://localhost:4200")
+@Validated
 public class SolicitacaoFuncionarioController {
+
+    private static final Set<String> TIPOS_FILTRO_VALIDOS = Set.of("HOJE", "PERIODO", "TODAS");
 
     @Autowired
     private SolicitacaoFuncionarioService solicitacaoFuncionarioService;
@@ -58,6 +63,7 @@ public class SolicitacaoFuncionarioController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataInicio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataFim) {
         String token = extrairToken(authorizationHeader);
+        validarFiltro(tipo, dataInicio, dataFim);
         return solicitacaoFuncionarioService.listarSolicitacoesComFiltro(token, tipo, dataInicio, dataFim);
     }
 
@@ -87,6 +93,16 @@ public class SolicitacaoFuncionarioController {
         }
 
         return token;
+    }
+
+    private void validarFiltro(String tipo, LocalDateTime dataInicio, LocalDateTime dataFim) {
+        if (tipo != null && !TIPOS_FILTRO_VALIDOS.contains(tipo.toUpperCase())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de filtro inválido.");
+        }
+
+        if (dataInicio != null && dataFim != null && dataFim.isBefore(dataInicio)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data fim não pode ser anterior à data início.");
+        }
     }
 
 

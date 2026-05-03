@@ -12,6 +12,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "historico")
@@ -24,6 +26,7 @@ public class Historico {
 
     @ManyToOne
     @JoinColumn(name = "id_solicitacao")
+    @NotNull
     private Solicitacao solicitacao;
 
     @ManyToOne
@@ -32,16 +35,20 @@ public class Historico {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_anterior")
+    @NotNull
     private Estado estadoAnterior;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_atual")
+    @NotNull
     private Estado estadoAtual;
 
     @Column(name = "data_hora")
+    @NotNull
     private LocalDateTime dataHora;
     
     @Column(name = "observacao")
+    @Size(max = 255)
     private String observacao;
 
     public Historico() {

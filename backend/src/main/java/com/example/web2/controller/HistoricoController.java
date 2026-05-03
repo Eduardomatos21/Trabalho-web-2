@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.web2.entity.Historico;
 import com.example.web2.service.HistoricoService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/historico")
 @Validated
@@ -39,7 +41,7 @@ public class HistoricoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Historico adicionar(@RequestBody Historico historico) {
+    public Historico adicionar(@Valid @RequestBody Historico historico) {
         return historicoService.salvar(historico);
     }
 

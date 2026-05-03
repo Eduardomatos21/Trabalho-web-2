@@ -9,6 +9,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "endereco")
@@ -20,20 +25,37 @@ public class Endereco {
     private Integer id;
 
     @Column(length = 8)
+    @NotBlank
+    @Pattern(regexp = "\\d{8}")
     private String cep;
 
+    @NotBlank
+    @Size(max = 150)
     private String rua;
+
+    @NotBlank
+    @Size(max = 120)
     private String bairro;
+
+    @NotNull
+    @Min(1)
     private Integer numero;
 
     @Column(length = 100)
+    @Size(max = 100)
     private String complemento;
 
+    @NotBlank
+    @Size(max = 120)
     private String cidade;
 
     @Column(length = 2)
+    @NotBlank
+    @Size(min = 2, max = 2)
     private String estado;
 
+    @NotBlank
+    @Size(max = 80)
     private String pais;
 
 
