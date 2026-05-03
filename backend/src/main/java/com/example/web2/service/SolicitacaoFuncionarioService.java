@@ -4,6 +4,7 @@ import static org.springframework.http.HttpStatus.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.web2.controller.dto.SessaoResponse;
+import com.example.web2.controller.dto.SolicitacaoFuncionarioListResponse;
 import com.example.web2.entity.Estado;
 import com.example.web2.entity.Funcionario;
 import com.example.web2.entity.Historico;
@@ -22,6 +24,8 @@ import com.example.web2.repository.SolicitacaoRepository;
 
 @Service
 public class SolicitacaoFuncionarioService {
+
+    private static final DateTimeFormatter DATA_HORA_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     @Autowired
     private SolicitacaoRepository solicitacaoRepository;
@@ -79,21 +83,23 @@ public class SolicitacaoFuncionarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<Solicitacao> listarSolicitacoesComFiltro(String token, String tipoFiltro, LocalDateTime dataInicio, LocalDateTime dataFim) {
+    public List<SolicitacaoFuncionarioListResponse> listarSolicitacoesComFiltro(
+            String token,
+            String tipoFiltro,
+            LocalDateTime dataInicio,
+            LocalDateTime dataFim) {
         SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
         validarPerfilFuncionario(sessao);
 
-        if ("HOJE".equalsIgnoreCase(tipoFiltro)) {
-            LocalDateTime inicioHoje = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
-            LocalDateTime fimHoje = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59);
-            return solicitacaoRepository.findByDataHoraBetweenOrderByDataHoraAsc(inicioHoje, fimHoje);
-        } 
-        else if ("PERIODO".equalsIgnoreCase(tipoFiltro) && dataInicio != null && dataFim != null) {
-            return solicitacaoRepository.findByDataHoraBetweenOrderByDataHoraAsc(dataInicio, dataFim);
-        } 
-        else {
-            return solicitacaoRepository.findAllByOrderByDataHoraAsc();
-        }
+        Funcionario funcionario = funcionarioRepository.findByEmailIgnoreCase(sessao.email())
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Funcionário não encontrado"));
+
+        List<Solicitacao> solicitacoes = carregarSolicitacoesPorFiltro(tipoFiltro, dataInicio, dataFim);
+
+        return solicitacoes.stream()
+                .filter((solicitacao) -> podeExibirRedirecionada(solicitacao, funcionario))
+                .map(this::toFuncionarioListResponse)
+                .toList();
     }
 
     @Transactional
@@ -136,6 +142,77 @@ public class SolicitacaoFuncionarioService {
             throw new ResponseStatusException(FORBIDDEN, 
                 "Operação permitida apenas para funcionários");
         }
+    }
+
+    private List<Solicitacao> carregarSolicitacoesPorFiltro(
+            String tipoFiltro,
+            LocalDateTime dataInicio,
+            LocalDateTime dataFim) {
+        if ("HOJE".equalsIgnoreCase(tipoFiltro)) {
+            LocalDateTime inicioHoje = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+            LocalDateTime fimHoje = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59);
+            return solicitacaoRepository.findByDataHoraBetweenOrderByDataHoraAsc(inicioHoje, fimHoje);
+        }
+
+        if ("PERIODO".equalsIgnoreCase(tipoFiltro)) {
+            if (dataInicio != null && dataFim != null) {
+                return solicitacaoRepository.findByDataHoraBetweenOrderByDataHoraAsc(dataInicio, dataFim);
+            }
+
+            if (dataInicio != null) {
+                return solicitacaoRepository.findByDataHoraGreaterThanEqualOrderByDataHoraAsc(dataInicio);
+            }
+
+            if (dataFim != null) {
+                return solicitacaoRepository.findByDataHoraLessThanEqualOrderByDataHoraAsc(dataFim);
+            }
+        }
+
+        return solicitacaoRepository.findAllByOrderByDataHoraAsc();
+    }
+
+    private boolean podeExibirRedirecionada(Solicitacao solicitacao, Funcionario funcionario) {
+        if (solicitacao.getEstado() != Estado.REDIRECIONADA) {
+            return true;
+        }
+
+        if (solicitacao.getFuncionario() == null) {
+            return false;
+        }
+
+        return solicitacao.getFuncionario().getId().equals(funcionario.getId());
+    }
+
+    private SolicitacaoFuncionarioListResponse toFuncionarioListResponse(Solicitacao solicitacao) {
+        String dataHoraFormatada = solicitacao.getDataHora() != null
+                ? solicitacao.getDataHora().format(DATA_HORA_FORMATTER)
+                : "-";
+
+        String nomeCliente = solicitacao.getCliente() != null && solicitacao.getCliente().getNome() != null
+                ? solicitacao.getCliente().getNome()
+                : "Cliente";
+
+        String emailCliente = solicitacao.getCliente() != null && solicitacao.getCliente().getEmail() != null
+                ? solicitacao.getCliente().getEmail()
+                : "-";
+
+        String descricaoEquipamento = solicitacao.getDescricaoEquipamento() != null
+                ? solicitacao.getDescricaoEquipamento()
+                : "-";
+
+        String categoriaEquipamento = solicitacao.getCategoria() != null
+                ? solicitacao.getCategoria().getNome()
+                : "-";
+
+        return new SolicitacaoFuncionarioListResponse(
+                solicitacao.getCodigo(),
+                dataHoraFormatada,
+                nomeCliente,
+                emailCliente,
+                descricaoEquipamento,
+                categoriaEquipamento,
+                solicitacao.getEstado().name()
+        );
     }
 
     private final SolicitacaoRepository repository;

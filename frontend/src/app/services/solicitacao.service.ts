@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { EstadoSolicitacao, SolicitacaoCliente } from '../shared/models/solicitacao.model';
 
@@ -22,6 +22,16 @@ interface SolicitacaoFuncionarioHomeResponse {
   dataHora: string;
   nomeCliente: string;
   descricaoEquipamento: string;
+  estado: string;
+}
+
+interface SolicitacaoFuncionarioListResponse {
+  codigo: string;
+  dataHora: string;
+  nomeCliente: string;
+  emailCliente: string;
+  descricaoEquipamento: string;
+  categoriaEquipamento: string;
   estado: string;
 }
 
@@ -119,6 +129,38 @@ export class SolicitacaoService {
 
   buscarAbertas(): Observable<SolicitacaoFuncionarioHomeResponse[]> {
     return this.http.get<SolicitacaoFuncionarioHomeResponse[]>(`${this.apiBaseUrl}/abertas`);
+  }
+
+  listarSolicitacoesFuncionario(
+    tipoFiltro: 'HOJE' | 'PERIODO' | 'TODAS',
+    dataInicio?: string,
+    dataFim?: string,
+  ): Observable<SolicitacaoCliente[]> {
+    let params = new HttpParams().set('tipo', tipoFiltro);
+
+    if (dataInicio) {
+      params = params.set('dataInicio', dataInicio);
+    }
+
+    if (dataFim) {
+      params = params.set('dataFim', dataFim);
+    }
+
+    return this.http
+      .get<SolicitacaoFuncionarioListResponse[]>(`${this.apiBaseUrl}/funcionario/solicitacoes`, { params })
+      .pipe(map((response) => response.map((item) => this.toSolicitacaoFuncionario(item))));
+  }
+
+  private toSolicitacaoFuncionario(response: SolicitacaoFuncionarioListResponse): SolicitacaoCliente {
+    return {
+      codigo: response.codigo,
+      dataHora: response.dataHora,
+      nomeCliente: response.nomeCliente,
+      emailCliente: response.emailCliente,
+      descricaoEquipamento: response.descricaoEquipamento,
+      categoriaEquipamento: response.categoriaEquipamento,
+      estado: this.mapEstado(response.estado),
+    };
   }
 
 

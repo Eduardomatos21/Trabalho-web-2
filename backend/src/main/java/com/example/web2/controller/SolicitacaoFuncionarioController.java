@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.example.web2.controller.dto.ManutencaoRequest;
 import com.example.web2.controller.dto.OrcamentoRequest;
+import com.example.web2.controller.dto.SolicitacaoFuncionarioListResponse;
 import com.example.web2.entity.Solicitacao;
 import com.example.web2.service.SolicitacaoFuncionarioService;
 
@@ -51,7 +52,7 @@ public class SolicitacaoFuncionarioController {
     }
 
     @GetMapping
-    public List<Solicitacao> listarSolicitacoesComFiltro(
+    public List<SolicitacaoFuncionarioListResponse> listarSolicitacoesComFiltro(
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestParam(required = false) String tipo,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataInicio,

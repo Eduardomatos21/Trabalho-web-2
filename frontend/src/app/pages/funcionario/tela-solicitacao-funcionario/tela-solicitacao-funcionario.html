@@ -43,7 +43,8 @@
 								id="inicio"
 								type="date"
 								[value]="periodoInicio"
-								(input)="periodoInicio = $any($event.target).value"
+								[max]="dataInicioMax"
+								(input)="periodoInicio = $any($event.target).value; atualizarPeriodo()"
 								class="w-full border rounded-lg px-3 py-2 text-sm bg-white border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
 						</div>
 
@@ -53,7 +54,8 @@
 								id="fim"
 								type="date"
 								[value]="periodoFim"
-								(input)="periodoFim = $any($event.target).value"
+								[min]="periodoInicio"
+								(input)="periodoFim = $any($event.target).value; atualizarPeriodo()"
 								class="w-full border rounded-lg px-3 py-2 text-sm bg-white border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
 						</div>
 					</div>
