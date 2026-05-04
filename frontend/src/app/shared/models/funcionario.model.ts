@@ -1,11 +1,15 @@
 export class Funcionario {
-    constructor (
-        public id : number = 0,
-        public email : string = "",
-        public nome : string = "",
-        public dataNascimento : string = "", 
-        public senha : string = ""
-    ) {
+    id?: number;
+    cpf: string;
+    nome: string;
+    email: string;
+    telefone: string;
+    endereco?: any;
 
+    constructor() {
+        this.cpf = '';
+        this.nome = '';
+        this.email = '';
+        this.telefone = '';
     }
 }
