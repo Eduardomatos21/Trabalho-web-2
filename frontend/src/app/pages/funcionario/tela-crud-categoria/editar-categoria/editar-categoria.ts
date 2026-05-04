@@ -44,10 +44,17 @@ export class EditarCategoria implements OnInit {
       const id = params.get('id');
       if (id) {
         this.categoriaId = Number(id);
-        const categoria = this.categoriaService.buscarPorId(this.categoriaId);
-        if (categoria) {
-          this.form.patchValue({ nome: categoria.nome });
-        }
+        this.categoriaService.buscarPorIdApi(this.categoriaId).subscribe({
+          next: (categoria) => {
+            this.form.patchValue({ nome: categoria.nome });
+          },
+          error: () => {
+            const categoria = this.categoriaService.buscarPorId(this.categoriaId!);
+            if (categoria) {
+              this.form.patchValue({ nome: categoria.nome });
+            }
+          },
+        });
       }
     });
 
@@ -66,13 +73,23 @@ export class EditarCategoria implements OnInit {
     this.carregando = true;
     const categoria = new Categoria(this.categoriaId ?? 0, this.form.value.nome.trim());
 
-    if (this.categoriaId) {
-      this.categoriaService.atualizar(categoria);
-    } else {
-      this.categoriaService.inserir(categoria);
-    }
+    const salvar$ = this.categoriaId
+      ? this.categoriaService.atualizarApi(categoria)
+      : this.categoriaService.criar(categoria);
 
-    this.router.navigate(['/funcionario/categorias']);
+    salvar$.subscribe({
+      next: () => {
+        this.router.navigate(['/funcionario/categorias']);
+      },
+      error: () => {
+        if (this.categoriaId) {
+          this.categoriaService.atualizar(categoria);
+        } else {
+          this.categoriaService.inserir(categoria);
+        }
+        this.router.navigate(['/funcionario/categorias']);
+      },
+    });
   }
 
   private validarNomeUnico(): void {

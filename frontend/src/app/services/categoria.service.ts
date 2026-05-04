@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, catchError, finalize, of, shareReplay, tap } from 'rxjs';
+import { Observable, catchError, finalize, of, shareReplay, tap, throwError } from 'rxjs';
 import { Categoria } from '../shared/models/categoria.model';
 
-const LS_CHAVE = "categorias";
+const LS_CHAVE = 'categorias';
 
 @Injectable({
   providedIn: 'root',
@@ -69,6 +69,37 @@ export class CategoriaService {
     return this.requisicaoCategorias$;
   }
 
+  buscarPorIdApi(id: number): Observable<Categoria> {
+    return this.http.get<Categoria>(`${this.apiBaseUrl}/categoria/${id}`).pipe(
+      catchError(() => {
+        const categoria = this.buscarPorId(id);
+        return categoria ? of(categoria) : throwError(() => new Error('Categoria não encontrada.'));
+      }),
+    );
+  }
+
+  criar(categoria: Categoria): Observable<Categoria> {
+    const payload = { nome: categoria.nome.trim() };
+    return this.http.post<Categoria>(`${this.apiBaseUrl}/categoria`, payload).pipe(
+      tap((novaCategoria) => this.atualizarCache(novaCategoria)),
+    );
+  }
+
+  atualizarApi(categoria: Categoria): Observable<Categoria> {
+    const payload = { nome: categoria.nome.trim() };
+    return this.http.put<Categoria>(`${this.apiBaseUrl}/categoria/${categoria.id}`, payload).pipe(
+      tap((categoriaAtualizada) => this.atualizarCache(categoriaAtualizada)),
+    );
+  }
+
+  removerApi(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiBaseUrl}/categoria/${id}`).pipe(
+      tap(() => {
+        this.categoriasCache = this.categoriasCache.filter((categoria) => categoria.id !== id);
+      }),
+    );
+  }
+
   precarregarCategorias(): void {
     this.listarTodosApi().subscribe({
       next: () => {
@@ -79,6 +110,7 @@ export class CategoriaService {
       },
     });
   }
+
   inserir(categoria: Categoria): void {
     const categorias = this.listarTodos();
     categoria.nome = this.normalizarNome(categoria.nome);
@@ -109,19 +141,26 @@ export class CategoriaService {
     const maiorId = categorias.reduce((max, categoria) => Math.max(max, categoria.id ?? 0), 0);
     return maiorId + 1;
   }
+
   atualizar(categoria: Categoria): void {
-  const categorias = this.listarTodos();
-  categorias.forEach((obj, index, objs) => {
-    if (categoria.id === obj.id) {
-      objs[index] = categoria;
-    }
-  });
-  localStorage[LS_CHAVE] = JSON.stringify(categorias);
-}
+    const categorias = this.listarTodos();
+    categorias.forEach((obj, index, objs) => {
+      if (categoria.id === obj.id) {
+        objs[index] = categoria;
+      }
+    });
+    localStorage[LS_CHAVE] = JSON.stringify(categorias);
+  }
+
   remover(id: number): void {
     let categorias = this.listarTodos();
     categorias = categorias.filter((categoria) => categoria.id !== id);
     localStorage[LS_CHAVE] = JSON.stringify(categorias);
+  }
+
+  private atualizarCache(categoria: Categoria): void {
+    this.categoriasCache = this.categoriasCache.filter((item) => item.id !== categoria.id);
+    this.categoriasCache.push(categoria);
   }
 
   private normalizarNome(nome: string): string {

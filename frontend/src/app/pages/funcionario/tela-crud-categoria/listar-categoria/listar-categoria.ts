@@ -17,6 +17,7 @@ export class ListarCategoria implements OnInit {
   categorias: Categoria[] = [];
   modalAberto = false;
   categoriaParaExcluir: number | null = null;
+  carregando = false;
 
   readonly menuItemsFuncionario: SidebarItem[] = [
     { label: 'Página inicial', route: '/funcionario'},
@@ -37,7 +38,18 @@ export class ListarCategoria implements OnInit {
   }
 
   carregarCategorias(): void {
-    this.categorias = this.categoriaService.listarTodos();
+    this.carregando = true;
+    this.categoriaService.listarTodosApi().subscribe({
+      next: (categorias) => {
+        this.categorias = categorias;
+      },
+      error: () => {
+        this.categorias = this.categoriaService.listarTodos();
+      },
+      complete: () => {
+        this.carregando = false;
+      },
+    });
   }
 
   novaCategoria(): void {
@@ -55,9 +67,17 @@ export class ListarCategoria implements OnInit {
 
   confirmarExclusao(): void {
     if (this.categoriaParaExcluir !== null) {
-      this.categoriaService.remover(this.categoriaParaExcluir);
-      this.carregarCategorias();
-      this.fecharModal();
+      this.categoriaService.removerApi(this.categoriaParaExcluir).subscribe({
+        next: () => {
+          this.carregarCategorias();
+          this.fecharModal();
+        },
+        error: () => {
+          this.categoriaService.remover(this.categoriaParaExcluir!);
+          this.carregarCategorias();
+          this.fecharModal();
+        },
+      });
     }
   }
 

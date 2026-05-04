@@ -58,8 +58,8 @@ public ResponseEntity<Funcionario> atualizar(@PathVariable Integer id, @RequestB
     }
 
     @DeleteMapping("/{id}")
-@ResponseStatus(HttpStatus.NO_CONTENT)
-public ResponseEntity<Void> remover(@PathVariable Integer id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<Void> remover(@PathVariable Integer id) {
     if (!funcionarioRepository.existsById(id)) {
         return ResponseEntity.notFound().build();
     }
