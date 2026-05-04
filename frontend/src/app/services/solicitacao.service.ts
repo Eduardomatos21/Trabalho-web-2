@@ -128,7 +128,7 @@ export class SolicitacaoService {
   }
 
   buscarAbertas(): Observable<SolicitacaoFuncionarioHomeResponse[]> {
-    return this.http.get<SolicitacaoFuncionarioHomeResponse[]>(`${this.apiBaseUrl}/abertas`);
+    return this.http.get<SolicitacaoFuncionarioHomeResponse[]>(`${this.apiBaseUrl}/funcionario/solicitacoes/abertas`);
   }
 
   listarSolicitacoesFuncionario(

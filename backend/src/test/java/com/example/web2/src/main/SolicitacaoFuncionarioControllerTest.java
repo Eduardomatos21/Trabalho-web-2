@@ -9,13 +9,13 @@ import com.example.web2.repository.HistoricoRepository;
 import com.example.web2.service.AutenticacaoService;
 import com.example.web2.controller.dto.FuncionarioAlterarStatusRequest;
 import com.example.web2.controller.dto.SessaoResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,16 +42,16 @@ public class SolicitacaoFuncionarioControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private AutenticacaoService autenticacaoService;
 
-    @MockBean
+    @MockitoBean
     private FuncionarioRepository funcionarioRepository;
 
-    @MockBean
+    @MockitoBean
     private SolicitacaoRepository solicitacaoRepository;
 
-    @MockBean
+    @MockitoBean
     private HistoricoRepository historicoRepository;
 
     private String tokenValido;

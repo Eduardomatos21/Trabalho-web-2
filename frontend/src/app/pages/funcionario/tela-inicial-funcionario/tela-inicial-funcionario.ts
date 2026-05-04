@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService, ClienteStorageService } from '../../../services';
 import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../shared';
@@ -21,6 +21,7 @@ export class TelaInicialFuncionario implements OnInit {
     private authService: AuthService,
     // private clienteStorageService: ClienteStorageService,
     private solicitacaoService: SolicitacaoService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   readonly menuItemsFuncionario: SidebarItem[] = [
@@ -45,16 +46,18 @@ export class TelaInicialFuncionario implements OnInit {
   this.solicitacaoService.buscarAbertas().subscribe({
     next: (data) => {
       this.solicitacoes = data.map((item) => ({
-        codigo: `SOL-${item.codigo}`,
+        codigo: item.codigo,
         nomeCliente: item.nomeCliente?.trim() || 'Cliente',
         emailCliente: '',
         dataHora: item.dataHora,
         descricaoEquipamento: item.descricaoEquipamento,
         estado: item.estado as any
       }));
+      this.cdr.detectChanges();
     },
     error: (err) => {
       console.error('Erro ao buscar do backend', err);
+      this.cdr.detectChanges();
     }
   });
 }

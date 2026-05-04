@@ -50,7 +50,7 @@ public class SolicitacaoFuncionarioController {
     }
 
     @GetMapping("/abertas")
-    public List<Solicitacao> listarSolicitacoesAbertas(
+    public List<SolicitacaoFuncionarioListResponse> listarSolicitacoesAbertas(
             @RequestHeader("Authorization") String authorizationHeader) {
         String token = extrairToken(authorizationHeader);
         return solicitacaoFuncionarioService.listarSolicitacoesAbertas(token);

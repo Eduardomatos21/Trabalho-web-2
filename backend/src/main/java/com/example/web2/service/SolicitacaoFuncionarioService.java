@@ -75,11 +75,14 @@ public class SolicitacaoFuncionarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<Solicitacao> listarSolicitacoesAbertas(String token) {
+    public List<SolicitacaoFuncionarioListResponse> listarSolicitacoesAbertas(String token) {
         SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
         validarPerfilFuncionario(sessao);
 
-        return solicitacaoRepository.findByEstadoOrderByDataHoraAsc(Estado.ABERTA);
+        return solicitacaoRepository.findByEstadoOrderByDataHoraAsc(Estado.ABERTA)
+                .stream()
+                .map(this::toFuncionarioListResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
