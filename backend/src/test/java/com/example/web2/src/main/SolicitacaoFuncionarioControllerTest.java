@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -259,6 +260,68 @@ public class SolicitacaoFuncionarioControllerTest {
 
         verify(historicoRepository, times(1)).save(any());
 
+    }
+    
+
+    // ========== TESTES DE AUTENTICAÇÃO ==========
+
+    @Test
+    void deveRetornar401_QuandoTokenNaoInformado() throws Exception {
+        FuncionarioAlterarStatusRequest request = new FuncionarioAlterarStatusRequest(Estado.ORCADA);
+        
+        mockMvc.perform(patch("/funcionario/solicitacoes/" + codigoSolicitacao + "/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+
+        verify(historicoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveRetornar401_QuandoTokenInvalido() throws Exception {
+        FuncionarioAlterarStatusRequest request = new FuncionarioAlterarStatusRequest(Estado.ORCADA);
+        
+        mockMvc.perform(patch("/funcionario/solicitacoes/" + codigoSolicitacao + "/status")
+                .header("Authorization", "TokenInvalido abc")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void deveRetornar403_QuandoUsuarioNaoFuncionario() throws Exception {
+        SessaoResponse sessaoCliente = new SessaoResponse(
+            tokenValido, "Maria", "maria@cliente.com", "cliente", LocalDateTime.now().plusHours(12)
+        );
+        when(autenticacaoService.sessaoAtual(tokenValido)).thenReturn(sessaoCliente);
+
+        executarRequisicao(Estado.ORCADA);
+        
+        verify(solicitacaoRepository, never()).save(any());
+        verify(historicoRepository, never()).save(any());
+    }
+
+    // ========== TESTES DE NOT FOUND ==========
+
+    @Test
+    void deveRetornar404_QuandoFuncionarioNaoEncontrado() throws Exception {
+        when(autenticacaoService.sessaoAtual(tokenValido)).thenReturn(sessaoFuncionario);
+        when(funcionarioRepository.findById(1)).thenReturn(Optional.empty());
+
+        executarRequisicao(Estado.ORCADA);
+        
+        verify(historicoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveRetornar404_QuandoSolicitacaoNaoEncontrada() throws Exception {
+        when(autenticacaoService.sessaoAtual(tokenValido)).thenReturn(sessaoFuncionario);
+        when(funcionarioRepository.findById(1)).thenReturn(Optional.of(funcionario));
+        when(solicitacaoRepository.findByCodigo(codigoSolicitacao)).thenReturn(Optional.empty());
+
+        executarRequisicao(Estado.ORCADA);
+        
+        verify(historicoRepository, never()).save(any());
     }
 
 }
