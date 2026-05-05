@@ -60,9 +60,6 @@ public class Endereco {
 
 
     @OneToMany(mappedBy = "endereco")
-    private List<Funcionario> funcionarios;
-
-    @OneToMany(mappedBy = "endereco")
     private List<Cliente> clientes;
 
     public Integer getId () {
