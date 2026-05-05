@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { EstadoSolicitacao, SolicitacaoCliente } from '../shared/models/solicitacao.model';
 
@@ -43,6 +43,11 @@ interface CriarSolicitacaoClienteRequest {
   descricaoEquipamento: string;
   categoriaEquipamento: string;
   descricaoDefeito: string;
+}
+
+interface ManutencaoFuncionarioRequest {
+  descricaoManutencao: string;
+  orientacoesCliente: string;
 }
 
 @Injectable({
@@ -95,6 +100,15 @@ export class SolicitacaoService {
     return this.http
       .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/pagar`, {})
       .pipe(map((response) => this.toSolicitacaoCliente(response)));
+  }
+
+  efetuarManutencao(codigo: string, descricaoManutencao: string, orientacoesCliente: string): Observable<void> {
+    const payload: ManutencaoFuncionarioRequest = {
+      descricaoManutencao: descricaoManutencao.trim(),
+      orientacoesCliente: orientacoesCliente.trim(),
+    };
+
+    return this.http.patch<void>(`${this.apiBaseUrl}/funcionario/solicitacoes/${codigo}/manutencao`, payload);
   }
 
   criarSolicitacao(payload: CriarSolicitacaoClienteRequest): Observable<SolicitacaoCliente> {

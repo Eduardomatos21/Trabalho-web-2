@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AuthService, ClienteStorageService } from '../../../services';
+import { AuthService, ClienteStorageService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, FormFieldComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
 import { DateFormatUtil, FormValidationHelper, SolicitacaoHistoricoUtil } from '../../../shared/utils';
@@ -26,8 +26,10 @@ export class TelaManutencaoFuncionario implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly authService = inject(AuthService);
   private readonly clienteStorageService = inject(ClienteStorageService);
+  private readonly solicitacaoService = inject(SolicitacaoService);
 
   readonly menuItemsFuncionario: SidebarItem[] = [
     { label: 'Página inicial', route: '/funcionario'},
@@ -41,7 +43,6 @@ export class TelaManutencaoFuncionario implements OnInit {
   mostrandoCamposRedirecionamento = false;
   mostrandoCamposManutencao = false;
   enviado = false;
-  loading = false;
   modalSucessoAberto = false;
   redirecionado = false;
 
@@ -83,37 +84,41 @@ export class TelaManutencaoFuncionario implements OnInit {
       return;
     }
 
-    this.loading = true;
-
-    const dataHoraManutencao = DateFormatUtil.formatarDataHora(new Date());
     const descricaoManutencao = String(this.form.value.descricaoManutencao).trim();
     const orientacoesCliente = String(this.form.value.orientacoesCliente).trim();
 
-    const eventoManutencao: HistoricoAtualizacao = {
-      dataHora: dataHoraManutencao,
-      funcionario: this.funcionarioLogadoNome,
-      descricao: 'Manutenção efetuada.',
-    };
+    this.solicitacaoService
+      .efetuarManutencao(this.solicitacao.codigo, descricaoManutencao, orientacoesCliente)
+      .subscribe({
+        next: () => {
+          const dataHoraManutencao = DateFormatUtil.formatarDataHora(new Date());
+          const eventoManutencao: HistoricoAtualizacao = {
+            dataHora: dataHoraManutencao,
+            funcionario: this.funcionarioLogadoNome,
+            descricao: 'Manutenção efetuada.',
+          };
 
-    const historicoAtual =
-      this.solicitacao.historico && this.solicitacao.historico.length > 0
-        ? this.solicitacao.historico
-        : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacao.codigo, this.solicitacao.dataHora);
+          const historicoAtual =
+            this.solicitacao?.historico && this.solicitacao.historico.length > 0
+              ? this.solicitacao.historico
+              : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacao?.codigo ?? '-', this.solicitacao?.dataHora ?? '-');
 
-    const atualizada: SolicitacaoCliente = {
-      ...this.solicitacao,
-      descricaoManutencao,
-      orientacoesCliente,
-      funcionarioManutencao: this.funcionarioLogadoNome,
-      dataHoraManutencao,
-      estado: 'ARRUMADA',
-      historico: [...historicoAtual, eventoManutencao],
-    };
+          const solicitacaoAtual = this.solicitacao!;
+          this.solicitacao = {
+            ...solicitacaoAtual,
+            codigo: solicitacaoAtual.codigo,
+            descricaoManutencao,
+            orientacoesCliente,
+            funcionarioManutencao: this.funcionarioLogadoNome,
+            dataHoraManutencao,
+            estado: 'ARRUMADA',
+            historico: [...historicoAtual, eventoManutencao],
+          };
 
-    this.clienteStorageService.salvarSolicitacao(atualizada);
-    this.solicitacao = atualizada;
-    this.loading = false;
-    this.modalSucessoAberto = true;
+          this.modalSucessoAberto = true;
+          this.cdr.detectChanges();
+        },
+      });
   }
 
    //REDIRECIONAMENTO DE MANUTENÇÃO - RF015
@@ -137,8 +142,6 @@ export class TelaManutencaoFuncionario implements OnInit {
       return;
     }
 
-    this.loading = true;
-
     const dataHoraRedirecionamento = DateFormatUtil.formatarDataHora(new Date());
     const eventoRedirecionamento: HistoricoAtualizacao = {
       dataHora: dataHoraRedirecionamento,
@@ -160,7 +163,6 @@ export class TelaManutencaoFuncionario implements OnInit {
 
     this.clienteStorageService.salvarSolicitacao(atualizada);
     this.solicitacao = atualizada;
-    this.loading = false;
     this.redirecionado = true;
     //navegar ou mostrar modal de sucesso?
     this.router.navigate(['/funcionario/solicitacoes']);
