@@ -1,6 +1,6 @@
 package com.example.web2.service;
 
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.http.HttpStatus.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

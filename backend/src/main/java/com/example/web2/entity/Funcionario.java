@@ -1,8 +1,15 @@
 package com.example.web2.entity;
 
+import java.time.LocalDate;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "funcionario")
@@ -13,17 +20,14 @@ public class Funcionario {
     @Column(name = "id_funcionario")
     private Integer id;
 
-    @Column(name = "cpf", length = 11, unique = true)
-    private String cpf;
-
     @Column(length = 50)
     private String nome;
 
     @Column(length = 50, unique = true)
     private String email;
 
-    @Column(length = 11)
-    private String telefone;
+    @Column(name = "data_nascimento")
+    private LocalDate dataNascimento;
 
     @JsonIgnore
     @Column(name = "senha_hash", length = 120)
@@ -33,19 +37,7 @@ public class Funcionario {
     @Column(name = "senha_salt", length = 60)
     private String senhaSalt;
 
-    @ManyToOne
-    @JoinColumn(name = "id_endereco")
-    private Endereco endereco;
-
     public Funcionario() {
-    }
-
-    public Funcionario(String cpf, String nome, String email, String telefone, Endereco endereco) {
-        this.cpf = cpf;
-        this.nome = nome;
-        this.email = email;
-        this.telefone = telefone;
-        this.endereco = endereco;
     }
 
     public Integer getId() {
@@ -54,14 +46,6 @@ public class Funcionario {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getCpf() {
-        return cpf;
-    }
-
-    public void setCpf(String cpf) {
-        this.cpf = cpf;
     }
 
     public String getNome() {
@@ -80,12 +64,12 @@ public class Funcionario {
         this.email = email;
     }
 
-    public String getTelefone() {
-        return telefone;
+    public LocalDate getDataNascimento() {
+        return dataNascimento;
     }
 
-    public void setTelefone(String telefone) {
-        this.telefone = telefone;
+    public void setDataNascimento(LocalDate dataNascimento) {
+        this.dataNascimento = dataNascimento;
     }
 
     public String getSenhaHash() {
@@ -102,13 +86,5 @@ public class Funcionario {
 
     public void setSenhaSalt(String senhaSalt) {
         this.senhaSalt = senhaSalt;
-    }
-
-    public Endereco getEndereco() {
-        return endereco;
-    }
-
-    public void setEndereco(Endereco endereco) {
-        this.endereco = endereco;
     }
 }

@@ -1,10 +1,10 @@
 package com.example.web2.service;
 
+import static org.springframework.http.HttpStatus.*;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CONFLICT;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -89,8 +89,7 @@ public class ClienteService {
     }
 
     private void validarUnicidade(String cpfNormalizado, String emailNormalizado) {
-        boolean cpfDuplicado = clienteRepository.existsByCpf(cpfNormalizado)
-                || funcionarioRepository.existsByCpf(cpfNormalizado);
+        boolean cpfDuplicado = clienteRepository.existsByCpf(cpfNormalizado);
 
         if (cpfDuplicado) {
             throw new ResponseStatusException(CONFLICT, "CPF ja cadastrado.");

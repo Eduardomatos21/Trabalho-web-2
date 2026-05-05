@@ -20,15 +20,11 @@ CREATE TABLE endereco (
 
 CREATE TABLE funcionario (
     id_funcionario int PRIMARY KEY auto_increment,
-    cpf varchar(11) UNIQUE,
     nome varchar(50),
     email varchar(50) UNIQUE,
-    telefone varchar(11),
+    data_nascimento date,
     senha_hash varchar(120),
-    senha_salt varchar(60),
-    id_endereco int,
-    foreign key (id_endereco)
-    references endereco (id_endereco)
+    senha_salt varchar(60)
 );
 
 CREATE TABLE cliente (
@@ -124,9 +120,9 @@ INSERT INTO endereco (cep, rua, bairro, numero, complemento, cidade, estado, pai
 ('13010000', 'Rua das Flores', 'Centro', 123, NULL, 'Campinas', 'SP', 'Brasil'),
 ('90400000', 'Avenida Borges', 'Centro Histórico', 456, 'Sala 12', 'Porto Alegre', 'RS', 'Brasil');
 
-INSERT INTO funcionario (cpf, nome, email, telefone, id_endereco) VALUES
-('55555555555', 'Maria', 'maria@demo.com', '11990001111', 5),
-('66666666666', 'Mário', 'mario@demo.com', '51990002222', 6);
+INSERT INTO funcionario (nome, email, data_nascimento) VALUES
+('Maria', 'maria@demo.com', '1991-03-15'),
+('Mário', 'mario@demo.com', '1990-11-08');
 
 INSERT INTO cliente (cpf, nome, email, telefone, id_endereco) VALUES
 ('11111111111', 'José', 'jose@demo.com', '11988881111', 1),

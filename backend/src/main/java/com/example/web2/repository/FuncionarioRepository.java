@@ -9,8 +9,6 @@ import com.example.web2.entity.Funcionario;
 
 @Repository
 public interface FuncionarioRepository extends JpaRepository<Funcionario, Integer>{
-	boolean existsByCpf(String cpf);
-
 	boolean existsByEmailIgnoreCase(String email);
 
 	Optional<Funcionario> findByEmailIgnoreCase(String email);
