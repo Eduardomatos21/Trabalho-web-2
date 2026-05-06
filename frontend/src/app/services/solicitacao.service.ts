@@ -175,14 +175,25 @@ export class SolicitacaoService {
       categoriaEquipamento: response.categoriaEquipamento,
       estado: this.mapEstado(response.estado),
     };
+
   }
+  
+  redirecionarSolicitacao(codigo: string, novoFuncionarioId: number): Observable<SolicitacaoCliente> {
+    const params = new HttpParams().set('novoFuncionarioId', novoFuncionarioId.toString());
+    return this.http.put<SolicitacaoClienteHomeResponse>(
+        `${this.apiBaseUrl}/solicitacoes/${codigo}/funcionario/redirecionar`,
+        null,
+        { params }
+    ).pipe(map(response => this.toSolicitacaoCliente(response)));
+}
 
-
-
-
-
-
-
+// Finalizar solicitação (RF012)
+finalizarSolicitacao(codigo: string): Observable<SolicitacaoCliente> {
+    return this.http.put<SolicitacaoClienteHomeResponse>(
+        `${this.apiBaseUrl}/solicitacoes/${codigo}/funcionario/finalizar`,
+        {}
+    ).pipe(map(response => this.toSolicitacaoCliente(response)));
+}
 
 
 }

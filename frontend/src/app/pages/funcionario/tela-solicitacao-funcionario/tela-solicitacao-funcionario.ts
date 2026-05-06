@@ -138,6 +138,14 @@ export class TelaSolicitacaoFuncionario implements OnInit {
   confirmarFinalizacao(): void {
     if (!this.solicitacaoParaFinalizar) return;
 
+      this.solicitacaoService.finalizarSolicitacao(this.solicitacaoParaFinalizar.codigo)
+      .subscribe({
+        next: () => {
+          this.carregarSolicitacoes();
+          this.fecharModalFinalizacao();
+        },
+        error: () => {
+
     const dataHoraFinalizacao = DateFormatUtil.formatarDataHora(new Date());
     const funcionario = this.funcionarioLogadoNome || 'Funcionário';
 
@@ -147,7 +155,7 @@ export class TelaSolicitacaoFuncionario implements OnInit {
       descricao: 'Solicitação finalizada',
     };
 
-    const historicoAtual =
+    const historicoAtual = 
       this.solicitacaoParaFinalizar.historico && this.solicitacaoParaFinalizar.historico.length > 0
         ? this.solicitacaoParaFinalizar.historico
         : SolicitacaoHistoricoUtil.getHistoricoBase(
@@ -169,6 +177,8 @@ export class TelaSolicitacaoFuncionario implements OnInit {
     }
 
     this.fecharModalFinalizacao();
+      }
+    });
   }
 
   logout(): void {

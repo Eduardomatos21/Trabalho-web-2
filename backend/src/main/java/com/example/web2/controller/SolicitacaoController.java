@@ -166,4 +166,38 @@ public class SolicitacaoController {
 
         return token;
     }
+
+    @PutMapping("/{codigo}/funcionario/redirecionar")
+    public ResponseEntity<Solicitacao> redirecionarSolicitacao(
+        @PathVariable String codigo,
+        @RequestParam Integer novoFuncionarioId) {
+        
+        Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigo)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitação não encontrada"));
+        
+        Funcionario novoFuncionario = new Funcionario();
+        novoFuncionario.setId(novoFuncionarioId);
+        solicitacao.setFuncionario(novoFuncionario);
+        solicitacao.setEstado(Estado.REDIRECIONADA);
+        
+        return ResponseEntity.ok(solicitacaoRepository.save(solicitacao));
+    }
+
+    @PutMapping("/{codigo}/funcionario/finalizar")
+    public ResponseEntity<Solicitacao> finalizarSolicitacao(@PathVariable String codigo) {
+    
+    Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigo)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitação não encontrada"));
+    
+    if (solicitacao.getEstado() != Estado.PAGA && 
+        solicitacao.getEstado() != Estado.ARRUMADA &&
+        solicitacao.getEstado() != Estado.APROVADA) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+            "Solicitação só pode ser finalizada se estiver PAGA, ARRUMADA ou APROVADA");
+    }
+    
+    solicitacao.setEstado(Estado.FINALIZADO);
+    
+    return ResponseEntity.ok(solicitacaoRepository.save(solicitacao));
+}
 }
