@@ -1,34 +1,43 @@
 package com.example.web2.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.web2.controller.dto.CriarSolicitacaoClienteRequest;
 import com.example.web2.controller.dto.RejeitarSolicitacaoClienteRequest;
+import com.example.web2.controller.dto.SessaoResponse;
 import com.example.web2.controller.dto.SolicitacaoClienteHomeResponse;
-import com.example.web2.service.RelatorioReceitaDiaService;
-import com.example.web2.service.RelatorioReceitaCategoriaService;
-import com.example.web2.service.SolicitacaoClienteService;
+import com.example.web2.entity.Estado;
+import com.example.web2.entity.Funcionario;
 import com.example.web2.entity.Historico;
 import com.example.web2.entity.Solicitacao;
+import com.example.web2.repository.FuncionarioRepository;
 import com.example.web2.repository.HistoricoRepository;
 import com.example.web2.repository.SolicitacaoRepository;
+import com.example.web2.service.AutenticacaoService;
+import com.example.web2.service.RelatorioReceitaCategoriaService;
+import com.example.web2.service.RelatorioReceitaDiaService;
+import com.example.web2.service.SolicitacaoClienteService;
+
 import jakarta.validation.Valid;
 
 @RestController
@@ -74,6 +83,12 @@ public class SolicitacaoController {
 
     @Autowired
     private HistoricoRepository historicoRepository;
+
+    @Autowired
+    private FuncionarioRepository funcionarioRepository;
+
+    @Autowired
+    private AutenticacaoService autenticacaoService;
 
     @Autowired
     private SolicitacaoClienteService solicitacaoClienteService;
@@ -184,20 +199,48 @@ public class SolicitacaoController {
     }
 
     @PutMapping("/{codigo}/funcionario/finalizar")
-    public ResponseEntity<Solicitacao> finalizarSolicitacao(@PathVariable String codigo) {
-    
-    Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigo)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitação não encontrada"));
-    
-    if (solicitacao.getEstado() != Estado.PAGA && 
-        solicitacao.getEstado() != Estado.ARRUMADA &&
-        solicitacao.getEstado() != Estado.APROVADA) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-            "Solicitação só pode ser finalizada se estiver PAGA, ARRUMADA ou APROVADA");
+    public ResponseEntity<Solicitacao> finalizarSolicitacao(
+            @PathVariable String codigo,
+            @RequestHeader(name = "Authorization", required = false) String authorizationHeader) {
+        String token = extrairToken(authorizationHeader);
+        SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
+        validarPerfilFuncionario(sessao);
+
+        Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitação não encontrada"));
+
+        if (solicitacao.getEstado() != Estado.PAGA &&
+            solicitacao.getEstado() != Estado.ARRUMADA &&
+            solicitacao.getEstado() != Estado.APROVADA) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Solicitação só pode ser finalizada se estiver PAGA, ARRUMADA ou APROVADA");
+        }
+
+        Funcionario funcionario = funcionarioRepository.findByEmailIgnoreCase(sessao.email())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Funcionário não encontrado"));
+
+        Estado estadoAnterior = solicitacao.getEstado();
+
+        solicitacao.setFuncionario(funcionario);
+        solicitacao.setEstado(Estado.FINALIZADO);
+        solicitacaoRepository.save(solicitacao);
+
+        Historico historico = new Historico();
+        historico.setSolicitacao(solicitacao);
+        historico.setFuncionario(funcionario);
+        historico.setEstadoAnterior(estadoAnterior);
+        historico.setEstadoAtual(Estado.FINALIZADO);
+        historico.setDataHora(LocalDateTime.now());
+        historico.setObservacao("Solicitação finalizada");
+        historicoRepository.save(historico);
+
+        return ResponseEntity.ok(solicitacao);
     }
-    
-    solicitacao.setEstado(Estado.FINALIZADO);
-    
-    return ResponseEntity.ok(solicitacaoRepository.save(solicitacao));
-}
+
+    private void validarPerfilFuncionario(SessaoResponse sessao) {
+        if (!"funcionario".equalsIgnoreCase(sessao.perfil())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "Operação permitida apenas para funcionários");
+        }
+    }
 }
