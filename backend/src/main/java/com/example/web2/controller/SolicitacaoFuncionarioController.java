@@ -23,7 +23,6 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.web2.controller.dto.ManutencaoRequest;
 import com.example.web2.controller.dto.OrcamentoRequest;
 import com.example.web2.controller.dto.SolicitacaoFuncionarioListResponse;
-import com.example.web2.entity.Solicitacao;
 import com.example.web2.service.SolicitacaoFuncionarioService;
 
 import jakarta.validation.Valid;

@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AuthService, ClienteStorageService } from '../../../services';
+import { AuthService, ClienteStorageService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, FormFieldComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
 import { DateFormatUtil, FormValidationHelper, SolicitacaoHistoricoUtil } from '../../../shared/utils';
@@ -18,8 +18,10 @@ export class TelaOrcamentoFuncionario implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly authService = inject(AuthService);
   private readonly clienteStorageService = inject(ClienteStorageService);
+  private readonly solicitacaoService = inject(SolicitacaoService);
 
   readonly menuItemsFuncionario: SidebarItem[] = [
     { label: 'Página inicial', route: '/funcionario'},
@@ -30,7 +32,6 @@ export class TelaOrcamentoFuncionario implements OnInit {
   ];;
 
   enviado = false;
-  loading = false;
   modalSucessoAberto = false;
   solicitacao?: SolicitacaoCliente;
 
@@ -58,27 +59,35 @@ export class TelaOrcamentoFuncionario implements OnInit {
   registrarOrcamento(): void {
     this.enviado = true;
     if (this.form.invalid || !this.solicitacao) return;
-
-    this.loading = true;
     const valor = Number(this.form.value.valorOrcamento);
-    const eventoOrcamento = this.criarEventoHistorico(`Orçamento registrado no valor de ${this.formatarMoeda(valor)}`);
 
-    const historicoAtual =
-      this.solicitacao.historico && this.solicitacao.historico.length > 0
-        ? this.solicitacao.historico
-        : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacao.codigo, this.solicitacao.dataHora);
+    this.solicitacaoService.efetuarOrcamento(this.solicitacao.codigo, valor).subscribe({
+      next: () => {
+        const eventoOrcamento = this.criarEventoHistorico(
+          `Orçamento registrado no valor de ${this.formatarMoeda(valor)}`,
+        );
 
-    const atualizada: SolicitacaoCliente = {
-      ...this.solicitacao,
-      valorOrcamento: valor,
-      estado: 'ORÇADA',
-      historico: [...historicoAtual, eventoOrcamento],
-    };
+        const historicoAtual =
+          this.solicitacao?.historico && this.solicitacao.historico.length > 0
+            ? this.solicitacao.historico
+            : SolicitacaoHistoricoUtil.getHistoricoBase(
+                this.solicitacao?.codigo ?? '-',
+                this.solicitacao?.dataHora ?? '-',
+              );
 
-    this.clienteStorageService.salvarSolicitacao(atualizada);
-    this.solicitacao = atualizada;
-    this.loading = false;
-    this.modalSucessoAberto = true;
+        const solicitacaoAtual = this.solicitacao!;
+        this.solicitacao = {
+          ...solicitacaoAtual,
+          codigo: solicitacaoAtual.codigo,
+          valorOrcamento: valor,
+          estado: 'ORÇADA',
+          historico: [...historicoAtual, eventoOrcamento],
+        };
+
+        this.modalSucessoAberto = true;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   erroValor(): string {

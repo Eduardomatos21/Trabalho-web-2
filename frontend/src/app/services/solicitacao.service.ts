@@ -50,6 +50,10 @@ interface ManutencaoFuncionarioRequest {
   orientacoesCliente: string;
 }
 
+interface OrcamentoFuncionarioRequest {
+  valorOrcamento: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -109,6 +113,14 @@ export class SolicitacaoService {
     };
 
     return this.http.patch<void>(`${this.apiBaseUrl}/funcionario/solicitacoes/${codigo}/manutencao`, payload);
+  }
+
+  efetuarOrcamento(codigo: string, valorOrcamento: number): Observable<void> {
+    const payload: OrcamentoFuncionarioRequest = {
+      valorOrcamento,
+    };
+
+    return this.http.patch<void>(`${this.apiBaseUrl}/funcionario/solicitacoes/${codigo}/orcamento`, payload);
   }
 
   criarSolicitacao(payload: CriarSolicitacaoClienteRequest): Observable<SolicitacaoCliente> {
