@@ -52,6 +52,6 @@ public class CategoriaController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletar(@PathVariable Integer id) {
-        categoriaService.deletar(id);
+        categoriaService.desativar(id);
     }
 }

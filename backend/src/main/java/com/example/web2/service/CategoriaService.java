@@ -18,13 +18,28 @@ public class CategoriaService {
     private CategoriaRepository categoriaRepository;
 
     public List<Categoria> listar() {
-        return categoriaRepository.findAll();
+        return categoriaRepository.findByAtivoTrueOrderByIdAsc();
     }
 
     public Categoria salvar(Categoria categoria) {
         validarNome(categoria.getNome());
-        validarDuplicidade(categoria.getNome(), null);
-        categoria.setNome(categoria.getNome().trim());
+
+        Optional<Categoria> existente = categoriaRepository.findByNomeIgnoreCase(normalizarNome(categoria.getNome()));
+        if (existente.isPresent()) {
+            Categoria encontrada = existente.get();
+            if (Boolean.FALSE.equals(encontrada.getAtivo())) {
+                encontrada.setAtivo(true);
+                encontrada.setNome(normalizarNome(categoria.getNome()));
+                return categoriaRepository.save(encontrada);
+            }
+
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Categoria ja cadastrada.");
+        }
+
+        categoria.setNome(normalizarNome(categoria.getNome()));
+        if (categoria.getAtivo() == null) {
+            categoria.setAtivo(true);
+        }
         return categoriaRepository.save(categoria);
     }
 
@@ -37,13 +52,14 @@ public class CategoriaService {
         Categoria existente = buscarPorId(id);
         validarNome(categoria.getNome());
         validarDuplicidade(categoria.getNome(), id);
-        existente.setNome(categoria.getNome().trim());
+        existente.setNome(normalizarNome(categoria.getNome()));
         return categoriaRepository.save(existente);
     }
 
-    public void deletar(Integer id) {
+    public void desativar(Integer id) {
         Categoria categoria = buscarPorId(id);
-        categoriaRepository.delete(categoria);
+        categoria.setAtivo(false);
+        categoriaRepository.save(categoria);
     }
 
     private void validarNome(String nome) {
@@ -53,9 +69,16 @@ public class CategoriaService {
     }
 
     private void validarDuplicidade(String nome, Integer idIgnorar) {
-        Optional<Categoria> existente = categoriaRepository.findByNomeIgnoreCase(nome.trim());
+        Optional<Categoria> existente = categoriaRepository.findByNomeIgnoreCase(normalizarNome(nome));
         if (existente.isPresent() && (idIgnorar == null || !existente.get().getId().equals(idIgnorar))) {
+            if (Boolean.FALSE.equals(existente.get().getAtivo())) {
+                return;
+            }
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Categoria ja cadastrada.");
         }
+    }
+
+    private String normalizarNome(String nome) {
+        return nome.trim().toUpperCase();
     }
 }

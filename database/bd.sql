@@ -42,7 +42,8 @@ CREATE TABLE cliente (
 
 CREATE TABLE categoria (
     id_categoria int primary key auto_increment,
-    nome varchar(50) UNIQUE
+    nome varchar(50) UNIQUE,
+    ativo boolean default true
 );
 
 CREATE TABLE solicitacao (
@@ -130,12 +131,12 @@ INSERT INTO cliente (cpf, nome, email, telefone, id_endereco) VALUES
 ('33333333333', 'Joana', 'joana@demo.com', '31966663333', 3),
 ('44444444444', 'Joaquina', 'joaquina@demo.com', '41955554444', 4);
 
-INSERT INTO categoria (nome) VALUES
-('NOTEBOOK'),
-('DESKTOP'),
-('TECLADO'),
-('IMPRESSORA'),
-('MOUSE');
+INSERT INTO categoria (nome, ativo) VALUES
+('NOTEBOOK', true),
+('DESKTOP', true),
+('TECLADO', true),
+('IMPRESSORA', true),
+('MOUSE', true);
 
 -- As solicitacoes agora possuem coluna propria `codigo` (sem embutir no texto).
 INSERT INTO solicitacao (codigo, data_hora, descricao_equipamento, descricao_problema, estado, valor_orcamento, id_categoria, id_cliente, id_funcionario) VALUES

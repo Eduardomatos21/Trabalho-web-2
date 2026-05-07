@@ -1,9 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, catchError, finalize, of, shareReplay, tap, throwError } from 'rxjs';
+import { Observable, finalize, of, shareReplay, tap } from 'rxjs';
 import { Categoria } from '../shared/models/categoria.model';
-
-const LS_CHAVE = 'categorias';
 
 @Injectable({
   providedIn: 'root',
@@ -15,38 +13,9 @@ export class CategoriaService {
 
   constructor(private http: HttpClient) {}
 
-  private readonly categoriasIniciais: Categoria[] = [
-    new Categoria(1, 'NOTEBOOK'),
-    new Categoria(2, 'DESKTOP'),
-    new Categoria(3, 'TECLADO'),
-    new Categoria(4, 'IMPRESSORA'),
-    new Categoria(5, 'MOUSE'),
-  ];
-
-  listarTodos(): Categoria[] {
-    const categorias = localStorage[LS_CHAVE];
-    if (!categorias) {
-      localStorage[LS_CHAVE] = JSON.stringify(this.categoriasIniciais);
-      return [...this.categoriasIniciais];
-    }
-
-    try {
-      const atuais = JSON.parse(categorias) as Categoria[];
-      if (!Array.isArray(atuais)) {
-        localStorage[LS_CHAVE] = JSON.stringify(this.categoriasIniciais);
-        return [...this.categoriasIniciais];
-      }
-
-      return atuais;
-    } catch {
-      localStorage[LS_CHAVE] = JSON.stringify(this.categoriasIniciais);
-      return [...this.categoriasIniciais];
-    }
-  }
-
   listarTodosApi(): Observable<Categoria[]> {
     if (this.categoriasCache.length > 0) {
-      return of([...this.categoriasCache]);
+      return of(this.filtrarAtivas(this.categoriasCache));
     }
 
     if (this.requisicaoCategorias$) {
@@ -56,7 +25,6 @@ export class CategoriaService {
     this.requisicaoCategorias$ = this.http
       .get<Categoria[]>(`${this.apiBaseUrl}/categoria`)
       .pipe(
-        catchError(() => of(this.listarTodos())),
         tap((categorias) => {
           this.categoriasCache = [...categorias];
         }),
@@ -70,32 +38,29 @@ export class CategoriaService {
   }
 
   buscarPorIdApi(id: number): Observable<Categoria> {
-    return this.http.get<Categoria>(`${this.apiBaseUrl}/categoria/${id}`).pipe(
-      catchError(() => {
-        const categoria = this.buscarPorId(id);
-        return categoria ? of(categoria) : throwError(() => new Error('Categoria não encontrada.'));
-      }),
-    );
+    return this.http.get<Categoria>(`${this.apiBaseUrl}/categoria/${id}`);
   }
 
   criar(categoria: Categoria): Observable<Categoria> {
-    const payload = { nome: categoria.nome.trim() };
+    const payload = { nome: this.normalizarNome(categoria.nome) };
     return this.http.post<Categoria>(`${this.apiBaseUrl}/categoria`, payload).pipe(
       tap((novaCategoria) => this.atualizarCache(novaCategoria)),
     );
   }
 
   atualizarApi(categoria: Categoria): Observable<Categoria> {
-    const payload = { nome: categoria.nome.trim() };
+    const payload = { nome: this.normalizarNome(categoria.nome) };
     return this.http.put<Categoria>(`${this.apiBaseUrl}/categoria/${categoria.id}`, payload).pipe(
       tap((categoriaAtualizada) => this.atualizarCache(categoriaAtualizada)),
     );
   }
 
-  removerApi(id: number): Observable<void> {
+  desativarApi(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiBaseUrl}/categoria/${id}`).pipe(
       tap(() => {
-        this.categoriasCache = this.categoriasCache.filter((categoria) => categoria.id !== id);
+        this.categoriasCache = this.categoriasCache.map((categoria) =>
+          categoria.id === id ? { ...categoria, ativo: false } : categoria,
+        );
       }),
     );
   }
@@ -111,20 +76,16 @@ export class CategoriaService {
     });
   }
 
-  inserir(categoria: Categoria): void {
-    const categorias = this.listarTodos();
-    categoria.nome = this.normalizarNome(categoria.nome);
-    categoria.id = this.gerarNovoId(categorias);
-    categorias.push(categoria);
-    localStorage[LS_CHAVE] = JSON.stringify(categorias);
-  }
-
   nomeJaCadastrado(nome: string, ignorarId?: number): boolean {
     const nomeNormalizado = this.normalizarNome(nome);
     if (!nomeNormalizado) return false;
 
-    return this.listarTodos().some((categoria) => {
+    return this.categoriasCache.some((categoria) => {
       if (ignorarId !== undefined && categoria.id === ignorarId) {
+        return false;
+      }
+
+      if (categoria.ativo === false) {
         return false;
       }
 
@@ -132,35 +93,14 @@ export class CategoriaService {
     });
   }
 
-  buscarPorId(id: number): Categoria | undefined {
-    const categorias = this.listarTodos();
-    return categorias.find((categoria) => categoria.id === id);
-  }
-
-  private gerarNovoId(categorias: Categoria[]): number {
-    const maiorId = categorias.reduce((max, categoria) => Math.max(max, categoria.id ?? 0), 0);
-    return maiorId + 1;
-  }
-
-  atualizar(categoria: Categoria): void {
-    const categorias = this.listarTodos();
-    categorias.forEach((obj, index, objs) => {
-      if (categoria.id === obj.id) {
-        objs[index] = categoria;
-      }
-    });
-    localStorage[LS_CHAVE] = JSON.stringify(categorias);
-  }
-
-  remover(id: number): void {
-    let categorias = this.listarTodos();
-    categorias = categorias.filter((categoria) => categoria.id !== id);
-    localStorage[LS_CHAVE] = JSON.stringify(categorias);
-  }
-
   private atualizarCache(categoria: Categoria): void {
     this.categoriasCache = this.categoriasCache.filter((item) => item.id !== categoria.id);
     this.categoriasCache.push(categoria);
+    this.categoriasCache.sort((a, b) => a.id - b.id);
+  }
+
+  private filtrarAtivas(categorias: Categoria[]): Categoria[] {
+    return categorias.filter((categoria) => categoria.ativo !== false);
   }
 
   private normalizarNome(nome: string): string {
