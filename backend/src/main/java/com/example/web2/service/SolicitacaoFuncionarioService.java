@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.web2.controller.dto.SessaoResponse;
+import com.example.web2.controller.dto.SolicitacaoFuncionarioDetalheResponse;
+import com.example.web2.controller.dto.SolicitacaoHistoricoResponse;
 import com.example.web2.controller.dto.SolicitacaoFuncionarioListResponse;
 import com.example.web2.entity.Estado;
 import com.example.web2.entity.Funcionario;
@@ -104,6 +106,76 @@ public class SolicitacaoFuncionarioService {
                 .map(this::toFuncionarioListResponse)
                 .toList();
     }
+
+            @Transactional(readOnly = true)
+            public SolicitacaoFuncionarioDetalheResponse buscarDetalhePorCodigo(String token, String codigoSolicitacao) {
+            SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
+            validarPerfilFuncionario(sessao);
+
+            Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigoSolicitacao)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Solicitação não encontrada"));
+
+            Funcionario funcionario = funcionarioRepository.findByEmailIgnoreCase(sessao.email())
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Funcionário não encontrado"));
+
+            if (!podeExibirRedirecionada(solicitacao, funcionario)) {
+                throw new ResponseStatusException(FORBIDDEN, "Solicitação redirecionada para outro funcionário");
+            }
+
+            String dataHoraFormatada = solicitacao.getDataHora() != null
+                ? solicitacao.getDataHora().format(DATA_HORA_FORMATTER)
+                : "-";
+
+            String dataHoraPagamentoFormatada = solicitacao.getDataHoraPagamento() != null
+                ? solicitacao.getDataHoraPagamento().format(DATA_HORA_FORMATTER)
+                : null;
+
+            String nomeCliente = solicitacao.getCliente() != null && solicitacao.getCliente().getNome() != null
+                ? solicitacao.getCliente().getNome()
+                : "Cliente";
+
+            String emailCliente = solicitacao.getCliente() != null && solicitacao.getCliente().getEmail() != null
+                ? solicitacao.getCliente().getEmail()
+                : "-";
+
+            String descricaoEquipamento = solicitacao.getDescricaoEquipamento() != null
+                ? solicitacao.getDescricaoEquipamento()
+                : "-";
+
+            String categoriaEquipamento = solicitacao.getCategoria() != null
+                ? solicitacao.getCategoria().getNome()
+                : "-";
+
+            String descricaoDefeito = solicitacao.getDescricaoProblema() != null
+                ? solicitacao.getDescricaoProblema()
+                : "-";
+
+            List<SolicitacaoHistoricoResponse> historico = historicoRepository.findBySolicitacaoId(solicitacao.getId())
+                .stream()
+                .map((item) -> new SolicitacaoHistoricoResponse(
+                    item.getDataHora() != null ? item.getDataHora().format(DATA_HORA_FORMATTER) : "-",
+                    item.getFuncionario() != null && item.getFuncionario().getNome() != null
+                        ? item.getFuncionario().getNome()
+                        : "",
+                    montarDescricaoHistorico(item)
+                ))
+                .toList();
+
+            return new SolicitacaoFuncionarioDetalheResponse(
+                solicitacao.getCodigo(),
+                dataHoraFormatada,
+                dataHoraPagamentoFormatada,
+                nomeCliente,
+                emailCliente,
+                descricaoEquipamento,
+                categoriaEquipamento,
+                descricaoDefeito,
+                solicitacao.getMotivoRejeicao(),
+                solicitacao.getEstado().name(),
+                solicitacao.getValorOrcamento(),
+                historico
+            );
+            }
 
     @Transactional
     public void efetuarManutencao(String token, String codigoSolicitacao, String descricaoManutencao, String orientacoesCliente) {
@@ -216,6 +288,16 @@ public class SolicitacaoFuncionarioService {
                 categoriaEquipamento,
                 solicitacao.getEstado().name()
         );
+    }
+
+    private String montarDescricaoHistorico(Historico historico) {
+        if (historico.getObservacao() != null && !historico.getObservacao().isBlank()) {
+            return historico.getObservacao();
+        }
+
+        String anterior = historico.getEstadoAnterior() != null ? historico.getEstadoAnterior().name() : "-";
+        String atual = historico.getEstadoAtual() != null ? historico.getEstadoAtual().name() : "-";
+        return "Alteração de estado: " + anterior + " -> " + atual;
     }
 
     private final SolicitacaoRepository repository;

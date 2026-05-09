@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService, ClienteStorageService } from '../../../services';
+import { AuthService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { EstadoSolicitacao, HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
 import { DateFormatUtil, SolicitacaoHistoricoUtil, SolicitacaoUiUtil } from '../../../shared/utils';
@@ -22,7 +22,8 @@ export class TelaVisualizarFuncionario implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
-    private clienteStorageService: ClienteStorageService,
+    private solicitacaoService: SolicitacaoService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   readonly menuItemsFuncionario: SidebarItem[] = [
@@ -36,16 +37,9 @@ export class TelaVisualizarFuncionario implements OnInit {
   solicitacao?: SolicitacaoComHistorico;
   modalFinalizacaoAberto = false;
 
-  private readonly valoresMockSolicitacoesIniciais: Record<string, number> = {
-    'SOL-1042': 249.9,
-    'SOL-1044': 249.9,
-    'SOL-1051': 249.9,
-    'SOL-1034': 235.9,
-  };
-
   ngOnInit(): void {
     const codigo = this.route.snapshot.queryParamMap.get('solicitacao');
-    this.solicitacao = this.carregarSolicitacao(codigo);
+    this.carregarSolicitacao(codigo);
   }
 
   estadoClasse(estado: EstadoSolicitacao): string {
@@ -96,32 +90,13 @@ export class TelaVisualizarFuncionario implements OnInit {
 
   confirmarFinalizacao(): void {
     if (!this.solicitacao) return;
-
-    const dataHoraFinalizacao = DateFormatUtil.formatarDataHora(new Date());
-    const funcionario = this.funcionarioLogadoNome || 'Funcionário';
-
-    const eventoFinalizacao: HistoricoAtualizacao = {
-      dataHora: dataHoraFinalizacao,
-      funcionario,
-      descricao: 'Solicitação finalizada',
-    };
-
-    const historicoAtual =
-      this.solicitacao.historico && this.solicitacao.historico.length > 0
-        ? this.solicitacao.historico
-        : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacao.codigo, this.solicitacao.dataHora);
-
-    const atualizada: SolicitacaoComHistorico = {
-      ...this.solicitacao,
-      estado: 'FINALIZADO',
-      dataHoraFinalizacao,
-      funcionarioFinalizacao: funcionario,
-      historico: [...historicoAtual, eventoFinalizacao],
-    };
-
-    this.clienteStorageService.salvarSolicitacao(atualizada);
-    this.solicitacao = atualizada;
-    this.modalFinalizacaoAberto = false;
+    this.solicitacaoService.finalizarSolicitacao(this.solicitacao.codigo).subscribe({
+      next: () => {
+        this.modalFinalizacaoAberto = false;
+        this.carregarSolicitacao(this.solicitacao?.codigo ?? null);
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   voltar(): void {
@@ -137,30 +112,45 @@ export class TelaVisualizarFuncionario implements OnInit {
     return usuario?.perfil === 'funcionario' ? usuario.nome : '';
   }
 
-  private carregarSolicitacao(codigo: string | null): SolicitacaoComHistorico {
+  private carregarSolicitacao(codigo: string | null): void {
+    if (!codigo) {
+      this.solicitacao = {
+        codigo: 'N/A',
+        dataHora: '-',
+        descricaoEquipamento: '-',
+        categoriaEquipamento: '-',
+        descricaoDefeito: '-',
+        estado: 'ABERTA',
+        historico: SolicitacaoHistoricoUtil.getHistoricoBase('N/A', '-'),
+      };
+      return;
+    }
+
     const navState = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
-    const salva = this.clienteStorageService.buscarPorCodigo(codigo);
-    const base = (navState && navState.codigo === codigo ? navState : undefined) ?? salva;
+    if (navState && navState.codigo === codigo) {
+      this.solicitacao = {
+        ...navState,
+        historico: navState.historico?.length
+          ? navState.historico
+          : SolicitacaoHistoricoUtil.getHistoricoBase(navState.codigo, navState.dataHora),
+      };
+      this.cdr.detectChanges();
+    }
 
-    const solicitacao: SolicitacaoCliente = base ?? {
-      codigo: codigo ?? 'N/A',
-      dataHora: '-',
-      descricaoEquipamento: '-',
-      categoriaEquipamento: '-',
-      descricaoDefeito: '-',
-      estado: 'ABERTA',
-    };
+    this.solicitacaoService.buscarSolicitacaoFuncionarioPorCodigo(codigo).subscribe({
+      next: (solicitacao) => {
+        const historico = solicitacao.historico?.length
+          ? solicitacao.historico
+          : SolicitacaoHistoricoUtil.getHistoricoBase(solicitacao.codigo, solicitacao.dataHora);
 
-    const historicoPersistido = solicitacao.historico;
-    const historico =
-      historicoPersistido && historicoPersistido.length > 0
-        ? historicoPersistido
-        : SolicitacaoHistoricoUtil.getHistoricoBase(solicitacao.codigo, solicitacao.dataHora);
+        this.solicitacao = {
+          ...solicitacao,
+          historico,
+        } as SolicitacaoComHistorico;
 
-    return {
-      ...solicitacao,
-      historico,
-    };
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   private valorOrcadoParaSolicitacao(solicitacao?: SolicitacaoCliente | null): number {
@@ -170,7 +160,6 @@ export class TelaVisualizarFuncionario implements OnInit {
       return solicitacao.valorOrcamento;
     }
 
-    const valorMock = this.valoresMockSolicitacoesIniciais[solicitacao.codigo];
-    return typeof valorMock === 'number' ? valorMock : 0;
+    return 0;
   }
 }
