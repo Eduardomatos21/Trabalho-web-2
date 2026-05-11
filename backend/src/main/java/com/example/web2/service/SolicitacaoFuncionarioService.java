@@ -1,21 +1,22 @@
 package com.example.web2.service;
 
-import static org.springframework.http.HttpStatus.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.web2.controller.dto.SessaoResponse;
 import com.example.web2.controller.dto.SolicitacaoFuncionarioDetalheResponse;
-import com.example.web2.controller.dto.SolicitacaoHistoricoResponse;
 import com.example.web2.controller.dto.SolicitacaoFuncionarioListResponse;
+import com.example.web2.controller.dto.SolicitacaoHistoricoResponse;
 import com.example.web2.entity.Estado;
 import com.example.web2.entity.Funcionario;
 import com.example.web2.entity.Historico;
@@ -310,12 +311,65 @@ public class SolicitacaoFuncionarioService {
         return repository.findByEstadoOrderByDataHoraAsc(Estado.ABERTA);
     }
 
+    @Transactional
+    public void redirecionarSolicitacao(
+        String token,
+        String codigoSolicitacao,
+        Integer novoFuncionarioId
+    ) {
+    SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
+    validarPerfilFuncionario(sessao);
+    Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigoSolicitacao)
+            .orElseThrow(() -> new ResponseStatusException(
+                    NOT_FOUND,
+                    "Solicitação não encontrada"
+            ));
 
+    if (solicitacao.getEstado() != Estado.APROVADA &&
+        solicitacao.getEstado() != Estado.REDIRECIONADA) {
+        throw new ResponseStatusException(
+                CONFLICT,
+                "Solicitação não está em estado APROVADA ou REDIRECIONADA"
+        );
+    }
 
+    Funcionario funcionarioOrigem = funcionarioRepository
+            .findByEmailIgnoreCase(sessao.email())
+            .orElseThrow(() -> new ResponseStatusException(
+                    NOT_FOUND,
+                    "Funcionário não encontrado"
+            ));
 
+    Funcionario funcionarioDestino = funcionarioRepository
+            .findById(novoFuncionarioId)
+            .orElseThrow(() -> new ResponseStatusException(
+                    NOT_FOUND,
+                    "Funcionário destino não encontrado"
+            ));
 
+    if (funcionarioOrigem.getId().equals(funcionarioDestino.getId())) {
+        throw new ResponseStatusException(
+                CONFLICT,
+                "Não é possível redirecionar para si mesmo"
+        );
+    }
+    
+    Estado estadoAnterior = solicitacao.getEstado();
+    solicitacao.setFuncionario(funcionarioDestino);
+    solicitacao.setEstado(Estado.REDIRECIONADA);
+    solicitacaoRepository.save(solicitacao);
+    Historico historico = new Historico();
+    historico.setSolicitacao(solicitacao);
+    historico.setFuncionario(funcionarioOrigem);
+    historico.setEstadoAnterior(estadoAnterior);
+    historico.setEstadoAtual(Estado.REDIRECIONADA);
+    historico.setDataHora(LocalDateTime.now());
+    historico.setObservacao(
+            "Solicitação redirecionada para "
+            + funcionarioDestino.getNome()
+    );
 
-
-
+    historicoRepository.save(historico);
+    }
     
 }
