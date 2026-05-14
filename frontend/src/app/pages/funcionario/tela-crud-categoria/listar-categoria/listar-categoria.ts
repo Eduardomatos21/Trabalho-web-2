@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService, CategoriaService } from '../../../../services';
 import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../../shared';
@@ -31,6 +31,7 @@ export class ListarCategoria implements OnInit {
     private router: Router,
     private authService: AuthService,
     private categoriaService: CategoriaService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -38,16 +39,12 @@ export class ListarCategoria implements OnInit {
   }
 
   carregarCategorias(): void {
-    this.carregando = true;
     this.categoriaService.listarTodosApi().subscribe({
       next: (categorias) => {
         this.categorias = categorias;
       },
       error: () => {
-        this.categorias = this.categoriaService.listarTodos();
-      },
-      complete: () => {
-        this.carregando = false;
+        this.categorias = [];
       },
     });
   }
@@ -67,15 +64,16 @@ export class ListarCategoria implements OnInit {
 
   confirmarExclusao(): void {
     if (this.categoriaParaExcluir !== null) {
-      this.categoriaService.removerApi(this.categoriaParaExcluir).subscribe({
+      this.categoriaService.desativarApi(this.categoriaParaExcluir).subscribe({
         next: () => {
           this.carregarCategorias();
           this.fecharModal();
+          this.cdr.detectChanges();
         },
         error: () => {
-          this.categoriaService.remover(this.categoriaParaExcluir!);
           this.carregarCategorias();
           this.fecharModal();
+          this.cdr.detectChanges();
         },
       });
     }

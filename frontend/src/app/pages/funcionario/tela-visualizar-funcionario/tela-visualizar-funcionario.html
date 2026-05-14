@@ -81,25 +81,15 @@
 			<section class="bg-white rounded-3xl border border-slate-200 p-6">
 				<h3 class="text-lg font-bold text-slate-900 mb-4">Dados financeiros e execução</h3>
 
-				<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+				<div class="grid sm:grid-cols-2 lg:grid-cols-2 gap-4 text-sm">
 					<div class="rounded-xl border border-slate-200 p-4">
 						<p class="text-xs uppercase tracking-wide text-slate-500 mb-1">Valor do orçamento</p>
 						<p class="font-semibold text-slate-800">{{ valorOrcadoFormatado }}</p>
 					</div>
 
 					<div class="rounded-xl border border-slate-200 p-4">
-						<p class="text-xs uppercase tracking-wide text-slate-500 mb-1">Data/Hora manutenção</p>
-						<p class="font-semibold text-slate-800">{{ sol.dataHoraManutencao || '-' }}</p>
-					</div>
-
-					<div class="rounded-xl border border-slate-200 p-4">
 						<p class="text-xs uppercase tracking-wide text-slate-500 mb-1">Data/Hora pagamento</p>
 						<p class="font-semibold text-slate-800">{{ sol.dataHoraPagamento || '-' }}</p>
-					</div>
-
-					<div class="rounded-xl border border-slate-200 p-4">
-						<p class="text-xs uppercase tracking-wide text-slate-500 mb-1">Data/Hora finalização</p>
-						<p class="font-semibold text-slate-800">{{ sol.dataHoraFinalizacao || '-' }}</p>
 					</div>
 				</div>
 			</section>

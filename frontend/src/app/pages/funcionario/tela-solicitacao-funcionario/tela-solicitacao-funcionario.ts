@@ -136,9 +136,10 @@ export class TelaSolicitacaoFuncionario implements OnInit {
   }
 
   confirmarFinalizacao(): void {
-    if (!this.solicitacaoParaFinalizar) return;
+    const solicitacaoSelecionada = this.solicitacaoParaFinalizar;
+    if (!solicitacaoSelecionada) return;
 
-      this.solicitacaoService.finalizarSolicitacao(this.solicitacaoParaFinalizar.codigo)
+      this.solicitacaoService.finalizarSolicitacao(solicitacaoSelecionada.codigo)
       .subscribe({
         next: () => {
           this.carregarSolicitacoes();
@@ -156,15 +157,16 @@ export class TelaSolicitacaoFuncionario implements OnInit {
     };
 
     const historicoAtual = 
-      this.solicitacaoParaFinalizar.historico && this.solicitacaoParaFinalizar.historico.length > 0
-        ? this.solicitacaoParaFinalizar.historico
+      solicitacaoSelecionada.historico && solicitacaoSelecionada.historico.length > 0
+        ? solicitacaoSelecionada.historico
         : SolicitacaoHistoricoUtil.getHistoricoBase(
-            this.solicitacaoParaFinalizar.codigo,
-            this.solicitacaoParaFinalizar.dataHora,
+            solicitacaoSelecionada.codigo,
+            solicitacaoSelecionada.dataHora,
           );
 
     const atualizada: SolicitacaoCliente = {
-      ...this.solicitacaoParaFinalizar,
+      ...solicitacaoSelecionada,
+      codigo: solicitacaoSelecionada.codigo,
       estado: 'FINALIZADO',
       dataHoraFinalizacao,
       funcionarioFinalizacao: funcionario,

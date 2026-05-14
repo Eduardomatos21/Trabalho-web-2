@@ -48,12 +48,6 @@ export class EditarCategoria implements OnInit {
           next: (categoria) => {
             this.form.patchValue({ nome: categoria.nome });
           },
-          error: () => {
-            const categoria = this.categoriaService.buscarPorId(this.categoriaId!);
-            if (categoria) {
-              this.form.patchValue({ nome: categoria.nome });
-            }
-          },
         });
       }
     });
@@ -82,11 +76,6 @@ export class EditarCategoria implements OnInit {
         this.router.navigate(['/funcionario/categorias']);
       },
       error: () => {
-        if (this.categoriaId) {
-          this.categoriaService.atualizar(categoria);
-        } else {
-          this.categoriaService.inserir(categoria);
-        }
         this.router.navigate(['/funcionario/categorias']);
       },
     });

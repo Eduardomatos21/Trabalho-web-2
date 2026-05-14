@@ -19,6 +19,9 @@ public class Categoria {
     @Column(nullable = false, name = "nome", length = 50, unique = true)
     private String nome;
 
+    @Column(nullable = false)
+    private Boolean ativo = true;
+
     public Integer getId() {
         return id;
     }
@@ -33,5 +36,13 @@ public class Categoria {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public Boolean getAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
     }
 }

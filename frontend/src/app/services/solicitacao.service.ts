@@ -35,6 +35,27 @@ interface SolicitacaoFuncionarioListResponse {
   estado: string;
 }
 
+interface SolicitacaoHistoricoResponse {
+  dataHora: string;
+  funcionario: string;
+  descricao: string;
+}
+
+interface SolicitacaoFuncionarioDetalheResponse {
+  codigo: string;
+  dataHora: string;
+  dataHoraPagamento?: string;
+  nomeCliente: string;
+  emailCliente: string;
+  descricaoEquipamento: string;
+  categoriaEquipamento: string;
+  descricaoDefeito: string;
+  motivoRejeicao?: string;
+  estado: string;
+  valorOrcamento?: number;
+  historico: SolicitacaoHistoricoResponse[];
+}
+
 interface RejeitarSolicitacaoClienteRequest {
   motivoRejeicao?: string;
 }
@@ -48,6 +69,10 @@ interface CriarSolicitacaoClienteRequest {
 interface ManutencaoFuncionarioRequest {
   descricaoManutencao: string;
   orientacoesCliente: string;
+}
+
+interface OrcamentoFuncionarioRequest {
+  valorOrcamento: number;
 }
 
 @Injectable({
@@ -111,6 +136,14 @@ export class SolicitacaoService {
     return this.http.patch<void>(`${this.apiBaseUrl}/funcionario/solicitacoes/${codigo}/manutencao`, payload);
   }
 
+  efetuarOrcamento(codigo: string, valorOrcamento: number): Observable<void> {
+    const payload: OrcamentoFuncionarioRequest = {
+      valorOrcamento,
+    };
+
+    return this.http.patch<void>(`${this.apiBaseUrl}/funcionario/solicitacoes/${codigo}/orcamento`, payload);
+  }
+
   criarSolicitacao(payload: CriarSolicitacaoClienteRequest): Observable<SolicitacaoCliente> {
     return this.http
       .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/cliente`, payload)
@@ -165,6 +198,12 @@ export class SolicitacaoService {
       .pipe(map((response) => response.map((item) => this.toSolicitacaoFuncionario(item))));
   }
 
+  buscarSolicitacaoFuncionarioPorCodigo(codigo: string): Observable<SolicitacaoCliente> {
+    return this.http
+      .get<SolicitacaoFuncionarioDetalheResponse>(`${this.apiBaseUrl}/funcionario/solicitacoes/${codigo}`)
+      .pipe(map((response) => this.toSolicitacaoFuncionarioDetalhe(response)));
+  }
+
   private toSolicitacaoFuncionario(response: SolicitacaoFuncionarioListResponse): SolicitacaoCliente {
     return {
       codigo: response.codigo,
@@ -176,6 +215,27 @@ export class SolicitacaoService {
       estado: this.mapEstado(response.estado),
     };
 
+  }
+
+  private toSolicitacaoFuncionarioDetalhe(response: SolicitacaoFuncionarioDetalheResponse): SolicitacaoCliente {
+    return {
+      codigo: response.codigo,
+      dataHora: response.dataHora,
+      nomeCliente: response.nomeCliente,
+      emailCliente: response.emailCliente,
+      descricaoEquipamento: response.descricaoEquipamento,
+      categoriaEquipamento: response.categoriaEquipamento,
+      descricaoDefeito: response.descricaoDefeito,
+      motivoRejeicao: response.motivoRejeicao,
+      estado: this.mapEstado(response.estado),
+      valorOrcamento: response.valorOrcamento,
+      dataHoraPagamento: response.dataHoraPagamento,
+      historico: response.historico?.map((item) => ({
+        dataHora: item.dataHora,
+        funcionario: item.funcionario,
+        descricao: item.descricao,
+      })),
+    };
   }
   
   redirecionarSolicitacao(codigo: string, novoFuncionarioId: number): Observable<SolicitacaoCliente> {
