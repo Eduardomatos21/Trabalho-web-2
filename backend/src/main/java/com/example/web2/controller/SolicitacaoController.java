@@ -30,6 +30,8 @@ import com.example.web2.entity.Solicitacao;
 import com.example.web2.repository.HistoricoRepository;
 import com.example.web2.repository.SolicitacaoRepository;
 import jakarta.validation.Valid;
+import java.util.Map;
+import com.example.web2.service.SolicitacaoFuncionarioService;
 
 @RestController
 @RequestMapping("/solicitacoes")
@@ -77,6 +79,9 @@ public class SolicitacaoController {
 
     @Autowired
     private SolicitacaoClienteService solicitacaoClienteService;
+
+    @Autowired
+    private SolicitacaoFuncionarioService solicitacaoFuncionarioService;
 
     @GetMapping
     public List<Solicitacao> listar() {
@@ -149,6 +154,21 @@ public class SolicitacaoController {
     public Solicitacao adicionar(@RequestBody Solicitacao solicitacao) {
         return solicitacaoRepository.save(solicitacao);
     }
+
+    @PutMapping("/{codigo}/funcionario/manutencao")
+    public ResponseEntity<Void> efetuarManutencao(
+        @PathVariable String codigo,
+        @RequestHeader(name = "Authorization", required = false) String authorizationHeader,
+        @RequestBody Map<String, String> payload) {
+    
+    String token = extrairToken(authorizationHeader);
+    String descricaoManutencao = payload.get("descricaoManutencao");
+    String orientacoesCliente = payload.get("orientacoesCliente");
+    
+    solicitacaoFuncionarioService.efetuarManutencao(token, codigo, descricaoManutencao, orientacoesCliente);
+    
+    return ResponseEntity.ok().build();
+}
 
     private String extrairToken(String authorizationHeader) {
         if (authorizationHeader == null || authorizationHeader.isBlank()) {
