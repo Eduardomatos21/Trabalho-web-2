@@ -1,11 +1,13 @@
 package com.example.web2.service;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.web2.controller.dto.RelatorioReceitaCategoriaResponse;
 import com.example.web2.repository.SolicitacaoRepository;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -17,6 +19,13 @@ public class RelatorioReceitaCategoriaService {
 
     @Autowired
     private SolicitacaoRepository repository;
+
+    public List<RelatorioReceitaCategoriaResponse> buscarReceitaPorCategoria() {
+        List<Object[]> dados = repository.somarReceitaPorCategoria();
+        return dados.stream()
+                .map(this::toReceitaCategoria)
+                .toList();
+    }
 
     public byte[] gerarPdf(){
 
@@ -39,15 +48,11 @@ public class RelatorioReceitaCategoriaService {
             document.add(new Paragraph(" "));
 
             for(Object[] linha : dados){
-
-                String categoria = (String) linha[0];
-
-                Number total = (Number) linha[1];
-
+                RelatorioReceitaCategoriaResponse item = toReceitaCategoria(linha);
                 document.add(
                     new Paragraph(
-                        "Categoria: " + categoria
-                        + " | Receita total: " + total.toString()
+                        "Categoria: " + item.categoria()
+                        + " | Receita total: " + item.total().toString()
                     )
                 );
 
@@ -63,6 +68,14 @@ public class RelatorioReceitaCategoriaService {
 
         return out.toByteArray();
 
+    }
+
+    private RelatorioReceitaCategoriaResponse toReceitaCategoria(Object[] linha) {
+        String categoria = String.valueOf(linha[0]);
+        BigDecimal total = linha[1] instanceof BigDecimal
+                ? (BigDecimal) linha[1]
+                : new BigDecimal(String.valueOf(linha[1]));
+        return new RelatorioReceitaCategoriaResponse(categoria, total);
     }
 
 }

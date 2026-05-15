@@ -17,22 +17,26 @@
 					<ui-button size="sm" (clicked)="exportarPdfPorDia()">Exportar PDF</ui-button>
 				</div>
 
-				<form [formGroup]="filtroPeriodoForm" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+				<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
 					<div>
-						<label for="dataInicial" class="block text-xs uppercase tracking-wider text-slate-500 mb-1">Data inicial</label>
+						<label for="dataInicial" class="block text-xs uppercase tracking-wider text-slate-500 mb-1">Data inicio</label>
 						<input
 							id="dataInicial"
 							type="date"
-							formControlName="dataInicial"
+							[value]="periodoInicio"
+							[max]="dataInicioMax"
+							(input)="periodoInicio = $any($event.target).value; atualizarPeriodo()"
 							class="w-full border rounded-lg px-3 py-2 text-sm bg-white border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
 					</div>
 
 					<div>
-						<label for="dataFinal" class="block text-xs uppercase tracking-wider text-slate-500 mb-1">Data final</label>
+						<label for="dataFinal" class="block text-xs uppercase tracking-wider text-slate-500 mb-1">Data fim</label>
 						<input
 							id="dataFinal"
 							type="date"
-							formControlName="dataFinal"
+							[value]="periodoFim"
+							[min]="periodoInicio"
+							(input)="periodoFim = $any($event.target).value; atualizarPeriodo()"
 							class="w-full border rounded-lg px-3 py-2 text-sm bg-white border-gray-200 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
 					</div>
 
@@ -40,7 +44,7 @@
 						<ui-button size="sm" (clicked)="aplicarFiltroPeriodo()">Aplicar filtro</ui-button>
 						<ui-button size="sm" variant="secondary" (clicked)="limparFiltroPeriodo()">Limpar</ui-button>
 					</div>
-				</form>
+				</div>
 
 				<div class="overflow-x-auto rounded-2xl border border-slate-200">
 					<table class="w-full min-w-120 text-sm">

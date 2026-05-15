@@ -1,27 +1,21 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { AuthService, ReceitaPorCategoria, ReceitaPorDia, RelatorioReceitaService } from '../../../services';
 import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 
 @Component({
   selector: 'app-tela-relatorios-funcionario',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, ButtonComponent],
+  imports: [CommonModule, SidebarComponent, ButtonComponent],
   templateUrl: './tela-relatorios-funcionario.html',
   styleUrl: './tela-relatorios-funcionario.css',
 })
 export class TelaRelatoriosFuncionario implements OnInit {
   constructor(
-    private fb: FormBuilder,
     private authService: AuthService,
     private relatorioReceitaService: RelatorioReceitaService,
-  ) {
-    this.filtroPeriodoForm = this.fb.group({
-      dataInicial: [''],
-      dataFinal: [''],
-    });
-  }
+    private changeDetectorRef: ChangeDetectorRef,
+  ) {}
 
   readonly menuItemsFuncionario: SidebarItem[] = [
     { label: 'Página inicial', route: '/funcionario'},
@@ -31,14 +25,14 @@ export class TelaRelatoriosFuncionario implements OnInit {
     { label: 'Funcionários', route: '/funcionario/listar' },
   ];
 
-  readonly filtroPeriodoForm: FormGroup;
-
   receitasPorDia: ReceitaPorDia[] = [];
   receitasPorCategoria: ReceitaPorCategoria[] = [];
+  periodoInicio = '';
+  periodoFim = '';
 
   ngOnInit(): void {
     this.carregarRelatorioPorDia();
-    this.receitasPorCategoria = this.relatorioReceitaService.getReceitaPorCategoria();
+    this.carregarRelatorioPorCategoria();
   }
 
   get totalReceitaPeriodo(): number {
@@ -50,21 +44,30 @@ export class TelaRelatoriosFuncionario implements OnInit {
   }
 
   aplicarFiltroPeriodo(): void {
-    this.carregarRelatorioPorDia();
+    this.atualizarPeriodo();
   }
 
   limparFiltroPeriodo(): void {
-    this.filtroPeriodoForm.reset({ dataInicial: '', dataFinal: '' });
+    this.periodoInicio = '';
+    this.periodoFim = '';
     this.carregarRelatorioPorDia();
   }
 
   exportarPdfPorDia(): void {
-    const { dataInicial, dataFinal } = this.filtroPeriodoForm.getRawValue();
-    this.relatorioReceitaService.exportarPdfReceitaPorDia(this.receitasPorDia, dataInicial || undefined, dataFinal || undefined);
+    const { dataInicial, dataFinal } = this.getPeriodoFiltro();
+    this.relatorioReceitaService
+      .exportarPdfReceitaPorDia(dataInicial || undefined, dataFinal || undefined)
+      .subscribe((blob) => {
+        this.relatorioReceitaService.baixarPdf(blob, 'relatorio-receita-por-dia.pdf');
+        this.changeDetectorRef.detectChanges();
+      });
   }
 
   exportarPdfPorCategoria(): void {
-    this.relatorioReceitaService.exportarPdfReceitaPorCategoria(this.receitasPorCategoria);
+    this.relatorioReceitaService.exportarPdfReceitaPorCategoria().subscribe((blob) => {
+      this.relatorioReceitaService.baixarPdf(blob, 'relatorio-receita-por-categoria.pdf');
+      this.changeDetectorRef.detectChanges();
+    });
   }
 
   formatarMoeda(valor: number): string {
@@ -75,8 +78,61 @@ export class TelaRelatoriosFuncionario implements OnInit {
     this.authService.logout();
   }
 
+  atualizarPeriodo(): void {
+    const hoje = this.dataHoje;
+    if (this.periodoInicio && this.periodoInicio > hoje) {
+      this.periodoInicio = hoje;
+    }
+    if (this.periodoInicio && this.periodoFim && this.periodoInicio > this.periodoFim) {
+      this.periodoInicio = this.periodoFim;
+    }
+    if (this.periodoInicio && this.periodoFim && this.periodoFim < this.periodoInicio) {
+      this.periodoFim = this.periodoInicio;
+    }
+    this.carregarRelatorioPorDia();
+  }
+
   private carregarRelatorioPorDia(): void {
-    const { dataInicial, dataFinal } = this.filtroPeriodoForm.getRawValue();
-    this.receitasPorDia = this.relatorioReceitaService.getReceitaPorDia(dataInicial || undefined, dataFinal || undefined);
+    const { dataInicial, dataFinal } = this.getPeriodoFiltro();
+    this.relatorioReceitaService
+      .getReceitaPorDia(dataInicial || undefined, dataFinal || undefined)
+      .subscribe((dados) => {
+        this.receitasPorDia = dados;
+        this.changeDetectorRef.detectChanges();
+      });
+  }
+
+  private carregarRelatorioPorCategoria(): void {
+    this.relatorioReceitaService.getReceitaPorCategoria().subscribe((dados) => {
+      this.receitasPorCategoria = dados;
+      this.changeDetectorRef.detectChanges();
+    });
+  }
+
+  private getPeriodoFiltro(): { dataInicial?: string; dataFinal?: string } {
+    if (this.periodoInicio && this.periodoInicio > this.dataHoje) {
+      return {};
+    }
+
+    if (this.periodoInicio && this.periodoFim && this.periodoFim < this.periodoInicio) {
+      return {};
+    }
+
+    return {
+      dataInicial: this.periodoInicio || undefined,
+      dataFinal: this.periodoFim || undefined,
+    };
+  }
+
+  get dataHoje(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  get dataInicioMax(): string {
+    if (!this.periodoFim) {
+      return this.dataHoje;
+    }
+
+    return this.periodoFim < this.dataHoje ? this.periodoFim : this.dataHoje;
   }
 }

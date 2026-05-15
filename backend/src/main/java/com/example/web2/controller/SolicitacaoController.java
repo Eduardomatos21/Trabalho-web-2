@@ -1,5 +1,6 @@
 package com.example.web2.controller;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.web2.controller.dto.CriarSolicitacaoClienteRequest;
+import com.example.web2.controller.dto.RelatorioReceitaCategoriaResponse;
+import com.example.web2.controller.dto.RelatorioReceitaDiaResponse;
 import com.example.web2.controller.dto.RejeitarSolicitacaoClienteRequest;
 import com.example.web2.controller.dto.SessaoResponse;
 import com.example.web2.controller.dto.SolicitacaoClienteHomeResponse;
@@ -51,9 +54,11 @@ public class SolicitacaoController {
     @Autowired
     private RelatorioReceitaDiaService relatorioDiaService;
 
-        @GetMapping("/relatorio/receita-dia")
-    public ResponseEntity<byte[]> relatorioReceitaDia(){
-        byte[] pdf = relatorioDiaService.gerarPdf();
+    @GetMapping("/relatorio/receita-dia")
+    public ResponseEntity<byte[]> relatorioReceitaDia(
+            @RequestParam(required = false) LocalDate dataInicial,
+            @RequestParam(required = false) LocalDate dataFinal){
+        byte[] pdf = relatorioDiaService.gerarPdf(dataInicial, dataFinal);
         return ResponseEntity.ok()
                 .header(
                     HttpHeaders.CONTENT_DISPOSITION,
@@ -63,10 +68,17 @@ public class SolicitacaoController {
                 .body(pdf);
     }
 
+    @GetMapping("/relatorio/receita-dia/dados")
+    public List<RelatorioReceitaDiaResponse> relatorioReceitaDiaDados(
+            @RequestParam(required = false) LocalDate dataInicial,
+            @RequestParam(required = false) LocalDate dataFinal) {
+        return relatorioDiaService.buscarReceitaPorDia(dataInicial, dataFinal);
+    }
+
     @Autowired
     private RelatorioReceitaCategoriaService relatorioService;
 
-        @GetMapping("/relatorio/receita-categoria")
+    @GetMapping("/relatorio/receita-categoria")
     public ResponseEntity<byte[]> relatorioReceitaCategoria(){
 
         byte[] pdf = relatorioService.gerarPdf();
@@ -78,6 +90,11 @@ public class SolicitacaoController {
                 )
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
+    }
+
+    @GetMapping("/relatorio/receita-categoria/dados")
+    public List<RelatorioReceitaCategoriaResponse> relatorioReceitaCategoriaDados() {
+        return relatorioService.buscarReceitaPorCategoria();
     }
 
     @Autowired
