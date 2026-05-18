@@ -1,73 +1,111 @@
-import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Funcionario } from '../shared/models/funcionario.model';
-
-const LS_CHAVE = "funcionarios"
 
 @Injectable({
   providedIn: 'root',
 })
 export class FuncionarioService {
-  private readonly funcionariosIniciais: Funcionario[] = [
-    new Funcionario(1, 'maria@demo.com', 'Maria', '1991-03-15', '1234'),
-    new Funcionario(2, 'mario@demo.com', 'Mário', '1990-11-08', '1234'),
-  ];
+  private readonly apiBaseUrl = 'http://localhost:8081';
+  private http = inject(HttpClient);
+  
+  private funcionarios: Funcionario[] = [];
+  private carregado = false;
+
+  constructor() {
+    this.carregarDoBackend();
+  }
+
+  private getHttpOptions() {
+    let headers = new HttpHeaders();
+    try {
+      const raw = localStorage.getItem('usuarioLogado');
+      if (raw) {
+        const usuario = JSON.parse(raw);
+        if (usuario && usuario.token) {
+          headers = headers.set('Authorization', `Bearer ${usuario.token}`);
+        }
+      }
+    } catch {}
+    return { headers };
+  }
+
+  private carregarDoBackend() {
+    this.http.get<Funcionario[]>(`${this.apiBaseUrl}/funcionarios`, this.getHttpOptions()).subscribe({
+      next: (res) => {
+        this.funcionarios.splice(0, this.funcionarios.length, ...res);
+        this.carregado = true;
+      },
+      error: (err) => console.error('Erro ao carregar do backend', err)
+    });
+  }
 
   listarTodos(): Funcionario[] {
-    const funcionarios = localStorage[LS_CHAVE];
-    if (!funcionarios) {
-      localStorage[LS_CHAVE] = JSON.stringify(this.funcionariosIniciais);
-      return [...this.funcionariosIniciais];
+    if (!this.carregado && this.funcionarios.length === 0) {
+      this.carregarDoBackend();
     }
-
-    try {
-      const atuais = JSON.parse(funcionarios) as Funcionario[];
-      if (!Array.isArray(atuais)) {
-        localStorage[LS_CHAVE] = JSON.stringify(this.funcionariosIniciais);
-        return [...this.funcionariosIniciais];
-      }
-
-      return atuais;
-    } catch {
-      localStorage[LS_CHAVE] = JSON.stringify(this.funcionariosIniciais);
-      return [...this.funcionariosIniciais];
-    }
+    return this.funcionarios;
   }
   
   inserir(funcionario : Funcionario) : void {
-    const funcionarios = this.listarTodos();
-    funcionario.id = new Date().getTime();
-    funcionarios.push(funcionario);
-    localStorage[LS_CHAVE] = JSON.stringify(funcionarios);
+    const tempId = new Date().getTime();
+    funcionario.id = tempId;
+    this.funcionarios.push(funcionario);
+
+    this.http.post<Funcionario>(`${this.apiBaseUrl}/funcionarios`, funcionario, this.getHttpOptions()).subscribe({
+      next: (res) => {
+        const index = this.funcionarios.findIndex(f => f.id === tempId);
+        if (index !== -1) {
+          this.funcionarios[index] = res;
+        }
+      },
+      error: () => {
+        const index = this.funcionarios.findIndex(f => f.id === tempId);
+        if (index !== -1) this.funcionarios.splice(index, 1);
+      }
+    });
   }
 
   buscarPorId(id: number): Funcionario | undefined {
-    const funcionarios = this.listarTodos();
-    return funcionarios.find(funcionario => funcionario.id === id);
+    return this.funcionarios.find(funcionario => funcionario.id === id);
   }
 
   buscarPorEmail(email: string): Funcionario | undefined {
-    const funcionarios = this.listarTodos();
-    return funcionarios.find(funcionario => funcionario.email.toLowerCase() === email.toLowerCase());
+    return this.funcionarios.find(funcionario => funcionario.email.toLowerCase() === email.toLowerCase());
   }
 
   atualizar(funcionario : Funcionario): void {
-    const funcionarios = this.listarTodos();
-    funcionarios.forEach( (obj, index, objs) => {
-      if (funcionario.id === obj.id) {
-        objs[index] = funcionario
+    const index = this.funcionarios.findIndex(f => f.id === funcionario.id);
+    const original = index !== -1 ? { ...this.funcionarios[index] } : undefined;
+    
+    if (index !== -1) {
+      this.funcionarios[index] = funcionario;
+    }
+
+    this.http.put<Funcionario>(`${this.apiBaseUrl}/funcionarios/${funcionario.id}`, funcionario, this.getHttpOptions()).subscribe({
+      next: (res) => {
+        if (index !== -1) this.funcionarios[index] = res;
+      },
+      error: () => {
+        if (original && index !== -1) this.funcionarios[index] = original as Funcionario;
       }
     });
-
-  localStorage[LS_CHAVE] = JSON.stringify(funcionarios);
   }
 
   remover(id: number): void {
-    let funcionarios = this.listarTodos();
-    funcionarios = funcionarios.filter(funcionario => funcionario.id !== id);
-    localStorage[LS_CHAVE] = JSON.stringify(funcionarios);    
+    const index = this.funcionarios.findIndex(f => f.id === id);
+    const original = index !== -1 ? { ...this.funcionarios[index] } : undefined;
+    
+    if (index !== -1) {
+      this.funcionarios.splice(index, 1);
+    }
+
+    this.http.delete(`${this.apiBaseUrl}/funcionarios/${id}`, this.getHttpOptions()).subscribe({
+      next: () => {},
+      error: () => {
+        if (original) this.funcionarios.push(original as Funcionario);
+      }
+    });
   }
-
-
-
 
 }

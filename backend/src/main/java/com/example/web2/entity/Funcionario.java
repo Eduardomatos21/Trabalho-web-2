@@ -37,6 +37,9 @@ public class Funcionario {
     @Column(name = "senha_salt", length = 60)
     private String senhaSalt;
 
+    @Column(name = "ativo")
+    private Boolean ativo = true;
+
     public Funcionario() {
     }
 
@@ -86,5 +89,13 @@ public class Funcionario {
 
     public void setSenhaSalt(String senhaSalt) {
         this.senhaSalt = senhaSalt;
+    }
+
+    public Boolean getAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
     }
 }

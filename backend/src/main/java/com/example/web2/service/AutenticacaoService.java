@@ -72,6 +72,25 @@ public class AutenticacaoService {
         return paraSessaoResponse(sessao);
     }
 
+    public boolean isTokenValido(String token) {
+        return obterSessaoPorToken(token) != null;
+    }
+
+    public SessaoResponse obterSessaoPorHeader(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        String token = authHeader.substring(7);
+        return obterSessaoPorToken(token);
+    }
+
+    private SessaoResponse obterSessaoPorToken(String token) {
+        return sessaoUsuarioRepository.findByTokenAndAtivoTrue(token)
+                .filter(s -> s.getExpiraEm() != null && s.getExpiraEm().isAfter(LocalDateTime.now()))
+                .map(this::paraSessaoResponse)
+                .orElse(null);
+    }
+
     private void validarSenhaCliente(Cliente cliente, String senhaInformada) {
         if (senhaValida(cliente.getSenhaHash(), cliente.getSenhaSalt(), senhaInformada)) {
             return;

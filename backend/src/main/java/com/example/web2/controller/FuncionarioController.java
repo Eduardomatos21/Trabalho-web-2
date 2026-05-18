@@ -1,5 +1,7 @@
 package com.example.web2.controller;
 
+import com.example.web2.service.AutenticacaoService;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity;
@@ -32,9 +35,14 @@ public class FuncionarioController {
     @Autowired
     private SenhaService senhaService;
 
+    @GetMapping
+    public List<Funcionario> listar() {
+        return funcionarioRepository.findAllByAtivoTrueOrderByIdAsc();
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<Funcionario> atualizar(@PathVariable Integer id, @Valid @RequestBody FuncionarioRequest request) {
-        return funcionarioRepository.findById(id)
+        return funcionarioRepository.findByIdAndAtivoTrue(id)
             .map(funcionario -> {
                 funcionario.setNome(request.nome().trim());
                 funcionario.setEmail(request.email().trim().toLowerCase());
@@ -46,12 +54,13 @@ public class FuncionarioController {
             })
             .orElse(ResponseEntity.notFound().build());
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<Funcionario> buscarPorId(@PathVariable Integer id) {
-        return funcionarioRepository.findById(id)
-        .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
-}
+        return funcionarioRepository.findByIdAndAtivoTrue(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -64,20 +73,43 @@ public class FuncionarioController {
         funcionario.setNome(request.nome().trim());
         funcionario.setEmail(request.email().trim().toLowerCase());
         funcionario.setDataNascimento(request.dataNascimento());
+        funcionario.setAtivo(true);
         aplicarSenha(funcionario, request.senha());
 
         return funcionarioRepository.save(funcionario);
     }
 
+    @Autowired
+    private AutenticacaoService autenticacaoService;
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseEntity<Void> remover(@PathVariable Integer id) {
-    if (!funcionarioRepository.existsById(id)) {
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> remover(@PathVariable Integer id, @RequestHeader(value="Authorization", required=false) String authHeader) {
+        if (authHeader == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token não informado.");
+        }
+
+        var sessao = autenticacaoService.obterSessaoPorHeader(authHeader);
+        if (sessao == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sessão inválida ou expirada.");
+        }
+
+        return funcionarioRepository.findByIdAndAtivoTrue(id)
+            .map(funcionario -> {
+                if (funcionario.getEmail().equalsIgnoreCase(sessao.email())) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Não é possível excluir o próprio usuário logado.");
+                }
+
+                if (funcionarioRepository.countByAtivoTrue() <= 1) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível excluir o último funcionário do sistema.");
+                }
+
+                funcionario.setAtivo(false);
+                funcionarioRepository.save(funcionario);
+                return ResponseEntity.noContent().<Void>build();
+            })
+            .orElse(ResponseEntity.notFound().build());
     }
-    funcionarioRepository.deleteById(id);
-    return ResponseEntity.noContent().build();
-}
 
     private void aplicarSenha(Funcionario funcionario, String senhaPura) {
         SenhaService.HashComSalt hashComSalt = senhaService.gerarHashComSalt(senhaPura.trim());
