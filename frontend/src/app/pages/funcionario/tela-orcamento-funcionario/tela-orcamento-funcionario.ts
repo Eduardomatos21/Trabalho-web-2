@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AuthService, ClienteStorageService, SolicitacaoService } from '../../../services';
+import { AuthService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, FormFieldComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
 import { DateFormatUtil, FormValidationHelper, SolicitacaoHistoricoUtil } from '../../../shared/utils';
@@ -20,7 +20,6 @@ export class TelaOrcamentoFuncionario implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly authService = inject(AuthService);
-  private readonly clienteStorageService = inject(ClienteStorageService);
   private readonly solicitacaoService = inject(SolicitacaoService);
 
   readonly menuItemsFuncionario: SidebarItem[] = [
@@ -42,6 +41,14 @@ export class TelaOrcamentoFuncionario implements OnInit {
   ngOnInit(): void {
     const codigo = this.route.snapshot.queryParamMap.get('solicitacao');
     this.solicitacao = this.buscarSolicitacao(codigo);
+    if (codigo) {
+      this.solicitacaoService.buscarSolicitacaoFuncionarioPorCodigo(codigo).subscribe({
+        next: (solicitacao) => {
+          this.solicitacao = solicitacao;
+          this.cdr.detectChanges();
+        },
+      });
+    }
   }
 
   get funcionarioLogadoNome(): string {
@@ -118,9 +125,6 @@ export class TelaOrcamentoFuncionario implements OnInit {
   private buscarSolicitacao(codigo: string | null): SolicitacaoCliente {
     const navState = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
     if (navState && navState.codigo === codigo) return navState;
-
-    const encontrada = this.clienteStorageService.buscarPorCodigo(codigo);
-    if (encontrada) return encontrada;
 
     return {
       codigo: codigo ?? 'N/A',
