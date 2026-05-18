@@ -151,6 +151,8 @@ export class TelaManutencaoFuncionario implements OnInit {
 
     this.solicitacaoService.redirecionarSolicitacao(this.solicitacao.codigo, funcionarioDestinoId).subscribe({
       next: () => {
+        const solicitacaoAtual = this.solicitacao;
+        if (!solicitacaoAtual) return;
         const dataHoraRedirecionamento = DateFormatUtil.formatarDataHora(new Date());
         const eventoRedirecionamento: HistoricoAtualizacao = {
           dataHora: dataHoraRedirecionamento,
@@ -159,14 +161,14 @@ export class TelaManutencaoFuncionario implements OnInit {
         };
 
         const historicoAtual =
-          this.solicitacao.historico && this.solicitacao.historico.length > 0
-            ? this.solicitacao.historico
-            : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacao.codigo, this.solicitacao.dataHora);
+          solicitacaoAtual.historico && solicitacaoAtual.historico.length > 0
+            ? solicitacaoAtual.historico
+            : SolicitacaoHistoricoUtil.getHistoricoBase(solicitacaoAtual.codigo, solicitacaoAtual.dataHora);
 
         const atualizada: SolicitacaoCliente = {
-          ...this.solicitacao,
+          ...solicitacaoAtual,
           estado: 'REDIRECIONADA',
-          funcionarioDestinoRedirecionamento: funcionarioDestino,
+          funcionarioDestinoRedirecionamento: funcionarioDestino.nome,
           historico: [...historicoAtual, eventoRedirecionamento],
         };
 
@@ -174,7 +176,7 @@ export class TelaManutencaoFuncionario implements OnInit {
         this.solicitacao = atualizada;
         this.redirecionado = true;
         this.router.navigate(['/funcionario/solicitacoes']);
-        console.log(`Solicitação ${this.solicitacao.codigo} redirecionada para ${funcionarioDestino}.`);
+        console.log(`Solicitação ${this.solicitacao.codigo} redirecionada para ${funcionarioDestino.nome}.`);
       },
       error: (error) => {
         console.error('Erro ao redirecionar solicitação', error);
