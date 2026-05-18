@@ -101,13 +101,13 @@ export class SolicitacaoService {
 
   resgatarServico(codigo: string): Observable<SolicitacaoCliente> {
     return this.http
-      .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/resgatar`, {})
+      .patch<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/resgatar`, {})
       .pipe(map((response) => this.toSolicitacaoCliente(response)));
   }
 
   aprovarServico(codigo: string): Observable<SolicitacaoCliente> {
     return this.http
-      .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/aprovar`, {})
+      .patch<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/aprovar`, {})
       .pipe(map((response) => this.toSolicitacaoCliente(response)));
   }
 
@@ -117,13 +117,13 @@ export class SolicitacaoService {
     };
 
     return this.http
-      .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/rejeitar`, payload)
+      .patch<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/rejeitar`, payload)
       .pipe(map((response) => this.toSolicitacaoCliente(response)));
   }
 
   pagarServico(codigo: string): Observable<SolicitacaoCliente> {
     return this.http
-      .post<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/pagar`, {})
+      .patch<SolicitacaoClienteHomeResponse>(`${this.apiBaseUrl}/solicitacoes/${codigo}/cliente/pagar`, {})
       .pipe(map((response) => this.toSolicitacaoCliente(response)));
   }
 
@@ -240,7 +240,7 @@ export class SolicitacaoService {
   
   redirecionarSolicitacao(codigo: string, novoFuncionarioId: number): Observable<void> {
     const params = new HttpParams().set('novoFuncionarioId', novoFuncionarioId.toString());
-    return this.http.put<void>(
+    return this.http.patch<void>(
       `${this.apiBaseUrl}/solicitacoes/${codigo}/funcionario/redirecionar`,
       null,
       { params },
@@ -249,7 +249,7 @@ export class SolicitacaoService {
 
   // Finalizar solicitação (RF012)
   finalizarSolicitacao(codigo: string): Observable<SolicitacaoCliente> {
-    return this.http.put<SolicitacaoClienteHomeResponse>(
+    return this.http.patch<SolicitacaoClienteHomeResponse>(
         `${this.apiBaseUrl}/solicitacoes/${codigo}/funcionario/finalizar`,
         {}
     ).pipe(map(response => this.toSolicitacaoCliente(response)));

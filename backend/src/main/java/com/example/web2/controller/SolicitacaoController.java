@@ -13,9 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -128,7 +128,7 @@ public class SolicitacaoController {
         return solicitacaoClienteService.listarMinhasSolicitacoes(token);
     }
 
-    @PostMapping("/{codigo}/cliente/resgatar")
+    @PatchMapping("/{codigo}/cliente/resgatar")
     public SolicitacaoClienteHomeResponse resgatarServico(
             @PathVariable String codigo,
             @RequestHeader(name = "Authorization", required = false) String authorizationHeader
@@ -137,7 +137,7 @@ public class SolicitacaoController {
         return solicitacaoClienteService.resgatarServico(token, codigo);
     }
 
-    @PostMapping("/{codigo}/cliente/aprovar")
+    @PatchMapping("/{codigo}/cliente/aprovar")
     public SolicitacaoClienteHomeResponse aprovarServico(
             @PathVariable String codigo,
             @RequestHeader(name = "Authorization", required = false) String authorizationHeader
@@ -146,7 +146,7 @@ public class SolicitacaoController {
         return solicitacaoClienteService.aprovarServico(token, codigo);
     }
 
-    @PostMapping("/{codigo}/cliente/rejeitar")
+    @PatchMapping("/{codigo}/cliente/rejeitar")
     public SolicitacaoClienteHomeResponse rejeitarServico(
             @PathVariable String codigo,
             @RequestHeader(name = "Authorization", required = false) String authorizationHeader,
@@ -157,7 +157,7 @@ public class SolicitacaoController {
         return solicitacaoClienteService.rejeitarServico(token, codigo, motivo);
     }
 
-    @PostMapping("/{codigo}/cliente/pagar")
+    @PatchMapping("/{codigo}/cliente/pagar")
     public SolicitacaoClienteHomeResponse pagarServico(
             @PathVariable String codigo,
             @RequestHeader(name = "Authorization", required = false) String authorizationHeader
@@ -187,7 +187,7 @@ public class SolicitacaoController {
         return solicitacaoRepository.save(solicitacao);
     }
 
-    @PutMapping("/{codigo}/funcionario/manutencao")
+    @PatchMapping("/{codigo}/funcionario/manutencao")
     public ResponseEntity<Void> efetuarManutencao(
         @PathVariable String codigo,
         @RequestHeader(name = "Authorization", required = false) String authorizationHeader,
@@ -219,7 +219,7 @@ public class SolicitacaoController {
         return token;
     }
 
-    @PutMapping("/{codigo}/funcionario/redirecionar")
+    @PatchMapping("/{codigo}/funcionario/redirecionar")
     public ResponseEntity<Void> redirecionarSolicitacao(
         @PathVariable String codigo,
         @RequestParam Integer novoFuncionarioId,
@@ -230,7 +230,7 @@ public class SolicitacaoController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/{codigo}/funcionario/finalizar")
+    @PatchMapping("/{codigo}/funcionario/finalizar")
     public ResponseEntity<Solicitacao> finalizarSolicitacao(
             @PathVariable String codigo,
             @RequestHeader(name = "Authorization", required = false) String authorizationHeader) {
