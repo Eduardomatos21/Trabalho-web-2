@@ -82,7 +82,7 @@
 								[class]="inputClass('funcionarioRedirecionamento')">
 								<option value="" hidden>Selecione</option>
 								@for (funcionario of funcionariosDisponiveisFiltrados; track funcionario) {
-									<option [value]="funcionario">{{ funcionario }}</option>
+									<option [value]="funcionario.id">{{ funcionario.nome }}</option>
 									} @empty {
 									<option disabled>Nenhum funcionário encontrado</option>
 								}

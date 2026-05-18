@@ -238,17 +238,17 @@ export class SolicitacaoService {
     };
   }
   
-  redirecionarSolicitacao(codigo: string, novoFuncionarioId: number): Observable<SolicitacaoCliente> {
+  redirecionarSolicitacao(codigo: string, novoFuncionarioId: number): Observable<void> {
     const params = new HttpParams().set('novoFuncionarioId', novoFuncionarioId.toString());
-    return this.http.put<SolicitacaoClienteHomeResponse>(
-        `${this.apiBaseUrl}/solicitacoes/${codigo}/funcionario/redirecionar`,
-        null,
-        { params }
-    ).pipe(map(response => this.toSolicitacaoCliente(response)));
-}
+    return this.http.put<void>(
+      `${this.apiBaseUrl}/solicitacoes/${codigo}/funcionario/redirecionar`,
+      null,
+      { params },
+    );
+  }
 
-// Finalizar solicitação (RF012)
-finalizarSolicitacao(codigo: string): Observable<SolicitacaoCliente> {
+  // Finalizar solicitação (RF012)
+  finalizarSolicitacao(codigo: string): Observable<SolicitacaoCliente> {
     return this.http.put<SolicitacaoClienteHomeResponse>(
         `${this.apiBaseUrl}/solicitacoes/${codigo}/funcionario/finalizar`,
         {}

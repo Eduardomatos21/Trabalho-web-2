@@ -3,6 +3,7 @@ package com.example.web2.controller;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -24,9 +25,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.web2.controller.dto.CriarSolicitacaoClienteRequest;
+import com.example.web2.controller.dto.RejeitarSolicitacaoClienteRequest;
 import com.example.web2.controller.dto.RelatorioReceitaCategoriaResponse;
 import com.example.web2.controller.dto.RelatorioReceitaDiaResponse;
-import com.example.web2.controller.dto.RejeitarSolicitacaoClienteRequest;
 import com.example.web2.controller.dto.SessaoResponse;
 import com.example.web2.controller.dto.SolicitacaoClienteHomeResponse;
 import com.example.web2.entity.Estado;
@@ -40,10 +41,9 @@ import com.example.web2.service.AutenticacaoService;
 import com.example.web2.service.RelatorioReceitaCategoriaService;
 import com.example.web2.service.RelatorioReceitaDiaService;
 import com.example.web2.service.SolicitacaoClienteService;
+import com.example.web2.service.SolicitacaoFuncionarioService;
 
 import jakarta.validation.Valid;
-import java.util.Map;
-import com.example.web2.service.SolicitacaoFuncionarioService;
 
 @RestController
 @RequestMapping("/solicitacoes")
@@ -220,19 +220,14 @@ public class SolicitacaoController {
     }
 
     @PutMapping("/{codigo}/funcionario/redirecionar")
-    public ResponseEntity<Solicitacao> redirecionarSolicitacao(
+    public ResponseEntity<Void> redirecionarSolicitacao(
         @PathVariable String codigo,
-        @RequestParam Integer novoFuncionarioId) {
-        
-        Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigo)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitação não encontrada"));
-        
-        Funcionario novoFuncionario = new Funcionario();
-        novoFuncionario.setId(novoFuncionarioId);
-        solicitacao.setFuncionario(novoFuncionario);
-        solicitacao.setEstado(Estado.REDIRECIONADA);
-        
-        return ResponseEntity.ok(solicitacaoRepository.save(solicitacao));
+        @RequestParam Integer novoFuncionarioId,
+        @RequestHeader(name = "Authorization", required = false) String authorizationHeader) {
+
+        String token = extrairToken(authorizationHeader);
+        solicitacaoFuncionarioService.redirecionarSolicitacao(token, codigo, novoFuncionarioId);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{codigo}/funcionario/finalizar")

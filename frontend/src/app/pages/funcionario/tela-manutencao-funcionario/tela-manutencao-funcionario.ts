@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService, ClienteStorageService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, FormFieldComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
+import { Funcionario } from '../../../shared/models/funcionario.model';
 import { HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
 import { DateFormatUtil, FormValidationHelper, SolicitacaoHistoricoUtil } from '../../../shared/utils';
 
@@ -46,7 +47,7 @@ export class TelaManutencaoFuncionario implements OnInit {
   modalSucessoAberto = false;
   redirecionado = false;
 
-  funcionariosDisponiveis: string[] = [];
+  funcionariosDisponiveis: Funcionario[] = [];
 
   form: FormGroup = this.fb.group({
     descricaoManutencao: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(400)]],
@@ -66,8 +67,8 @@ export class TelaManutencaoFuncionario implements OnInit {
     return 'Funcionário';
   }
 
-  get funcionariosDisponiveisFiltrados(): string[] {
-    return this.funcionariosDisponiveis.filter(f => f !== this.funcionarioLogadoNome);
+  get funcionariosDisponiveisFiltrados(): Funcionario[] {
+    return this.funcionariosDisponiveis.filter((f) => f.nome !== this.funcionarioLogadoNome);
   }
 
   // MANUTENÇÃO - RF014
@@ -136,37 +137,49 @@ export class TelaManutencaoFuncionario implements OnInit {
     redirecionamentoControl.updateValueAndValidity();
     if (redirecionamentoControl.invalid) return;
 
-    const funcionarioDestino = this.form.value.funcionarioRedirecionamento;
-    if (funcionarioDestino === this.funcionarioLogadoNome) {
-      // Não permitir redirecionar para si mesmo (embora já filtrado, por segurança)
+    const funcionarioDestinoId = Number(this.form.value.funcionarioRedirecionamento);
+    if (!funcionarioDestinoId || Number.isNaN(funcionarioDestinoId)) {
       return;
     }
 
-    const dataHoraRedirecionamento = DateFormatUtil.formatarDataHora(new Date());
-    const eventoRedirecionamento: HistoricoAtualizacao = {
-      dataHora: dataHoraRedirecionamento,
-      funcionario: this.funcionarioLogadoNome,
-      descricao: `Redirecionado de ${this.funcionarioLogadoNome} para ${funcionarioDestino}.`,
-    };
+    const funcionarioDestino = this.funcionariosDisponiveisFiltrados.find(
+      (funcionario) => funcionario.id === funcionarioDestinoId,
+    );
+    if (!funcionarioDestino || funcionarioDestino.nome === this.funcionarioLogadoNome) {
+      return;
+    }
 
-    const historicoAtual =
-      this.solicitacao.historico && this.solicitacao.historico.length > 0
-        ? this.solicitacao.historico
-        : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacao.codigo, this.solicitacao.dataHora);
+    this.solicitacaoService.redirecionarSolicitacao(this.solicitacao.codigo, funcionarioDestinoId).subscribe({
+      next: () => {
+        const dataHoraRedirecionamento = DateFormatUtil.formatarDataHora(new Date());
+        const eventoRedirecionamento: HistoricoAtualizacao = {
+          dataHora: dataHoraRedirecionamento,
+          funcionario: this.funcionarioLogadoNome,
+          descricao: `Redirecionado de ${this.funcionarioLogadoNome} para ${funcionarioDestino.nome}.`,
+        };
 
-    const atualizada: SolicitacaoCliente = {
-      ...this.solicitacao,
-      estado: 'REDIRECIONADA',
-      funcionarioDestinoRedirecionamento: funcionarioDestino,
-      historico: [...historicoAtual, eventoRedirecionamento],
-    };
+        const historicoAtual =
+          this.solicitacao.historico && this.solicitacao.historico.length > 0
+            ? this.solicitacao.historico
+            : SolicitacaoHistoricoUtil.getHistoricoBase(this.solicitacao.codigo, this.solicitacao.dataHora);
 
-    this.clienteStorageService.salvarSolicitacao(atualizada);
-    this.solicitacao = atualizada;
-    this.redirecionado = true;
-    //navegar ou mostrar modal de sucesso?
-    this.router.navigate(['/funcionario/solicitacoes']);
-    console.log(`Solicitação ${this.solicitacao.codigo} redirecionada para ${funcionarioDestino}.`) ;
+        const atualizada: SolicitacaoCliente = {
+          ...this.solicitacao,
+          estado: 'REDIRECIONADA',
+          funcionarioDestinoRedirecionamento: funcionarioDestino,
+          historico: [...historicoAtual, eventoRedirecionamento],
+        };
+
+        this.clienteStorageService.salvarSolicitacao(atualizada);
+        this.solicitacao = atualizada;
+        this.redirecionado = true;
+        this.router.navigate(['/funcionario/solicitacoes']);
+        console.log(`Solicitação ${this.solicitacao.codigo} redirecionada para ${funcionarioDestino}.`);
+      },
+      error: (error) => {
+        console.error('Erro ao redirecionar solicitação', error);
+      },
+    });
   }
 
   concluirSucesso(): void {

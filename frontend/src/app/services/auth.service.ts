@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, catchError, map, of } from 'rxjs';
 import { FuncionarioService } from './funcionario';
+import { Funcionario } from '../shared/models/funcionario.model';
 
 export type PerfilUsuario = 'cliente' | 'funcionario';
 
@@ -59,13 +60,17 @@ export class AuthService {
     this.router.navigate([perfil === 'funcionario' ? '/funcionario' : '/cliente']);
   }
 
-  getFuncionariosSistema(): string[] {
-    const funcionarios = this.funcionarioService
-      .listarTodos()
-      .map((funcionario) => funcionario.nome.trim())
-      .filter((nome) => nome.length > 0);
+  getFuncionariosSistema(): Funcionario[] {
+    const funcionarios = this.funcionarioService.listarTodos().filter(
+      (funcionario) => funcionario.nome.trim().length > 0,
+    );
 
-    return [...new Set(funcionarios)];
+    const funcionariosUnicos = new Map<number, Funcionario>();
+    funcionarios.forEach((funcionario) => {
+      funcionariosUnicos.set(funcionario.id, funcionario);
+    });
+
+    return Array.from(funcionariosUnicos.values());
   }
 
   emailJaCadastrado(email: string): boolean {
