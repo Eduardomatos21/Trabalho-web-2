@@ -56,6 +56,21 @@ interface SolicitacaoFuncionarioDetalheResponse {
   historico: SolicitacaoHistoricoResponse[];
 }
 
+interface SolicitacaoClienteDetalheResponse {
+  codigo: string;
+  dataHora: string;
+  dataHoraPagamento?: string;
+  nomeCliente: string;
+  emailCliente: string;
+  descricaoEquipamento: string;
+  categoriaEquipamento: string;
+  descricaoDefeito: string;
+  motivoRejeicao?: string;
+  estado: string;
+  valorOrcamento?: number;
+  historico: SolicitacaoHistoricoResponse[];
+}
+
 interface RejeitarSolicitacaoClienteRequest {
   motivoRejeicao?: string;
 }
@@ -97,6 +112,12 @@ export class SolicitacaoService {
         solicitacoes.find((item) => item.codigo?.trim().toUpperCase() === codigoNormalizado) ?? null,
       ),
     );
+  }
+
+  buscarMinhaSolicitacaoDetalhe(codigo: string): Observable<SolicitacaoCliente> {
+    return this.http
+      .get<SolicitacaoClienteDetalheResponse>(`${this.apiBaseUrl}/solicitacoes/minhas/${codigo}`)
+      .pipe(map((response) => this.toSolicitacaoClienteDetalhe(response)));
   }
 
   resgatarServico(codigo: string): Observable<SolicitacaoCliente> {
@@ -218,6 +239,27 @@ export class SolicitacaoService {
   }
 
   private toSolicitacaoFuncionarioDetalhe(response: SolicitacaoFuncionarioDetalheResponse): SolicitacaoCliente {
+    return {
+      codigo: response.codigo,
+      dataHora: response.dataHora,
+      nomeCliente: response.nomeCliente,
+      emailCliente: response.emailCliente,
+      descricaoEquipamento: response.descricaoEquipamento,
+      categoriaEquipamento: response.categoriaEquipamento,
+      descricaoDefeito: response.descricaoDefeito,
+      motivoRejeicao: response.motivoRejeicao,
+      estado: this.mapEstado(response.estado),
+      valorOrcamento: response.valorOrcamento,
+      dataHoraPagamento: response.dataHoraPagamento,
+      historico: response.historico?.map((item) => ({
+        dataHora: item.dataHora,
+        funcionario: item.funcionario,
+        descricao: item.descricao,
+      })),
+    };
+  }
+
+  private toSolicitacaoClienteDetalhe(response: SolicitacaoClienteDetalheResponse): SolicitacaoCliente {
     return {
       codigo: response.codigo,
       dataHora: response.dataHora,

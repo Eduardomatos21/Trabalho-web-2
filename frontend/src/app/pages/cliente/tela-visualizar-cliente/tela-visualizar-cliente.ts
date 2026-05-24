@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService, ClienteStorageService, SolicitacaoService } from '../../../services';
+import { AuthService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { EstadoSolicitacao, HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
 import { SolicitacaoHistoricoUtil, SolicitacaoUiUtil } from '../../../shared/utils';
@@ -21,7 +21,6 @@ export class TelaVisualizarCliente implements OnInit {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private clienteStorageService: ClienteStorageService,
     private solicitacaoService: SolicitacaoService,
     private cdr: ChangeDetectorRef,
   ) {}
@@ -37,15 +36,12 @@ export class TelaVisualizarCliente implements OnInit {
   modalResgateSucessoAberto = false;
   resgateEmAndamento = false;
 
-  private readonly valoresMockSolicitacoesIniciais: Record<string, number> = {
-    'SOL-1042': 249.9,
-    'SOL-1044': 249.9,
-    'SOL-1051': 249.9,
-    'SOL-1034': 235.9,
-  };
-
   ngOnInit(): void {
     this.solicitacao = this.carregarSolicitacao();
+    const codigo = this.solicitacao?.codigo;
+    if (codigo && codigo !== 'N/A') {
+      this.buscarSolicitacaoDetalhe(codigo);
+    }
   }
 
   estadoClasse(estado: EstadoSolicitacao): string {
@@ -107,9 +103,11 @@ export class TelaVisualizarCliente implements OnInit {
 
     this.resgateEmAndamento = true;
     this.modalResgatarAberto = false;
-    this.solicitacaoService.resgatarServico(this.solicitacao.codigo).subscribe(() => {
+    const codigo = this.solicitacao.codigo;
+    this.solicitacaoService.resgatarServico(codigo).subscribe(() => {
       this.modalResgateSucessoAberto = true;
       this.resgateEmAndamento = false;
+      this.buscarSolicitacaoDetalhe(codigo);
       this.cdr.detectChanges();
     },
     () => {
@@ -122,14 +120,8 @@ export class TelaVisualizarCliente implements OnInit {
   }
 
   private carregarSolicitacao(): SolicitacaoComHistorico {
-    const usuarioLogado = this.authService.getUsuarioLogado();
     const navState = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
-    const salva = navState?.codigo
-      ? this.clienteStorageService.buscarPorCodigoDoCliente(navState.codigo, usuarioLogado?.email)
-      : undefined;
-    const base = navState ?? salva;
-
-    const solicitacao: SolicitacaoCliente = base ?? {
+    const solicitacao: SolicitacaoCliente = navState ?? {
       codigo: 'N/A',
       dataHora: '-',
       descricaoEquipamento: '-',
@@ -150,14 +142,28 @@ export class TelaVisualizarCliente implements OnInit {
     };
   }
 
+  private buscarSolicitacaoDetalhe(codigo: string): void {
+    this.solicitacaoService.buscarMinhaSolicitacaoDetalhe(codigo).subscribe({
+      next: (solicitacao) => {
+        const historico = solicitacao.historico?.length
+          ? solicitacao.historico
+          : SolicitacaoHistoricoUtil.getHistoricoBase(solicitacao.codigo, solicitacao.dataHora);
+
+        this.solicitacao = {
+          ...solicitacao,
+          historico,
+        } as SolicitacaoComHistorico;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   private valorOrcadoParaSolicitacao(solicitacao?: SolicitacaoCliente | null): number {
     if (!solicitacao) return 0;
 
     if (typeof solicitacao.valorOrcamento === 'number' && solicitacao.valorOrcamento > 0) {
       return solicitacao.valorOrcamento;
     }
-
-    const valorMock = this.valoresMockSolicitacoesIniciais[solicitacao.codigo];
-    return typeof valorMock === 'number' ? valorMock : 0;
+    return 0;
   }
 }

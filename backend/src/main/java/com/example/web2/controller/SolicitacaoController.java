@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.web2.controller.dto.CriarSolicitacaoClienteRequest;
+import com.example.web2.controller.dto.SolicitacaoClienteDetalheResponse;
 import com.example.web2.controller.dto.RejeitarSolicitacaoClienteRequest;
 import com.example.web2.controller.dto.RelatorioReceitaCategoriaResponse;
 import com.example.web2.controller.dto.RelatorioReceitaDiaResponse;
@@ -126,6 +127,15 @@ public class SolicitacaoController {
     ) {
         String token = extrairToken(authorizationHeader);
         return solicitacaoClienteService.listarMinhasSolicitacoes(token);
+    }
+
+    @GetMapping("/minhas/{codigo}")
+    public SolicitacaoClienteDetalheResponse buscarMinhaSolicitacaoPorCodigo(
+            @PathVariable String codigo,
+            @RequestHeader(name = "Authorization", required = false) String authorizationHeader
+    ) {
+        String token = extrairToken(authorizationHeader);
+        return solicitacaoClienteService.buscarDetalhePorCodigo(token, codigo);
     }
 
     @PatchMapping("/{codigo}/cliente/resgatar")
