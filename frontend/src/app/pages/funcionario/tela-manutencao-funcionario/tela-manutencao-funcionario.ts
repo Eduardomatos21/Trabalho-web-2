@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AuthService, ClienteStorageService, SolicitacaoService } from '../../../services';
+import { AuthService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, FormFieldComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { Funcionario } from '../../../shared/models/funcionario.model';
 import { HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
@@ -29,7 +29,6 @@ export class TelaManutencaoFuncionario implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly authService = inject(AuthService);
-  private readonly clienteStorageService = inject(ClienteStorageService);
   private readonly solicitacaoService = inject(SolicitacaoService);
 
   readonly menuItemsFuncionario: SidebarItem[] = [
@@ -59,6 +58,14 @@ export class TelaManutencaoFuncionario implements OnInit {
     const codigo = this.route.snapshot.queryParamMap.get('solicitacao');
     this.solicitacao = this.buscarSolicitacao(codigo);
     this.funcionariosDisponiveis = this.authService.getFuncionariosSistema();
+    if (codigo) {
+      this.solicitacaoService.buscarSolicitacaoFuncionarioPorCodigo(codigo).subscribe({
+        next: (solicitacao) => {
+          this.solicitacao = solicitacao;
+          this.cdr.detectChanges();
+        },
+      });
+    }
   }
 
   get funcionarioLogadoNome(): string {
@@ -172,7 +179,6 @@ export class TelaManutencaoFuncionario implements OnInit {
           historico: [...historicoAtual, eventoRedirecionamento],
         };
 
-        this.clienteStorageService.salvarSolicitacao(atualizada);
         this.solicitacao = atualizada;
         this.redirecionado = true;
         this.router.navigate(['/funcionario/solicitacoes']);
@@ -210,16 +216,6 @@ export class TelaManutencaoFuncionario implements OnInit {
 
   private buscarSolicitacao(codigo: string | null): SolicitacaoCliente {
     const navState = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
-    const encontrada = this.clienteStorageService.buscarPorCodigo(codigo);
-
-    if (encontrada) {
-      if (navState && navState.codigo === codigo) {
-        return { ...navState, ...encontrada };
-      }
-
-      return encontrada;
-    }
-
     if (navState && navState.codigo === codigo) return navState;
 
     return {
