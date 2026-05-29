@@ -112,6 +112,9 @@ export class TelaInicialFuncionario implements OnInit {
   }
 
 
+  //Comentarios apenas para SR
+
+  //Não consegui mexer essa ultima semana
 
 
 }

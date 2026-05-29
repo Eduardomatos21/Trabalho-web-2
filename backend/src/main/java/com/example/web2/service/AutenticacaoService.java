@@ -1,11 +1,10 @@
 package com.example.web2.service;
 
-import static org.springframework.http.HttpStatus.*;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -37,6 +36,7 @@ public class AutenticacaoService {
     @Autowired
     private SenhaService senhaService;
 
+    // API Pública
     @Transactional
     public SessaoResponse login(LoginRequest request) {
         String email = request.email().trim().toLowerCase();
@@ -92,6 +92,7 @@ public class AutenticacaoService {
                 .orElse(null);
     }
 
+    // Validação de senha e migração
     private void validarSenhaCliente(Cliente cliente, String senhaInformada) {
         if (senhaValida(cliente.getSenhaHash(), cliente.getSenhaSalt(), senhaInformada)) {
             return;
@@ -147,6 +148,7 @@ public class AutenticacaoService {
         funcionarioRepository.save(funcionario);
     }
 
+    // GERENCIAMENTO DE SESSÃO
     private SessaoUsuario criarSessao(String perfil, Integer idUsuario, String nome, String email) {
         LocalDateTime agora = LocalDateTime.now();
 

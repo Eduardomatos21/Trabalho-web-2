@@ -29,6 +29,10 @@ export type SidebarItem = {
         }
       </nav>
 
+      <footer class="mt-auto px-4 pt-2 pb-1 text-center border-t border-teal-600/70 text-xs text-cyan-100">
+        <small>© 2026 - Sistema de Manutenção</small>
+      </footer>
+
       <div class="p-4 border-t border-teal-600/70">
         <button
           type="button"
