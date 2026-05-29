@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
 import com.example.web2.entity.Funcionario;
@@ -27,6 +28,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/funcionarios")
+@CrossOrigin(origins = "http://localhost:4200")
 public class FuncionarioController {
 
     @Autowired
@@ -44,6 +46,11 @@ public class FuncionarioController {
     public ResponseEntity<Funcionario> atualizar(@PathVariable Integer id, @Valid @RequestBody FuncionarioRequest request) {
         return funcionarioRepository.findByIdAndAtivoTrue(id)
             .map(funcionario -> {
+                funcionarioRepository.findByEmailIgnoreCase(request.email().trim())
+                    .filter(existente -> !existente.getId().equals(funcionario.getId()))
+                    .ifPresent((existente) -> {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT, "Email ja cadastrado.");
+                    });
                 funcionario.setNome(request.nome().trim());
                 funcionario.setEmail(request.email().trim().toLowerCase());
                 funcionario.setDataNascimento(request.dataNascimento());
@@ -67,6 +74,10 @@ public class FuncionarioController {
     public Funcionario adicionar(@Valid @RequestBody FuncionarioRequest request) {
         if (request.senha() == null || request.senha().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha obrigatoria.");
+        }
+
+        if (funcionarioRepository.findByEmailIgnoreCase(request.email().trim()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email ja cadastrado.");
         }
 
         Funcionario funcionario = new Funcionario();

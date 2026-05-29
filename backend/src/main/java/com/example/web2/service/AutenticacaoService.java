@@ -51,6 +51,7 @@ public class AutenticacaoService {
 
         Funcionario funcionario = funcionarioRepository.findByEmailIgnoreCase(email).orElse(null);
         if (funcionario != null) {
+            validarFuncionarioAtivo(funcionario);
             validarSenhaFuncionario(funcionario, senha);
             SessaoUsuario sessao = criarSessao("funcionario", funcionario.getId(), funcionario.getNome(), funcionario.getEmail());
             return paraSessaoResponse(sessao);
@@ -117,6 +118,12 @@ public class AutenticacaoService {
         throw credenciaisInvalidas();
     }
 
+    private void validarFuncionarioAtivo(Funcionario funcionario) {
+        if (funcionario.getAtivo() != null && !funcionario.getAtivo()) {
+            throw new ResponseStatusException(FORBIDDEN, "Usuario inativo.");
+        }
+    }
+
     private boolean senhaValida(String senhaHash, String senhaSalt, String senhaInformada) {
         return senhaService.validarSenha(senhaInformada, senhaHash, senhaSalt);
     }
@@ -164,6 +171,15 @@ public class AutenticacaoService {
             sessao.setAtivo(false);
             sessaoUsuarioRepository.save(sessao);
             throw new ResponseStatusException(UNAUTHORIZED, "Sessao expirada.");
+        }
+
+        if ("funcionario".equalsIgnoreCase(sessao.getPerfil())) {
+            boolean ativo = funcionarioRepository.findByIdAndAtivoTrue(sessao.getIdUsuario()).isPresent();
+            if (!ativo) {
+                sessao.setAtivo(false);
+                sessaoUsuarioRepository.save(sessao);
+                throw new ResponseStatusException(UNAUTHORIZED, "Usuario inativo.");
+            }
         }
 
         return sessao;

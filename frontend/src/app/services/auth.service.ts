@@ -135,6 +135,15 @@ export class AuthService {
       return 'E-mail ou senha inválidos.';
     }
 
+    if (error.status === 403) {
+      const mensagem = this.extrairMensagemErro(error);
+      if (!mensagem || mensagem.toLowerCase() === 'forbidden') {
+        return 'Conta inativa. Procure um administrador.';
+      }
+
+      return mensagem;
+    }
+
     const mensagem = this.extrairMensagemErro(error);
     if (mensagem) {
       return mensagem;

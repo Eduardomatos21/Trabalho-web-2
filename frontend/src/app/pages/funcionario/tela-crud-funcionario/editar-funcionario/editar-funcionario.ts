@@ -66,16 +66,17 @@ export class EditarFuncionario implements OnInit {
       const id = params.get('id');
       if (id) {
         this.funcionarioId = Number(id);
-        const funcionario = this.funcionarioService.buscarPorId(this.funcionarioId);
-        if (funcionario) {
-          this.emailOriginal = funcionario.email;
-          this.form.patchValue({
-             nome: funcionario.nome,
-             email: funcionario.email,
-             dataNascimento: funcionario.dataNascimento,
-             senha: funcionario.senha
+        this.funcionarioService.buscarPorIdBackend(this.funcionarioId).subscribe({
+          next: (funcionario) => {
+            this.emailOriginal = funcionario.email;
+            this.form.patchValue({
+              nome: funcionario.nome,
+              email: funcionario.email,
+              dataNascimento: funcionario.dataNascimento,
+              senha: '',
             });
-        }
+          },
+        });
       }
     this.form.get('email')?.valueChanges.subscribe(() => {
     this.validarEmailUnico();
@@ -137,20 +138,22 @@ export class EditarFuncionario implements OnInit {
 
     
     if (this.funcionarioId) {  
-      const funcionario = this.funcionarioService.buscarPorId(this.funcionarioId);
-      if (funcionario) {
-        funcionario.nome = nome;
-        funcionario.email = email;
-        funcionario.dataNascimento = dataNascimento;
-        funcionario.senha = senha;
-        this.funcionarioService.atualizar(funcionario);
-      }
+      const funcionario = new Funcionario(this.funcionarioId, email, nome, dataNascimento, senha);
+      this.funcionarioService.atualizarBackend(funcionario).subscribe({
+        next: () => this.router.navigate(['/funcionario/listar']),
+        error: () => {
+          this.carregando = false;
+        },
+      });
     } else {
       const novoFuncionario = new Funcionario(0, email, nome, dataNascimento, senha);
-      this.funcionarioService.inserir(novoFuncionario);
+      this.funcionarioService.inserirBackend(novoFuncionario).subscribe({
+        next: () => this.router.navigate(['/funcionario/listar']),
+        error: () => {
+          this.carregando = false;
+        },
+      });
     }
-
-    this.router.navigate(['/funcionario/listar']);
   }
 
   cancelar(): void {

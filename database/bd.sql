@@ -24,7 +24,8 @@ CREATE TABLE funcionario (
     email varchar(50) UNIQUE,
     data_nascimento date,
     senha_hash varchar(120),
-    senha_salt varchar(60)
+    senha_salt varchar(60),
+    ativo boolean default true
 );
 
 CREATE TABLE cliente (

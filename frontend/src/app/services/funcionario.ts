@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Funcionario } from '../shared/models/funcionario.model';
+import { Observable, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -40,6 +41,19 @@ export class FuncionarioService {
     });
   }
 
+  listarTodosBackend(): Observable<Funcionario[]> {
+    return this.http.get<Funcionario[]>(`${this.apiBaseUrl}/funcionarios`, this.getHttpOptions()).pipe(
+      tap((res) => {
+        this.funcionarios.splice(0, this.funcionarios.length, ...res);
+        this.carregado = true;
+      }),
+    );
+  }
+
+  buscarPorIdBackend(id: number): Observable<Funcionario> {
+    return this.http.get<Funcionario>(`${this.apiBaseUrl}/funcionarios/${id}`, this.getHttpOptions());
+  }
+
   listarTodos(): Funcionario[] {
     if (!this.carregado && this.funcionarios.length === 0) {
       this.carregarDoBackend();
@@ -64,6 +78,19 @@ export class FuncionarioService {
         if (index !== -1) this.funcionarios.splice(index, 1);
       }
     });
+  }
+
+  inserirBackend(funcionario: Funcionario): Observable<Funcionario> {
+    return this.http.post<Funcionario>(`${this.apiBaseUrl}/funcionarios`, funcionario, this.getHttpOptions()).pipe(
+      tap((res) => {
+        const index = this.funcionarios.findIndex((f) => f.id === funcionario.id);
+        if (index !== -1) {
+          this.funcionarios[index] = res;
+        } else {
+          this.funcionarios.push(res);
+        }
+      }),
+    );
   }
 
   buscarPorId(id: number): Funcionario | undefined {
@@ -92,6 +119,15 @@ export class FuncionarioService {
     });
   }
 
+  atualizarBackend(funcionario: Funcionario): Observable<Funcionario> {
+    return this.http.put<Funcionario>(`${this.apiBaseUrl}/funcionarios/${funcionario.id}`, funcionario, this.getHttpOptions()).pipe(
+      tap((res) => {
+        const index = this.funcionarios.findIndex((f) => f.id === funcionario.id);
+        if (index !== -1) this.funcionarios[index] = res;
+      }),
+    );
+  }
+
   remover(id: number): void {
     const index = this.funcionarios.findIndex(f => f.id === id);
     const original = index !== -1 ? { ...this.funcionarios[index] } : undefined;
@@ -106,6 +142,15 @@ export class FuncionarioService {
         if (original) this.funcionarios.push(original as Funcionario);
       }
     });
+  }
+
+  removerBackend(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiBaseUrl}/funcionarios/${id}`, this.getHttpOptions()).pipe(
+      tap(() => {
+        const index = this.funcionarios.findIndex((f) => f.id === id);
+        if (index !== -1) this.funcionarios.splice(index, 1);
+      }),
+    );
   }
 
 }

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService, FuncionarioService } from '../../../../services';
 import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../../shared';
@@ -33,6 +33,7 @@ export class ListarFuncionario implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private funcionarioService = inject(FuncionarioService);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor() {}
 
@@ -50,7 +51,16 @@ export class ListarFuncionario implements OnInit {
   }
 
   carregarFuncionarios(): void {
-    this.funcionarios = this.funcionarioService.listarTodos();
+    this.funcionarioService.listarTodosBackend().subscribe({
+      next: (res) => {
+        this.funcionarios = res;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.funcionarios = [];
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   novoFuncionario(): void {
@@ -91,9 +101,15 @@ export class ListarFuncionario implements OnInit {
 
   confirmarExclusao(): void {
     if (this.funcionarioParaExcluir !== null) {
-      this.funcionarioService.remover(this.funcionarioParaExcluir);
-      this.carregarFuncionarios();
-      this.fecharModal();
+      this.funcionarioService.removerBackend(this.funcionarioParaExcluir).subscribe({
+        next: () => {
+          this.carregarFuncionarios();
+          this.fecharModal();
+        },
+        error: () => {
+          this.fecharModal();
+        },
+      });
     }
   }
 
