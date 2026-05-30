@@ -32,6 +32,7 @@ export class TelaVisualizarCliente implements OnInit {
   ];
 
   solicitacao?: SolicitacaoComHistorico;
+  historicoCarregado = false;
   modalResgatarAberto = false;
   modalResgateSucessoAberto = false;
   resgateEmAndamento = false;
@@ -40,7 +41,10 @@ export class TelaVisualizarCliente implements OnInit {
     this.solicitacao = this.carregarSolicitacao();
     const codigo = this.solicitacao?.codigo;
     if (codigo && codigo !== 'N/A') {
+      this.historicoCarregado = false;
       this.buscarSolicitacaoDetalhe(codigo);
+    } else {
+      this.historicoCarregado = true;
     }
   }
 
@@ -130,15 +134,9 @@ export class TelaVisualizarCliente implements OnInit {
       estado: 'ABERTA',
     };
 
-    const historicoPersistido = solicitacao.historico;
-    const historico =
-      historicoPersistido && historicoPersistido.length > 0
-        ? historicoPersistido
-        : SolicitacaoHistoricoUtil.getHistoricoBase(solicitacao.codigo, solicitacao.dataHora);
-
     return {
       ...solicitacao,
-      historico,
+      historico: solicitacao.historico ?? [],
     };
   }
 
@@ -153,6 +151,7 @@ export class TelaVisualizarCliente implements OnInit {
           ...solicitacao,
           historico,
         } as SolicitacaoComHistorico;
+        this.historicoCarregado = true;
         this.cdr.detectChanges();
       },
     });

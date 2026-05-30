@@ -60,19 +60,21 @@
 			<section class="bg-white rounded-3xl border border-slate-200 p-6">
 				<h3 class="text-lg font-bold text-slate-900 mb-4">Histórico de atualizações</h3>
 
-				<ol class="space-y-3">
-					@for (passo of sol.historico; track $index) {
-						<li class="rounded-xl border border-slate-200 p-4">
-							<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-								<p class="font-semibold text-slate-800">{{ passo.descricao }}</p>
-								<p class="text-xs uppercase tracking-wide text-slate-500">{{ passo.dataHora }}</p>
-							</div>
-							@if (passo.funcionario && passo.funcionario.trim()) {
-								<p class="text-sm text-slate-600 mt-1">Funcionário: {{ passo.funcionario }}</p>
-							}
-						</li>
-					}
-				</ol>
+				@if (historicoCarregado) {
+					<ol class="space-y-3">
+						@for (passo of sol.historico; track $index) {
+							<li class="rounded-xl border border-slate-200 p-4">
+								<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+									<p class="font-semibold text-slate-800">{{ passo.descricao }}</p>
+									<p class="text-xs uppercase tracking-wide text-slate-500">{{ passo.dataHora }}</p>
+								</div>
+								@if (passo.funcionario && passo.funcionario.trim()) {
+									<p class="text-sm text-slate-600 mt-1">Funcionário: {{ passo.funcionario }}</p>
+								}
+							</li>
+						}
+					</ol>
+				}
 			</section>
 
 			<section class="flex flex-wrap items-center gap-3">
