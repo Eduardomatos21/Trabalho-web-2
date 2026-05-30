@@ -263,6 +263,7 @@ public class SolicitacaoClienteService {
         historicoInicial.setEstadoAnterior(Estado.ABERTA);
         historicoInicial.setEstadoAtual(Estado.ABERTA);
         historicoInicial.setDataHora(LocalDateTime.now());
+        historicoInicial.setObservacao("Solicitacao criada");
         historicoRepository.save(historicoInicial);
 
         return toHomeResponse(criada);
