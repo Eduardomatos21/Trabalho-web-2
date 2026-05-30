@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService, FuncionarioService } from '../../../../services';
@@ -141,7 +142,8 @@ export class EditarFuncionario implements OnInit {
       const funcionario = new Funcionario(this.funcionarioId, email, nome, dataNascimento, senha);
       this.funcionarioService.atualizarBackend(funcionario).subscribe({
         next: () => this.router.navigate(['/funcionario/listar']),
-        error: () => {
+        error: (error: HttpErrorResponse) => {
+          this.tratarErroEmailDuplicado(error);
           this.carregando = false;
         },
       });
@@ -149,11 +151,26 @@ export class EditarFuncionario implements OnInit {
       const novoFuncionario = new Funcionario(0, email, nome, dataNascimento, senha);
       this.funcionarioService.inserirBackend(novoFuncionario).subscribe({
         next: () => this.router.navigate(['/funcionario/listar']),
-        error: () => {
+        error: (error: HttpErrorResponse) => {
+          this.tratarErroEmailDuplicado(error);
           this.carregando = false;
         },
       });
     }
+  }
+
+  private tratarErroEmailDuplicado(error: HttpErrorResponse): void {
+    if (error.status !== 409) {
+      return;
+    }
+
+    const emailControl = this.form.get('email');
+    if (!emailControl) {
+      return;
+    }
+
+    emailControl.setErrors({ ...(emailControl.errors ?? {}), emailDuplicado: true });
+    emailControl.markAsTouched();
   }
 
   cancelar(): void {

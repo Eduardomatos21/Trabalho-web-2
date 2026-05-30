@@ -76,7 +76,17 @@ public class FuncionarioController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha obrigatoria.");
         }
 
-        if (funcionarioRepository.findByEmailIgnoreCase(request.email().trim()).isPresent()) {
+        Funcionario existente = funcionarioRepository.findByEmailIgnoreCase(request.email().trim()).orElse(null);
+        if (existente != null) {
+            if (Boolean.FALSE.equals(existente.getAtivo())) {
+                existente.setNome(request.nome().trim());
+                existente.setEmail(request.email().trim().toLowerCase());
+                existente.setDataNascimento(request.dataNascimento());
+                existente.setAtivo(true);
+                aplicarSenha(existente, request.senha());
+                return funcionarioRepository.save(existente);
+            }
+
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email ja cadastrado.");
         }
 
