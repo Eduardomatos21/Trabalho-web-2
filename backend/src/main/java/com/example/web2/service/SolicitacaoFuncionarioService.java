@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.example.web2.controller.dto.SessaoResponse;
 import com.example.web2.controller.dto.SolicitacaoFuncionarioDetalheResponse;
 import com.example.web2.controller.dto.SolicitacaoFuncionarioListResponse;
 import com.example.web2.controller.dto.SolicitacaoHistoricoResponse;
@@ -21,6 +20,7 @@ import com.example.web2.entity.Estado;
 import com.example.web2.entity.Funcionario;
 import com.example.web2.entity.Historico;
 import com.example.web2.entity.Solicitacao;
+import com.example.web2.entity.SessaoUsuario;
 import com.example.web2.repository.FuncionarioRepository;
 import com.example.web2.repository.HistoricoRepository;
 import com.example.web2.repository.SolicitacaoRepository;
@@ -44,8 +44,8 @@ public class SolicitacaoFuncionarioService {
 
     @Transactional
     public void efetuarOrcamento(String token, String codigoSolicitacao, BigDecimal valorOrcamento) {
-        SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
-        validarPerfilFuncionario(sessao);
+        SessaoUsuario sessao = autenticacaoService.sessaoUsuarioAtual(token);
+        validarPerfilFuncionario(sessao.getPerfil());
 
         Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigoSolicitacao)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Solicitação não encontrada"));
@@ -55,7 +55,7 @@ public class SolicitacaoFuncionarioService {
                 "Solicitação não está em estado ABERTA. Estado atual: " + solicitacao.getEstado());
         }
 
-        Funcionario funcionario = funcionarioRepository.findByEmailIgnoreCase(sessao.email())
+        Funcionario funcionario = funcionarioRepository.findByIdAndAtivoTrue(sessao.getIdUsuario())
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Funcionário não encontrado"));
 
         Estado estadoAnterior = solicitacao.getEstado();
@@ -79,8 +79,8 @@ public class SolicitacaoFuncionarioService {
 
     @Transactional(readOnly = true)
     public List<SolicitacaoFuncionarioListResponse> listarSolicitacoesAbertas(String token) {
-        SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
-        validarPerfilFuncionario(sessao);
+        SessaoUsuario sessao = autenticacaoService.sessaoUsuarioAtual(token);
+        validarPerfilFuncionario(sessao.getPerfil());
 
         return solicitacaoRepository.findByEstadoOrderByDataHoraAsc(Estado.ABERTA)
                 .stream()
@@ -94,10 +94,10 @@ public class SolicitacaoFuncionarioService {
             String tipoFiltro,
             LocalDateTime dataInicio,
             LocalDateTime dataFim) {
-        SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
-        validarPerfilFuncionario(sessao);
+        SessaoUsuario sessao = autenticacaoService.sessaoUsuarioAtual(token);
+        validarPerfilFuncionario(sessao.getPerfil());
 
-        Funcionario funcionario = funcionarioRepository.findByEmailIgnoreCase(sessao.email())
+        Funcionario funcionario = funcionarioRepository.findByIdAndAtivoTrue(sessao.getIdUsuario())
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Funcionário não encontrado"));
 
         List<Solicitacao> solicitacoes = carregarSolicitacoesPorFiltro(tipoFiltro, dataInicio, dataFim);
@@ -110,13 +110,13 @@ public class SolicitacaoFuncionarioService {
 
             @Transactional(readOnly = true)
             public SolicitacaoFuncionarioDetalheResponse buscarDetalhePorCodigo(String token, String codigoSolicitacao) {
-            SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
-            validarPerfilFuncionario(sessao);
+            SessaoUsuario sessao = autenticacaoService.sessaoUsuarioAtual(token);
+            validarPerfilFuncionario(sessao.getPerfil());
 
             Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigoSolicitacao)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Solicitação não encontrada"));
 
-            Funcionario funcionario = funcionarioRepository.findByEmailIgnoreCase(sessao.email())
+            Funcionario funcionario = funcionarioRepository.findByIdAndAtivoTrue(sessao.getIdUsuario())
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Funcionário não encontrado"));
 
             if (!podeExibirRedirecionada(solicitacao, funcionario)) {
@@ -180,8 +180,8 @@ public class SolicitacaoFuncionarioService {
 
     @Transactional
     public void efetuarManutencao(String token, String codigoSolicitacao, String descricaoManutencao, String orientacoesCliente) {
-        SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
-        validarPerfilFuncionario(sessao);
+        SessaoUsuario sessao = autenticacaoService.sessaoUsuarioAtual(token);
+        validarPerfilFuncionario(sessao.getPerfil());
 
         Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigoSolicitacao)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Solicitação não encontrada"));
@@ -191,7 +191,7 @@ public class SolicitacaoFuncionarioService {
                 "Solicitação não está em estado APROVADA ou REDIRECIONADA. Estado atual: " + solicitacao.getEstado());
         }
 
-        Funcionario funcionario = funcionarioRepository.findByEmailIgnoreCase(sessao.email())
+        Funcionario funcionario = funcionarioRepository.findByIdAndAtivoTrue(sessao.getIdUsuario())
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Funcionário não encontrado"));
 
         Estado estadoAnterior = solicitacao.getEstado();
@@ -213,8 +213,8 @@ public class SolicitacaoFuncionarioService {
         historicoRepository.save(historico);
     }
 
-    private void validarPerfilFuncionario(SessaoResponse sessao) {
-        if (!"funcionario".equalsIgnoreCase(sessao.perfil())) {
+    private void validarPerfilFuncionario(String perfil) {
+        if (!"funcionario".equalsIgnoreCase(perfil)) {
             throw new ResponseStatusException(FORBIDDEN, 
                 "Operação permitida apenas para funcionários");
         }
@@ -317,8 +317,8 @@ public class SolicitacaoFuncionarioService {
         String codigoSolicitacao,
         Integer novoFuncionarioId
     ) {
-    SessaoResponse sessao = autenticacaoService.sessaoAtual(token);
-    validarPerfilFuncionario(sessao);
+    SessaoUsuario sessao = autenticacaoService.sessaoUsuarioAtual(token);
+    validarPerfilFuncionario(sessao.getPerfil());
     Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigoSolicitacao)
             .orElseThrow(() -> new ResponseStatusException(
                     NOT_FOUND,
@@ -333,8 +333,8 @@ public class SolicitacaoFuncionarioService {
         );
     }
 
-    Funcionario funcionarioOrigem = funcionarioRepository
-            .findByEmailIgnoreCase(sessao.email())
+        Funcionario funcionarioOrigem = funcionarioRepository
+            .findByIdAndAtivoTrue(sessao.getIdUsuario())
             .orElseThrow(() -> new ResponseStatusException(
                     NOT_FOUND,
                     "Funcionário não encontrado"

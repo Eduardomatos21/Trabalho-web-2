@@ -74,6 +74,11 @@ public class AutenticacaoService {
         return paraSessaoResponse(sessao);
     }
 
+    @Transactional
+    public SessaoUsuario sessaoUsuarioAtual(String token) {
+        return obterSessaoValida(token);
+    }
+
     public boolean isTokenValido(String token) {
         return obterSessaoPorToken(token) != null;
     }
