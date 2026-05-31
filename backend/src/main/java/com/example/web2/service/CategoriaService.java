@@ -21,25 +21,24 @@ public class CategoriaService {
         return categoriaRepository.findByAtivoTrueOrderByIdAsc();
     }
 
-    public Categoria salvar(Categoria categoria) {
-        validarNome(categoria.getNome());
+    public Categoria salvar(String nome) {
+        validarNome(nome);
 
-        Optional<Categoria> existente = categoriaRepository.findByNomeIgnoreCase(normalizarNome(categoria.getNome()));
+        Optional<Categoria> existente = categoriaRepository.findByNomeIgnoreCase(normalizarNome(nome));
         if (existente.isPresent()) {
             Categoria encontrada = existente.get();
             if (Boolean.FALSE.equals(encontrada.getAtivo())) {
                 encontrada.setAtivo(true);
-                encontrada.setNome(normalizarNome(categoria.getNome()));
+                encontrada.setNome(normalizarNome(nome));
                 return categoriaRepository.save(encontrada);
             }
 
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Categoria ja cadastrada.");
         }
 
-        categoria.setNome(normalizarNome(categoria.getNome()));
-        if (categoria.getAtivo() == null) {
-            categoria.setAtivo(true);
-        }
+        Categoria categoria = new Categoria();
+        categoria.setNome(normalizarNome(nome));
+        categoria.setAtivo(true);
         return categoriaRepository.save(categoria);
     }
 
@@ -48,11 +47,11 @@ public class CategoriaService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria nao encontrada."));
     }
 
-    public Categoria atualizar(Integer id, Categoria categoria) {
+    public Categoria atualizar(Integer id, String nome) {
         Categoria existente = buscarPorId(id);
-        validarNome(categoria.getNome());
-        validarDuplicidade(categoria.getNome(), id);
-        existente.setNome(normalizarNome(categoria.getNome()));
+        validarNome(nome);
+        validarDuplicidade(nome, id);
+        existente.setNome(normalizarNome(nome));
         return categoriaRepository.save(existente);
     }
 

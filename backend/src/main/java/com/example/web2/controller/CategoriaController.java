@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.web2.entity.Categoria;
+import com.example.web2.controller.dto.CategoriaRequest;
 import com.example.web2.service.CategoriaService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/categoria")
@@ -40,13 +43,13 @@ public class CategoriaController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Categoria adicionar(@RequestBody Categoria categoria) {
-        return categoriaService.salvar(categoria);
+    public Categoria adicionar(@Valid @RequestBody CategoriaRequest request) {
+        return categoriaService.salvar(request.nome());
     }
 
     @PutMapping("/{id}")
-    public Categoria atualizar(@PathVariable Integer id, @RequestBody Categoria categoria) {
-        return categoriaService.atualizar(id, categoria);
+    public Categoria atualizar(@PathVariable Integer id, @Valid @RequestBody CategoriaRequest request) {
+        return categoriaService.atualizar(id, request.nome());
     }
 
     @DeleteMapping("/{id}")
