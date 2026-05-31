@@ -30,9 +30,4 @@ public class HistoricoService {
     public Historico salvar(Historico historico) {
         return historicoRepository.save(historico);
     }
-
-    public void deletar(Integer id) {
-        Historico historico = buscarPorId(id);
-        historicoRepository.delete(historico);
-    }
 }
