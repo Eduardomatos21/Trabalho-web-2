@@ -38,12 +38,18 @@ public class FuncionarioController {
     private SenhaService senhaService;
 
     @GetMapping
-    public List<Funcionario> listar() {
+    public List<Funcionario> listar(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        validarToken(authHeader);
         return funcionarioRepository.findAllByAtivoTrueOrderByIdAsc();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Funcionario> atualizar(@PathVariable Integer id, @Valid @RequestBody FuncionarioRequest request) {
+    public ResponseEntity<Funcionario> atualizar(
+            @PathVariable Integer id,
+            @Valid @RequestBody FuncionarioRequest request,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        validarToken(authHeader);
         return funcionarioRepository.findByIdAndAtivoTrue(id)
             .map(funcionario -> {
                 funcionarioRepository.findByEmailIgnoreCase(request.email().trim())
@@ -63,7 +69,11 @@ public class FuncionarioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Funcionario> buscarPorId(@PathVariable Integer id) {
+    public ResponseEntity<Funcionario> buscarPorId(
+            @PathVariable Integer id,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        validarToken(authHeader);
         return funcionarioRepository.findByIdAndAtivoTrue(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -71,7 +81,11 @@ public class FuncionarioController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Funcionario adicionar(@Valid @RequestBody FuncionarioRequest request) {
+    public Funcionario adicionar(
+            @Valid @RequestBody FuncionarioRequest request,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        validarToken(authHeader);
         if (request.senha() == null || request.senha().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha obrigatoria.");
         }
@@ -106,14 +120,7 @@ public class FuncionarioController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> remover(@PathVariable Integer id, @RequestHeader(value="Authorization", required=false) String authHeader) {
-        if (authHeader == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token não informado.");
-        }
-
-        var sessao = autenticacaoService.obterSessaoPorHeader(authHeader);
-        if (sessao == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sessão inválida ou expirada.");
-        }
+        var sessao = validarToken(authHeader);
 
         return funcionarioRepository.findByIdAndAtivoTrue(id)
             .map(funcionario -> {
@@ -130,6 +137,23 @@ public class FuncionarioController {
                 return ResponseEntity.noContent().<Void>build();
             })
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    private com.example.web2.controller.dto.SessaoResponse validarToken(String authHeader) {
+        if (authHeader == null || authHeader.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token nao informado.");
+        }
+
+        if (!authHeader.startsWith("Bearer ")) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Formato de token invalido.");
+        }
+
+        String token = authHeader.substring("Bearer ".length()).trim();
+        if (token.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token vazio.");
+        }
+
+        return autenticacaoService.sessaoAtual(token);
     }
 
     private void aplicarSenha(Funcionario funcionario, String senhaPura) {
