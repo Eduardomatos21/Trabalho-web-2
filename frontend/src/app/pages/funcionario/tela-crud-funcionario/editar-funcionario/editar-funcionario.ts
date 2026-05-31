@@ -141,7 +141,10 @@ export class EditarFuncionario implements OnInit {
     if (this.funcionarioId) {  
       const funcionario = new Funcionario(this.funcionarioId, email, nome, dataNascimento, senha);
       this.funcionarioService.atualizarBackend(funcionario).subscribe({
-        next: () => this.router.navigate(['/funcionario/listar']),
+        next: () => {
+          this.atualizarUsuarioLogado(nome, email);
+          this.router.navigate(['/funcionario/listar']);
+        },
         error: (error: HttpErrorResponse) => {
           this.tratarErroEmailDuplicado(error);
           this.carregando = false;
@@ -156,6 +159,17 @@ export class EditarFuncionario implements OnInit {
           this.carregando = false;
         },
       });
+    }
+  }
+
+  private atualizarUsuarioLogado(nome: string, email: string): void {
+    const usuario = this.authService.getUsuarioLogado();
+    if (!usuario || usuario.perfil !== 'funcionario') {
+      return;
+    }
+
+    if (this.emailOriginal && usuario.email.toLowerCase() === this.emailOriginal.toLowerCase()) {
+      this.authService.atualizarUsuarioLogado({ nome, email });
     }
   }
 

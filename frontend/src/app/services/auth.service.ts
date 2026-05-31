@@ -107,6 +107,21 @@ export class AuthService {
     return undefined;
   }
 
+  atualizarUsuarioLogado(dados: { nome?: string; email?: string }): void {
+    const usuario = this.getUsuarioLogado();
+    if (!usuario) {
+      return;
+    }
+
+    const atualizado: UsuarioAutenticado = {
+      ...usuario,
+      nome: dados.nome ?? usuario.nome,
+      email: dados.email ?? usuario.email,
+    };
+
+    localStorage.setItem(this.usuarioStorageKey, JSON.stringify(atualizado));
+  }
+
   logout(): void {
     const token = this.getToken();
     if (!token) {
