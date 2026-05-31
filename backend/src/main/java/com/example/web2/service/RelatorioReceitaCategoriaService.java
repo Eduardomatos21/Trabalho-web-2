@@ -47,8 +47,10 @@ public class RelatorioReceitaCategoriaService {
 
             document.add(new Paragraph(" "));
 
+            BigDecimal totalGeral = BigDecimal.ZERO;
             for(Object[] linha : dados){
                 RelatorioReceitaCategoriaResponse item = toReceitaCategoria(linha);
+                totalGeral = totalGeral.add(item.total());
                 document.add(
                     new Paragraph(
                         "Categoria: " + item.categoria()
@@ -57,6 +59,9 @@ public class RelatorioReceitaCategoriaService {
                 );
 
             }
+
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Total geral: " + totalGeral));
 
             document.close();
 

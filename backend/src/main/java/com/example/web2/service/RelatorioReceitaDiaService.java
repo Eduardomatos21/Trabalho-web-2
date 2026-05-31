@@ -51,12 +51,17 @@ public class RelatorioReceitaDiaService {
             documento.add(new Paragraph("Período: " + formatarPeriodo(dataInicial, dataFinal)));
             documento.add(new Paragraph(" "));
 
+            BigDecimal totalGeral = BigDecimal.ZERO;
             for(Object[] linha : dados){
 
                 RelatorioReceitaDiaResponse item = toReceitaDia(linha);
+                totalGeral = totalGeral.add(item.total());
                 documento.add(new Paragraph("Data: " + item.dia() + " | Receita: " + item.total()));
 
             }
+
+            documento.add(new Paragraph(" "));
+            documento.add(new Paragraph("Total geral: " + totalGeral));
 
             documento.close();
 
