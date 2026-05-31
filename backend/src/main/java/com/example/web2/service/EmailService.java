@@ -31,8 +31,8 @@ public class EmailService {
             mensagem.setSubject("Senha de acesso - Web2");
             mensagem.setText(
                     "Ola, " + nomeCliente + "!"
-                            + "Sua senha temporaria de acesso e: " + senhaTemporaria
-                            + "No primeiro acesso, altere esta senha."
+                            + " Sua senha de acesso e: " + senhaTemporaria
+                            + "."
             );
 
             mailSender.send(mensagem);

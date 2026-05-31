@@ -17,12 +17,9 @@
 					<!-- TEXTO DE APRESENTAÇÃO -->
 					<div>
 						<p class="text-xs uppercase tracking-widest text-teal-700 font-semibold">Área do Funcionário</p>
-						<h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Bem-vindo de volta</h2>
+            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Bem-vindo de volta, {{ nomeUsuarioLogado }}</h2>
 						<p class="text-sm text-slate-500 mt-2">Solicitações que necessitam de atenção imediata.</p>
 					</div>
-					<ui-button variant="primary" size="md" (clicked)="navegarParaCategorias()">
-						Gerenciar categorias
-					</ui-button>
 				</div>
 			</header>
 

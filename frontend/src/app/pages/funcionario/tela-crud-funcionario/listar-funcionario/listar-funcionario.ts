@@ -77,7 +77,7 @@ export class ListarFuncionario implements OnInit {
     const funcionarioSelecionado = this.funcionarios.find((funcionario) => funcionario.id === id);
     const usuarioLogado = this.authService.getUsuarioLogado();
     if (usuarioLogado && funcionarioSelecionado?.email && usuarioLogado.email === funcionarioSelecionado.email) {
-      this.mensagemErroTexto = 'Você não pode excluir seu próprio cadastro!';
+      this.mensagemErroTexto = 'Você não pode desativar seu próprio cadastro!';
       this.mensagemErroTitulo = 'Ação não permitida';
       this.modalErroAberto = true;
       return;

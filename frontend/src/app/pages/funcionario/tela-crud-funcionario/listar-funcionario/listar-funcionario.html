@@ -38,7 +38,7 @@
                   <td class="py-3 px-4 space-x-2">
                     <div class="flex items-center gap-2">
                       <ui-button variant="secondary" size="sm" (clicked)="editarFuncionario(funcionario.id)">Editar</ui-button>
-                      <ui-button variant="danger" size="sm" (clicked)="removerFuncionario(funcionario.id)">Excluir</ui-button>
+                      <ui-button variant="danger" size="sm" (clicked)="removerFuncionario(funcionario.id)">Desativar</ui-button>
                     </div>
                     </td>
                 </tr>
@@ -55,15 +55,14 @@
 
       <ui-modal
         [isOpen]="modalAberto"
-        title="Confirmar exclusão"
-        subtitle="Esta ação não pode ser desfeita"
+        title="Confirmar desativação"
         size="sm"
         (closed)="fecharModal()">
-        <p class="text-slate-600 mb-6">Tem certeza que deseja excluir este funcionário?</p>
+        <p class="text-slate-600 mb-6">Tem certeza que deseja desativar este funcionário?</p>
         
         <div modal-footer class="flex gap-3 justify-end">
           <ui-button variant="secondary" size="sm" (clicked)="fecharModal()">Cancelar</ui-button>
-          <ui-button variant="danger" size="sm" (clicked)="confirmarExclusao()">Excluir</ui-button>
+          <ui-button variant="danger" size="sm" (clicked)="confirmarExclusao()">Desativar</ui-button>
         </div>
       </ui-modal>
       <ui-modal

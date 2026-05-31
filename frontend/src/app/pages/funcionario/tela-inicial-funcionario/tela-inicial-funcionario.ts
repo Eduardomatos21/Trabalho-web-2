@@ -87,6 +87,10 @@ export class TelaInicialFuncionario implements OnInit {
     return solicitacao.nomeCliente?.trim() || 'Cliente';
   }
 
+  get nomeUsuarioLogado(): string {
+    return this.authService.getUsuarioLogado()?.nome ?? 'Funcionário';
+  }
+
   logout(): void {
     this.authService.logout();
   }
@@ -110,11 +114,6 @@ export class TelaInicialFuncionario implements OnInit {
   navegarParaCategorias(): void {
     this.router.navigate(['/funcionario/categorias']);
   }
-
-
-  //Comentarios apenas para SR
-
-  //Não consegui mexer essa ultima semana
 
 
 }

@@ -84,7 +84,7 @@ public class ClienteService {
         return new AutocadastroClienteResponse(
                 clienteSalvo.getId(),
                 clienteSalvo.getEmail(),
-                "Cadastro concluido. A senha temporaria foi enviada por e-mail."
+                "Cadastro concluido. A senha foi enviada por e-mail."
         );
     }
 
