@@ -25,11 +25,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.web2.controller.dto.CriarSolicitacaoClienteRequest;
-import com.example.web2.controller.dto.SolicitacaoClienteDetalheResponse;
 import com.example.web2.controller.dto.RejeitarSolicitacaoClienteRequest;
 import com.example.web2.controller.dto.RelatorioReceitaCategoriaResponse;
 import com.example.web2.controller.dto.RelatorioReceitaDiaResponse;
 import com.example.web2.controller.dto.SessaoResponse;
+import com.example.web2.controller.dto.SolicitacaoClienteDetalheResponse;
 import com.example.web2.controller.dto.SolicitacaoClienteHomeResponse;
 import com.example.web2.entity.Estado;
 import com.example.web2.entity.Funcionario;
@@ -251,11 +251,9 @@ public class SolicitacaoController {
         Solicitacao solicitacao = solicitacaoRepository.findByCodigo(codigo)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitação não encontrada"));
 
-        if (solicitacao.getEstado() != Estado.PAGA &&
-            solicitacao.getEstado() != Estado.ARRUMADA &&
-            solicitacao.getEstado() != Estado.APROVADA) {
+        if (solicitacao.getEstado() != Estado.PAGA) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                "Solicitação só pode ser finalizada se estiver PAGA, ARRUMADA ou APROVADA");
+                "Solicitação só pode ser finalizada se estiver PAGA");
         }
 
         Funcionario funcionario = funcionarioRepository.findByEmailIgnoreCase(sessao.email())
