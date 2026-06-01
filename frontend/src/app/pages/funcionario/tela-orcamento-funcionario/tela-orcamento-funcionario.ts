@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, FormFieldComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
@@ -15,7 +15,6 @@ import { DateFormatUtil, FormValidationHelper, SolicitacaoHistoricoUtil } from '
   styleUrl: './tela-orcamento-funcionario.css',
 })
 export class TelaOrcamentoFuncionario implements OnInit {
-  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -39,7 +38,11 @@ export class TelaOrcamentoFuncionario implements OnInit {
   });
 
   ngOnInit(): void {
-    const codigo = this.route.snapshot.queryParamMap.get('solicitacao');
+    const solicitacaoNavegada = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
+    if (solicitacaoNavegada) {
+      this.solicitacao = solicitacaoNavegada;
+    }
+    const codigo = solicitacaoNavegada?.codigo ?? null;
     this.solicitacao = this.buscarSolicitacao(codigo);
     if (codigo) {
       this.solicitacaoService.buscarSolicitacaoFuncionarioPorCodigo(codigo).subscribe({

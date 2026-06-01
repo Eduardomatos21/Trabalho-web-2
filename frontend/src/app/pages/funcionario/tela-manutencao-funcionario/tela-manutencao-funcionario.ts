@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, FormFieldComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
-import { Funcionario } from '../../../shared/models/funcionario.model';
 import { HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
+import { Funcionario } from '../../../shared/models/funcionario.model';
 import { DateFormatUtil, FormValidationHelper, SolicitacaoHistoricoUtil } from '../../../shared/utils';
 
 @Component({
@@ -24,7 +24,6 @@ import { DateFormatUtil, FormValidationHelper, SolicitacaoHistoricoUtil } from '
   styleUrl: './tela-manutencao-funcionario.css',
 })
 export class TelaManutencaoFuncionario implements OnInit {
-  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -55,7 +54,11 @@ export class TelaManutencaoFuncionario implements OnInit {
   });
 
   ngOnInit(): void {
-    const codigo = this.route.snapshot.queryParamMap.get('solicitacao');
+    const solicitacaoNavegada = history.state?.['solicitacaoSelecionada'] as SolicitacaoCliente | undefined;
+    if (solicitacaoNavegada) {
+      this.solicitacao = solicitacaoNavegada;
+    }
+    const codigo = solicitacaoNavegada?.codigo ?? null;
     this.solicitacao = this.buscarSolicitacao(codigo);
     this.funcionariosDisponiveis = this.authService.getFuncionariosSistema();
     if (codigo) {

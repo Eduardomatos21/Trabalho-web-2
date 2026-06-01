@@ -1,10 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService, ClienteStorageService } from '../../../services';
+import { AuthService } from '../../../services';
+import { SolicitacaoService } from '../../../services/solicitacao.service';
 import { ButtonComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { EstadoSolicitacao, SolicitacaoCliente } from '../../../shared/models';
 import { DateFormatUtil, SolicitacaoUiUtil } from '../../../shared/utils';
-import { SolicitacaoService } from '../../../services/solicitacao.service';
 
 type OrdemDataHora = 'asc' | 'desc';
 
@@ -98,7 +98,6 @@ export class TelaInicialFuncionario implements OnInit {
   efetuarOrcamento(codigo: string): void {
     const selecionada = this.solicitacoes.find((s) => s.codigo === codigo);
     this.router.navigate(['/funcionario/orcamento'], {
-      queryParams: { solicitacao: codigo },
       state: { solicitacaoSelecionada: selecionada },
     });
   }
@@ -114,6 +113,11 @@ export class TelaInicialFuncionario implements OnInit {
   navegarParaCategorias(): void {
     this.router.navigate(['/funcionario/categorias']);
   }
+
+
+  //Comentarios apenas para SR
+
+  //Não consegui mexer essa ultima semana
 
 
 }

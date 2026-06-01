@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService, SolicitacaoService } from '../../../services';
 import { ButtonComponent, ModalComponent, SidebarComponent, type SidebarItem } from '../../../shared';
 import { EstadoSolicitacao, HistoricoAtualizacao, SolicitacaoCliente } from '../../../shared/models';
-import { DateFormatUtil, SolicitacaoHistoricoUtil, SolicitacaoUiUtil } from '../../../shared/utils';
+import { SolicitacaoHistoricoUtil, SolicitacaoUiUtil } from '../../../shared/utils';
 
 type SolicitacaoComHistorico = SolicitacaoCliente & {
   historico: HistoricoAtualizacao[];

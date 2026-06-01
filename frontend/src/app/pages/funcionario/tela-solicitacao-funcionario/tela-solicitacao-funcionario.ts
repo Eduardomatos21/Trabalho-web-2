@@ -103,7 +103,6 @@ export class TelaSolicitacaoFuncionario implements OnInit {
   executarAcao(solicitacao: SolicitacaoCliente): void {
     if (solicitacao.estado === 'ABERTA') {
       this.router.navigate(['/funcionario/orcamento'], {
-        queryParams: { solicitacao: solicitacao.codigo },
         state: { solicitacaoSelecionada: solicitacao },
       });
       return;
@@ -111,7 +110,6 @@ export class TelaSolicitacaoFuncionario implements OnInit {
 
     if (solicitacao.estado === 'APROVADA' || solicitacao.estado === 'REDIRECIONADA') {
       this.router.navigate(['/funcionario/manutencao'], {
-        queryParams: { solicitacao: solicitacao.codigo },
         state: { solicitacaoSelecionada: solicitacao },
       });
       return;
