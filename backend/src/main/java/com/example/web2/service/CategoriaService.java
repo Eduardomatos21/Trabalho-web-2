@@ -11,6 +11,9 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.web2.entity.Categoria;
 import com.example.web2.repository.CategoriaRepository;
 
+// Serviço responsável pelas regras de negócio relacionadas às categorias.
+// Realiza operações de cadastro, consulta, atualização, desativação e validação de categorias.
+
 @Service
 public class CategoriaService {
 
