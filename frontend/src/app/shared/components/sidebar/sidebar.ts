@@ -13,7 +13,7 @@ export type SidebarItem = {
   host: { style: 'display: contents' },
   imports: [RouterLink],
   template: `
-    <aside class="hidden lg:flex w-72 bg-linear-to-b from-teal-700 to-cyan-700 text-white flex-col self-stretch">
+    <aside class="hidden lg:flex fixed left-0 top-0 h-screen w-72 bg-linear-to-b from-teal-700 to-cyan-700 text-white flex-col z-50 overflow-y-auto">
       <div class="p-6 border-b border-teal-600/70">
         <h1 class="text-2xl font-black">{{ systemTitle }}</h1>
         <p class="text-xs text-cyan-100 mt-1">{{ panelLabel }}</p>
